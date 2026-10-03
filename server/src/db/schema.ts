@@ -11,6 +11,7 @@ import type {
   Settings,
 } from "@justmate/protocol"
 import { relations } from "drizzle-orm"
+
 import {
   boolean,
   doublePrecision,

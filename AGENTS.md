@@ -9,7 +9,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket, onboarding LLM helpers; `taste/` holds the generated swipe samples; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
-| `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
+| `ml/` | PyTorch Siamese matching model → ONNX, `scripts/match_scorer.py` NDJSON scorer; not wired into the server yet | `ml/README.md`, `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
 
 ## Commands
 
@@ -31,6 +31,8 @@ Done = lint, typecheck and tests green.
 Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them. One local change: `bump-version.yml` checks out and pushes with the `GH_TOKEN` secret (a PAT) instead of `GITHUB_TOKEN`, since tags pushed by `GITHUB_TOKEN` never start `release-on-tag`. Re-apply it after every `update`.
 
 A stable `@justmate/server` tag starts `server-release.yml` (ours, not from the toolkit): it builds `server/Dockerfile` into `ghcr.io/uteg-labs/just-mate-server` and calls the Dokploy deploy webhook (`DOKPLOY_SERVER_WEBHOOK` secret), so Dokploy pulls `:latest`. The container applies Drizzle migrations on start. Env vars live in Dokploy, mirroring `server/.env.example`.
+
+A stable `@justmate/mobile` tag also starts `eas-release.yml` (ours, not from the toolkit): EAS builds iOS and auto-submits it to TestFlight (`production` profile), and builds an internal Android APK (`preview` profile) that testers install from expo.dev. It needs the `EXPO_TOKEN` secret; signing credentials and the `production` env vars (`EXPO_PUBLIC_API_URL`, `GOOGLE_MAPS_API_KEY`) live on EAS. Run it by hand via `workflow_dispatch` to rebuild one platform.
 
 ## Hard rules
 

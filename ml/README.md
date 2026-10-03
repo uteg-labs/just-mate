@@ -1,6 +1,6 @@
 # JustMate ML
 
-PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss), exported to ONNX. The Bun/Elysia server spawns `scripts/match_scorer.py` as a long-lived subprocess for inference (newline-delimited JSON over stdin/stdout).
+PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss), exported to ONNX. `scripts/match_scorer.py` serves it as a long-lived subprocess (newline-delimited JSON over stdin/stdout). It is not wired into the server yet: live matching uses the explainable scoring in `server/src/matching`.
 
 Full process spec lives in [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md) and [`../docs/ml/PLAN.md`](../docs/ml/PLAN.md). This README is the run-it-yourself guide.
 
@@ -16,7 +16,7 @@ Full process spec lives in [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md) an
    - 3.3 [Self-test the model](#33-self-test-the-model)
    - 3.4 [Score a pair of raw profiles](#34-score-a-pair-of-raw-profiles)
    - 3.5 [Serve over stdio (for the Bun server)](#35-serve-over-stdio-for-the-bun-server)
-4. [How the Bun/Elysia server uses it](#4-how-the-bunelysia-server-uses-it)
+4. [How the Bun/Elysia server would use it](#4-how-the-bunelysia-server-would-use-it)
 5. [Train from scratch](#5-train-from-scratch)
    - 5.1 [Synthesize profiles](#51-synthesize-profiles)
    - 5.2 [Embed them with OpenAI](#52-embed-them-with-openai)
@@ -183,9 +183,9 @@ Flags:
 | `--threshold FLOAT` | `0.40` | Pair score above which `would_match` flips to `true`. F1-best on v3-best val set (AUC=0.9637). |
 | `--model PATH` | `checkpoints/model_v3_best.onnx` | ONNX model path. Resolved relative to `ml/` if not absolute. |
 
-### 3.5 Serve over stdio (for the Bun server)
+### 3.5 Serve over stdio
 
-The Bun/Elysia server consumes `scripts/match_scorer.py` as a long-lived subprocess. Wire format is newline-delimited JSON (NDJSON):
+`scripts/match_scorer.py` is built to run as a long-lived subprocess of the Bun/Elysia server. Wire format is newline-delimited JSON (NDJSON):
 
 ```bash
 uv run python scripts/match_scorer.py checkpoints/model_v3_best.onnx
@@ -218,11 +218,11 @@ uv run python scripts/match_scorer.py checkpoints/model_v3_best.onnx \
 
 `target_emb.json` and `self_emb.json` are files each holding a JSON list of 1536 floats. `--soft-jacc` defaults to 0.0; pass it for v3 models.
 
-Run serve loop foreground for dev; the server manages its lifecycle in production. Server-side see [`../server/`](../server/) and [`../docs/PROTOCOL.md`](../docs/PROTOCOL.md) §6.1 for the spawner config.
+Run the serve loop in the foreground for dev. The spawner config for the server is in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ---
 
-## 4. How the Bun/Elysia server uses it
+## 4. How the Bun/Elysia server would use it
 
 ```
 Bun server (matching loop)

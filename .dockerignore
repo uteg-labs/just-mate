@@ -1,0 +1,11 @@
+*
+!package.json
+!bun.lock
+!bunfig.toml
+!mobile/package.json
+!packages/protocol/package.json
+!packages/protocol/src
+!server/package.json
+!server/src
+!server/drizzle
+!server/taste

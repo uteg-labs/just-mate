@@ -464,6 +464,13 @@ export type Config = {
   buckets: Record<Exclude<Bucket, "cold">, number>
   zonePrecision: number
   kAnonymity: number
+  /** a confirmed plan's compass opens this long before `startsAt` */
+  planCompassLeadMs: number
+  planProposalTtlMs: number
+  /** how long an invitation stays offered to one person before the next one gets it */
+  planOfferTtlMs: number
+  planSessionTtlMs: number
+  planProposeIntervalMs: number
   /** `true` on demo sockets: `zones` skip k-anonymity, `partner_position` carries `distanceM`. */
   demo: boolean
 }
@@ -479,6 +486,11 @@ export const DEFAULT_CONFIG: Config = {
   buckets: { warm: 200, hot: 80, burning: 30 },
   zonePrecision: 6,
   kAnonymity: 3,
+  planCompassLeadMs: 900_000,
+  planProposalTtlMs: 21_600_000,
+  planOfferTtlMs: 3_600_000,
+  planSessionTtlMs: 1_800_000,
+  planProposeIntervalMs: 60_000,
   demo: false,
 }
 
@@ -496,6 +508,13 @@ export type ClientMsg =
   | { t: "dismiss"; offerId: string }
   | { t: "vanish"; sessionId: string }
   | { t: "met"; sessionId: string }
+  | ({ t: "plans_get" } & Partial<LatLng>)
+  | { t: "plan_accept"; planId: string; venueId?: string }
+  | { t: "plan_pass"; planId: string }
+  | PlanInvite
+  | { t: "plan_confirm"; planId: string }
+  | { t: "plan_cancel"; planId: string }
+  | { t: "plan_go"; planId: string }
 
 /**
  * Validates a `search_on` payload: a mode, one of its category ids, ≥ 1 unique intents of that
@@ -537,6 +556,141 @@ export function parsePosition(input: unknown): Parsed<Position> {
   return { ok: true, value: { lat, lng, acc } }
 }
 
+export type LatLng = { lat: number; lng: number }
+
+/** What kind of place a venue is; the client maps it to a label and an icon. */
+export const VENUE_KINDS = [
+  "wine_bar",
+  "cafe",
+  "board_game_cafe",
+  "beer_bar",
+  "cinema",
+  "climbing_gym",
+  "riverside",
+  "rooftop_bar",
+  "park",
+  "restaurant",
+  "bowling",
+  "museum",
+  "jazz_club",
+] as const
+export type VenueKind = (typeof VENUE_KINDS)[number]
+
+/** A public place plans happen at (`GET /api/venues`): the only coordinates a client receives. */
+export type Venue = {
+  id: string
+  name: string
+  kind: VenueKind
+  rating: number | null
+  /** `"HH:MM"` local time; `null` = always open */
+  opens: string | null
+  closes: string | null
+  lat: number
+  lng: number
+  modes: Mode[]
+  fits: Intent[]
+}
+
+export const PLAN_UNTIL = ["2h", "day"] as const
+export type PlanUntil = (typeof PLAN_UNTIL)[number]
+
+export type PlanKind = "proposal" | "invite"
+
+/** `PROTOCOL.md` › Plans: which states each side sees. */
+export type PlanState = "proposed" | "open" | "offered" | "taken" | "confirmed"
+
+/** One recipient's view of a plan; `partner` is always the other person. */
+export type Plan = {
+  id: string
+  kind: PlanKind
+  state: PlanState
+  /** you put this invitation out */
+  mine: boolean
+  mode: Mode
+  category: string
+  intents: Intent[]
+  /** ISO-8601 UTC; an open invitation: its first time */
+  startsAt: string
+  startsInMs: number
+  venueId: string
+  partner?: MatchPartner
+  /** their walk to the venue, whole minutes */
+  partnerWalkMin?: number
+  expiresInMs?: number
+  /** proposal: up to two alternative venue ids */
+  alts?: string[]
+  /** proposal: you accepted the current venue and wait for them */
+  accepted?: boolean
+  /** proposal: the current venue is one they suggested */
+  suggested?: boolean
+  /** your own invitation: all its times */
+  slots?: string[]
+  flex?: boolean
+  until?: PlanUntil
+}
+
+export type PlanRemovedReason = "expired" | "filled" | "cancelled" | "done"
+
+export type PlanInvite = {
+  t: "plan_invite"
+  mode: Mode
+  category: string
+  intents: Intent[]
+  slots: string[]
+  flex: boolean
+  venueId: string
+  until: PlanUntil
+}
+
+export const PLAN_SLOTS_MAX = 40
+
+/**
+ * Validates a `plan_invite` payload's shape: the `search_on` rules for mode, category and intents,
+ * 1–40 unique ISO times, a venue id, `flex` and `until`. Whether the venue exists and the times are
+ * still offerable is the server's call. Errors: as `search_on`, plus `invalid_slots` ·
+ * `invalid_venue` · `invalid_flex` · `invalid_until`.
+ */
+export function parsePlanInvite(input: unknown): Parsed<PlanInvite> {
+  const what = parseSearchOn(input)
+  if (!what.ok) return what
+  const v = input as Record<string, unknown>
+
+  const { slots } = v
+  if (!Array.isArray(slots) || !slots.length || slots.length > PLAN_SLOTS_MAX) return fail("slots")
+  if (!slots.every((x) => typeof x === "string" && !Number.isNaN(Date.parse(x))))
+    return fail("slots")
+  const times = slots.map((x) => new Date(x).toISOString())
+  if (!isUnique(times)) return fail("slots")
+
+  if (!isText(v.venueId, 64)) return fail("venue")
+  if (typeof v.flex !== "boolean") return fail("flex")
+  if (!isOneOf(PLAN_UNTIL, v.until)) return fail("until")
+
+  const { mode, category, intents } = what.value
+  return {
+    ok: true,
+    value: {
+      t: "plan_invite",
+      mode,
+      category,
+      intents,
+      slots: times.sort(),
+      flex: v.flex,
+      venueId: v.venueId,
+      until: v.until,
+    },
+  }
+}
+
+/** Validates a `plans_get` payload: no position, or a valid `lat`/`lng`. Error: `invalid_position`. */
+export function parsePlansGet(input: unknown): Parsed<Partial<LatLng>> {
+  if (!isObject(input)) return fail("position")
+  const { lat, lng } = input
+  if (lat === undefined && lng === undefined) return { ok: true, value: {} }
+  if (!isWithin(lat, -90, 90) || !isWithin(lng, -180, 180)) return fail("position")
+  return { ok: true, value: { lat, lng } }
+}
+
 /** The other person on a match card: their badge and nothing else. */
 export type MatchPartner = {
   vibe: string
@@ -564,7 +718,7 @@ export type ServerMsg =
       expiresInMs: number
     }
   | { t: "offer_expired"; offerId: string }
-  | { t: "session_start"; sessionId: string; expiresInMs: number }
+  | { t: "session_start"; sessionId: string; expiresInMs: number; planId?: string }
   | {
       t: "partner_position"
       sessionId: string
@@ -574,6 +728,9 @@ export type ServerMsg =
       distanceM?: number
     }
   | { t: "session_end"; sessionId: string; reason: SessionEndReason }
+  | { t: "plans"; plans: Plan[] }
+  | { t: "plan_update"; plan: Plan }
+  | { t: "plan_removed"; planId: string; reason: PlanRemovedReason }
 
 export const CloseCode = {
   NoProfile: 4002,
@@ -590,6 +747,13 @@ const CLIENT_TYPES = new Set<string>([
   "dismiss",
   "vanish",
   "met",
+  "plans_get",
+  "plan_accept",
+  "plan_pass",
+  "plan_invite",
+  "plan_confirm",
+  "plan_cancel",
+  "plan_go",
 ])
 
 /**
@@ -615,6 +779,9 @@ const SERVER_TYPES = new Set<string>([
   "session_start",
   "partner_position",
   "session_end",
+  "plans",
+  "plan_update",
+  "plan_removed",
 ])
 
 /** Server-frame counterpart of `parseClientMsg`, for clients. */

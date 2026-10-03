@@ -18,12 +18,28 @@ import { MotionScope } from "@/components/ui"
 import { AuthSheet, type AuthTab } from "@/features/auth/AuthSheet"
 import type { OnboardingStep } from "@/features/onboarding/flow"
 import { Onboarding } from "@/features/onboarding/Onboarding"
+import { type Draft, inviteOf, slotTimes } from "@/features/plans/draft"
+import { type CreateStep, PlanCreate } from "@/features/plans/PlanCreate"
+import { PlanDetail } from "@/features/plans/PlanDetail"
+import { PlanOfferCard } from "@/features/plans/PlanOfferCard"
+import { isPick } from "@/features/plans/PlanRows"
+import { PlansPage } from "@/features/plans/PlansPage"
+import { PlanWhereSheet } from "@/features/plans/PlanWhereSheet"
 import { Settings } from "@/features/settings/Settings"
 import { authCookieOf, storeAuthCookie } from "@/lib/auth-callback"
 import { authClient } from "@/lib/auth-client"
-import { usePositionReports } from "@/lib/location"
+import { lastPosition, useLastPosition, usePositionReports } from "@/lib/location"
 import { clearProfile, loadProfile, updateProfile, useProfile } from "@/lib/profile"
-import { connect, disconnect, type Live, leavePostMeet, send, useLive } from "@/lib/store"
+import {
+  connect,
+  disconnect,
+  type Live,
+  type LivePlan,
+  leavePostMeet,
+  send,
+  useLive,
+} from "@/lib/store"
+import { useVenues } from "@/lib/venues"
 import { CompassView } from "./CompassView"
 import { picksLabel } from "./categories"
 import { haptic, setHaptics } from "./haptics"
@@ -35,9 +51,36 @@ import { SearchSheet } from "./SearchSheet"
 import { SelectSheet } from "./SelectSheet"
 import { useKeyboardLift } from "./useKeyboardLift"
 
-type Place = { at: "map" } | { at: "settings" } | { at: "edit"; step: OnboardingStep }
+type Back = "map" | "plans"
+
+type Place =
+  | { at: "map" }
+  | { at: "settings" }
+  | { at: "edit"; step: OnboardingStep }
+  | { at: "plans" }
+  | { at: "plan"; id: string }
+  | { at: "offer"; id: string; back: Back }
+  | { at: "create"; step: CreateStep }
+  | { at: "where" }
 
 const MAP: Place = { at: "map" }
+const PLANS: Place = { at: "plans" }
+
+const PLACE_SHAPE: Partial<Record<Place["at"], Shape>> = {
+  settings: "settings",
+  plans: "plans",
+  plan: "plan",
+  offer: "planoffer",
+  create: "plancreate",
+  where: "where",
+}
+
+const NEW_DRAFT: Omit<Draft, "mode" | "category" | "intents"> = {
+  slots: {},
+  flex: true,
+  until: "day",
+  venueId: null,
+}
 const MS_PER_MIN = 60_000
 
 function resetTokenOf(url: string | null) {
@@ -53,8 +96,14 @@ function shapeOf(profile: Profile | null | undefined, place: Place, live: Live):
   if (live.session) return "compass"
   if (live.met && live.match) return "postmeet"
   if (live.offer && live.match) return "match"
-  if (place.at === "settings") return "settings"
+  const shape = PLACE_SHAPE[place.at]
+  if (shape) return shape
   return live.search ? "search" : "select"
+}
+
+function planAt(place: Place, plans: LivePlan[]) {
+  if (place.at !== "plan" && place.at !== "offer") return
+  return plans.find((p) => p.id === place.id)
 }
 
 function pronounOf(profile: Profile, mode: Mode): Pronoun {
@@ -76,6 +125,17 @@ export const Surface = () => {
   const [tab, setTab] = useState<Mode | null>(null)
   const [category, setCategory] = useState<string | null>(null)
   const [picks, setPicks] = useState<string[]>([])
+  const [isPlanning, setIsPlanning] = useState(false)
+  const [startVenue, setStartVenue] = useState<string | null>(null)
+  const [isEditingWhat, setIsEditingWhat] = useState(false)
+  const [planDraft, setPlanDraft] = useState<Draft>({
+    ...NEW_DRAFT,
+    mode: "date",
+    category: "",
+    intents: [],
+  })
+  const venues = useVenues()
+  const here = useLastPosition()
 
   const userId = auth?.user.id
   const hasProfile = !!profile
@@ -86,11 +146,27 @@ export const Surface = () => {
   const mode = tab ?? profile?.settings.startMode ?? profile?.mode ?? "date"
   const lift = useKeyboardLift(!!shape && SHAPES[shape].kind === "sheet")
   const { config } = live
+  const plan = planAt(place, live.plans)
+  const isPlanGone = (place.at === "plan" || place.at === "offer") && !plan
+  const draftVenues = venues.filter((v) => v.modes.includes(planDraft.mode))
+  const draftVenue = venues.find((v) => v.id === planDraft.venueId)
+  const hasHere = !!here
 
   usePositionReports(
-    !!live.search || !!live.session,
-    live.session ? config.sessionIntervalMs : config.positionIntervalMs,
+    !!live.search || !!live.session || !!live.going,
+    live.session || live.going ? config.sessionIntervalMs : config.positionIntervalMs,
   )
+
+  // venues are picked halfway from where you are, so the first fix is worth a fresh ask
+  useEffect(() => {
+    if (live.link !== "open") return
+    const at = hasHere ? lastPosition() : undefined
+    send(at ? { t: "plans_get", lat: at.lat, lng: at.lng } : { t: "plans_get" })
+  }, [live.link, hasHere])
+
+  useEffect(() => {
+    if (isPlanGone) setPlace(MAP)
+  }, [isPlanGone])
 
   useEffect(() => {
     if (!authCookie) return
@@ -138,6 +214,7 @@ export const Surface = () => {
     setTab(null)
     setCategory(null)
     setPicks([])
+    setIsPlanning(false)
   }
 
   const switchMode = (next: Mode) => {
@@ -175,6 +252,50 @@ export const Surface = () => {
     changePicks(next)
     search(live.search.mode, live.search.category, next)
   }
+
+  const planning = (on: boolean, venueId?: string) => {
+    haptic.select()
+    setIsPlanning(on)
+    setStartVenue(venueId ?? null)
+    setIsEditingWhat(false)
+    setPlace(MAP)
+    if (on) return
+    setCategory(null)
+    setPicks([])
+  }
+
+  const startPlan = () => {
+    if (!category) return
+    const what = { mode, category, intents: picks }
+    const isReady = isEditingWhat && slotTimes(planDraft).length > 0 && !!planDraft.venueId
+    setPlanDraft((d) =>
+      isEditingWhat ? { ...d, ...what } : { ...NEW_DRAFT, ...what, venueId: startVenue },
+    )
+    setPlace({ at: "create", step: isReady ? "review" : "when" })
+  }
+
+  const editWhat = () => {
+    setIsPlanning(true)
+    setIsEditingWhat(true)
+    setPlace(MAP)
+  }
+
+  const sendInvite = () => {
+    const msg = inviteOf(planDraft)
+    if (!msg) return
+    haptic.find()
+    send(msg)
+    planning(false)
+    setPlace(PLANS)
+  }
+
+  const openPlan = (p: LivePlan, back: Back) => {
+    const isTaker = back === "map" && p.mine && p.state === "taken"
+    if (isPick(p) || isTaker) return setPlace({ at: "offer", id: p.id, back })
+    setPlace({ at: "plan", id: p.id })
+  }
+
+  const leaveOffer = (back: Back) => setPlace(back === "plans" ? PLANS : MAP)
 
   const exitOnboarding = () => {
     authClient.signOut().catch(() => {})
@@ -250,10 +371,111 @@ export const Surface = () => {
             picks={picks}
             note={live.note}
             autoStopMin={Math.round(config.autoStopMs / MS_PER_MIN)}
+            plans={live.plans}
+            venues={venues}
+            interests={profile?.interests ?? []}
+            here={here}
+            isPlanning={isPlanning}
+            onMode={switchMode}
             onCategory={pickCategory}
             onPicks={changePicks}
             onFind={find}
+            onPlanning={planning}
+            onPlan={startPlan}
+            onOpenPlan={(p) => openPlan(p, "map")}
+            onAllPlans={() => setPlace(PLANS)}
           />
+        )
+
+      case "plans":
+        return (
+          <PlansPage
+            plans={live.plans}
+            venues={venues}
+            leadMs={config.planCompassLeadMs}
+            onBack={() => setPlace(MAP)}
+            onOpen={(p) => openPlan(p, "plans")}
+            onNew={() => planning(true)}
+          />
+        )
+
+      case "plancreate":
+        return (
+          place.at === "create" && (
+            <PlanCreate
+              step={place.step}
+              draft={planDraft}
+              setDraft={setPlanDraft}
+              venues={venues}
+              onWhere={() => setPlace({ at: "where" })}
+              onEditWhat={editWhat}
+              onWhen={() => setPlace({ at: "create", step: "when" })}
+              onSend={sendInvite}
+              onBack={editWhat}
+              onExit={() => planning(false)}
+            />
+          )
+        )
+
+      case "where":
+        return (
+          <PlanWhereSheet
+            venues={draftVenues}
+            intents={planDraft.intents}
+            here={here}
+            venueId={planDraft.venueId}
+            onPick={(venueId) => setPlanDraft((d) => ({ ...d, venueId }))}
+            onBack={() => setPlace({ at: "create", step: "when" })}
+            onNext={() => setPlace({ at: "create", step: "review" })}
+            onExit={() => planning(false)}
+          />
+        )
+
+      case "planoffer":
+        return (
+          place.at === "offer" &&
+          plan &&
+          profile && (
+            <PlanOfferCard
+              key={`${plan.id}:${plan.venueId}`}
+              plan={plan}
+              venues={venues}
+              pronoun={pronounOf(profile, plan.mode)}
+              onAccept={(venueId) =>
+                send(
+                  plan.mine
+                    ? { t: "plan_confirm", planId: plan.id }
+                    : { t: "plan_accept", planId: plan.id, ...(venueId && { venueId }) },
+                )
+              }
+              onPass={() => {
+                send({ t: "plan_pass", planId: plan.id })
+                leaveOffer(place.back)
+              }}
+              onLater={() => leaveOffer(place.back)}
+              onDone={() => setPlace({ at: "plan", id: plan.id })}
+            />
+          )
+        )
+
+      case "plan":
+        return (
+          plan && (
+            <PlanDetail
+              key={plan.id}
+              plan={plan}
+              venues={venues}
+              leadMs={config.planCompassLeadMs}
+              isGoing={live.going === plan.id}
+              onBack={() => setPlace(PLANS)}
+              onCompass={() => send({ t: "plan_go", planId: plan.id })}
+              onCancel={() => {
+                send({ t: "plan_cancel", planId: plan.id })
+                setPlace(PLANS)
+              }}
+              onSeeTaker={() => setPlace({ at: "offer", id: plan.id, back: "plans" })}
+            />
+          )
         )
 
       case "search":
@@ -290,6 +512,7 @@ export const Surface = () => {
               session={live.session}
               match={live.match}
               buckets={config.buckets}
+              place={venues.find((v) => v.id === sessionPlan?.venueId)?.name}
               onVanish={() => {
                 haptic.vanish()
                 if (live.session) send({ t: "vanish", sessionId: live.session.id })
@@ -314,13 +537,18 @@ export const Surface = () => {
     }
   }
 
+  const sessionPlan = live.plans.find((p) => p.id === live.planId)
   const tone = shape ? SHAPES[shape].tone : "paper"
   const isDark = tone === "ink" || tone === "night"
 
   return (
     <MotionScope reduce={profile?.settings.reduceMotion ?? false}>
       <View style={styles.screen}>
-        <StatusBar style={isDark ? "light" : "dark"} hidden={shape === "match"} animated />
+        <StatusBar
+          style={isDark ? "light" : "dark"}
+          hidden={shape === "match" || shape === "planoffer"}
+          animated
+        />
         <MapChrome
           shape={shape ?? "auth"}
           live={live}
@@ -329,6 +557,9 @@ export const Surface = () => {
           mode={mode}
           onMode={switchMode}
           onProfile={() => setPlace({ at: "settings" })}
+          venues={shape === "where" ? draftVenues : undefined}
+          venue={shape === "where" ? draftVenue : undefined}
+          onVenue={(venueId) => setPlanDraft((d) => ({ ...d, venueId }))}
         />
         {shape && (
           <Animated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, lift]}>

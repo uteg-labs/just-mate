@@ -40,8 +40,15 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1791067337100,
-      "tag": "0005_profile_embedding",
+      "when": 1791067677656,
+      "tag": "0005_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791070848410,
+      "tag": "0006_profile_embedding",
       "breakpoints": true
     }
   ]

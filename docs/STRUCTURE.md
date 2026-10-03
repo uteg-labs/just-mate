@@ -243,19 +243,19 @@ The mentors asked three things: how JustMate gets a lonely person out of the doo
 
 Stage tags: **M0** = built for HackYeah · **M1** = production path, design only. In the build, an M1 item is either absent or labelled "production path".
 
-New glyphs (Lucide; add to `DESIGN.md` §9 before use): `calendar-heart` Plans · `map-pin` venue · `repeat` Same again · `id-card` Show your badge · `ellipsis` more · `life-buoy` Need to talk to someone? · `ban` Block · `flag` Report · `history` Recent.
+New glyphs (Lucide; add to `DESIGN.md` §9 before use): `calendar-plus` Plan for later · `calendar-check` confirmed · `map-pin` venue · `send` Send invitation · `bell` reminder · `clock` when · `timer` open until · `eye-off` they see · `pencil` edit · `shuffle` same times · `sparkles` See who's in · `star` rating · `life-buoy` Need to talk to someone? · `ban` Block · `flag` Report · `history` Recent.
 
 ### New and changed shapes
 
 | Shape | Geometry · tone | What it holds | Stage |
 |---|---|---|---|
-| `select` (changed) | floating sheet · paper | + a **Plans** tile in Mate, next to the category bento | M0 |
-| `plans` (new) | floating sheet · paper | up to 3 proposed plans, then **My plans** | M0 |
-| `plan` (new) | the sheet grows into one card · paper | activity, venue, time, attendee badges, **I'm in** / **Not this one** | M0 |
-| `dayof` (new) | floating sheet · paper | still in?, leave at, status chips, **I'm here**, **Show your badge** | M0 |
-| `badgesign` (new) | full screen · ink | your badge, large, to hold up at the venue | M0 |
-| `compass` (changed) | full screen · night | also opened from a pair plan; label "{activity} · {venue}" | M0 |
-| `postmeet` (changed) | full screen · night | + **Same again next week?**; a group version with everyone who checked in | M0 |
+| `select` (changed) | floating sheet · paper | + **your plans**, **Plan for later**, **places for you** under the bento; plan mode | M0 |
+| `plans` (new) | full screen · page | proposed for you · upcoming · your invitations, **New plan** | M0 |
+| `plancreate` (new) | full screen · page | plan for later, steps 2 (when) and 4 (review) | M0 |
+| `where` (new) | tall sheet · paper over the venue map | plan for later, step 3: search and pick a venue | M0 |
+| `planoffer` (new) | card from the top · ink | a proposal, or someone's in on your invitation | M0 |
+| `plan` (new) | full screen · page | one plan: map, venue, who, timeline, **Open compass** | M0 |
+| `compass` (changed) | full screen · night | also opened from a plan; label "{activity} · {venue}" | M0 |
 | `settings` (changed) | full screen · page | + help row (M0); + plans and safety rows (M1) | M0 · M1 |
 | `report` (new) | floating sheet · paper | block, block and report | M1 |
 | `recent` (new) | full screen · page | the last 7 days of matches and plans, as badges | M1 |
@@ -264,126 +264,125 @@ New glyphs (Lucide; add to `DESIGN.md` §9 before use): `calendar-heart` Plans �
 
 ```mermaid
 flowchart LR
-    SEL[Select · Mate] -->|Plans| PL[Plans sheet]
-    PL -->|tap a plan| PC[Plan card]
-    PC -->|I'm in · Not this one| PL
-    PL -->|Back to the map| SEL
-    PL -->|joined plan, from start − 60 min| D[Day-of]
-    D -->|Can't make it · cancelled| PL
-    D -->|Show your badge| BS[Badge sign]
-    BS -->|tap| D
-    D -->|pair plan: both here| C[Compass]
-    D -->|group plan: We met| P[Post-meet]
-    C -->|We met, in burning| P
-    C -->|Vanish| SEL
-    P -->|Same again · Back to the map| SEL
+    SEL[Select] -->|Plan for later · a place| PM[Select · plan mode]
+    PM -->|Plan X, then when| W1[Plan create · when]
+    W1 -->|N times, then where| WH[Where]
+    WH -->|venue, then review| RV[Plan create · review]
+    RV -->|Send invitation| PL[Plans]
+    SEL -->|see all| PL
+    SEL -->|a proposal| OF[Plan offer]
+    PL -->|a proposal| OF
+    OF -->|Accept plan · both in| PD[Plan]
+    OF -->|Pass · x| PL
+    PL -->|someone's in| PD
+    PD -->|See who's in| OF
+    PD -->|Open compass, from start − 15 min| C[Compass]
+    PD -->|Cancel plan · Withdraw| PL
+    C -->|We met, in burning| P[Post-meet]
+    C -->|Vanish| PD
     ST[Settings] -->|Need to talk to someone?| H[Support lines]
     ST -.->|M1| R[Recent]
     R -.->|M1: Block · Report| RP[Report sheet]
 ```
 
-### 8. Plans (sheet over the map, Mate) — M0
+### 8. Plans — M0
 
-**Entry.** In Mate, the select sheet gets one more tile beside the category bento: icon `calendar-heart`, "Plans", sub "Not out yet? Pick a plan for later." Date has no Plans tile in M0 (Date plans are M1: 1:1, verified only, public venues).
+Plans are 1:1, in both modes. The app proposes them, or you put an invitation out; either way you meet one person at a public venue, at a time you both said yes to.
 
-**The sheet**
+**Select, changed.** Below the bento the sheet scrolls (top and bottom edges fade) into two sections:
 
-- The pill stays `invisible`: opening Plans makes nobody see you. Your badge appears only on a plan you said I'm in to.
-- Large title "Plans near you" · footnote "Say yes to one. It only goes ahead if enough people do."
-- Up to 3 **plan rows**: activity icon in a black circle · "{activity}" · "{venue} · {n} min on foot" · "{Thu} {19:00} · ~{60} min" · a row of mini badges + mono "{n} of {size} going".
-- **My plans** below, once you've joined one: the same rows with a state chip: `waiting for one more` · `on` · `still in?` · `cancelled`.
-- Empty: "No plans near you right now." + secondary **Find people now** (back to the category bento).
-- Ghost "Back to the map".
+- **your plans** (mono, "· {n} new" when proposals or takers are waiting; right: "see all"). Up to 3 rows, proposals first, then someone's in, then confirmed by date, then open invitations:
+  - **proposal row**: a small badge swatch · mono "{mode} · strong match" · headline "{Activity}, {day} {time}" · footnote "{venue} · halfway for you both".
+  - **confirmed row**: icon disc of the venue · mono `success` "confirmed" · headline · footnote venue.
+  - **invitation row**: intent icon disc (solid once taken) · headline ("+{n}" when it has more times) · footnote venue · badge `open` (gray) or `someone's in` (glow).
+  - Empty: "No plans yet. We'll propose some when a strong match is free when you are."
+  - "See all {n} plans" when there are more than 3. Secondary **Plan for later** (`calendar-plus`).
+- **places for you** (right: "from your interests"): a horizontal strip of venue cards (the venue's icon on the map colour, so the strip stays light · name · "you like {interest}" or the venue's own line · "{n} min"). Tapping one starts plan mode with that venue picked.
 
-**The plan card** (tap a row; the sheet grows)
+**Plan mode** (step 1 of 4). The sheet grows over the map; the plans and places sections hide, and the head becomes mono "plan for later · step 1 of 4" · large title "What's the plan?" · `x` (Leave plan mode) · a Date / Mate `Segmented`. The bento stays; the footer is **Plan {picks}, then when** (disabled "Pick what you'd do").
 
-- Black circle with the intent's icon · mono "plan · {category}" · large title "{activity}" (e.g. "chess").
-- Rows: "{venue}" with "{n} min on foot" — the venue appears on the map as the **only pin** · "{Thu 19:00} · ~{60} min" · "for {size}".
-- **Who's going**: their lanyard badges, small, each with its vibe line; mono "{n} of {size} going". Never names, never distance to a person.
-- Footnote: "Goes ahead once {min} people are in. If it doesn't, we'll tell you before you leave."
-- Primary **I'm in** · ghost **Not this one** (silent; no reason asked).
-- After **I'm in**: your badge drops into the row labelled "you" (spring, `DESIGN.md` §13.5); the button becomes disabled "You're in"; tertiary **Can't make it** appears.
-- When the plan reaches its minimum: chip `on` + success haptic, on every attendee's phone at the same moment.
-- Limit: at 3 open plans, **I'm in** is disabled: "You're in 3 plans. That's plenty."
+**When** (`plancreate`, step 2 of 4). Back · step dots · close. Title "When works?" · sub "Pick every day and time you could make. More options reach more people."
 
-**Copy rules.** Never "{name} declined" or "{name} left": counts change silently ("3 of 4 going" → "2 of 4 going"). A cancelled plan never says who dropped out.
+- mono "days" + "{n} picked"; a horizontal strip of 10 day chips (today, tomorrow, "thu 8", …).
+- A card per picked day: "{Thursday}" + mono date · "{n} times" or "pick times" · `x`. Time chips 09:00 · 11:00 · 13:00 · 15:00 · 17:30 · 18:00 · 19:00 · 19:30 · 20:00 · 21:00 (past times hidden today; "Too late for today."). A new day copies the previous day's times.
+- Ghost **Use {Thursday}'s times for every day** when they differ.
+- Card "Flexible by 30 min" · "Reaches people who are almost free." · switch.
+- CTA **{n} times, then where** (disabled "Pick a day and a time").
 
-### 9. Day-of (sheet over the map) — M0
+**Where** (`where`, step 3 of 4). The page drops into a tall sheet; above it the map shows the venues as labelled markers (the picked one dark, with a dashed line from your dot). Tap a marker or a row. Title "Where?" · "tap the map or search" · field "Search bars, cafés, parks" · a card of venue rows (icon disc · name · "{kind} · ★ {rating} · {n} min walk · {hours}" · a check circle), venues that fit the plan first. Empty search: "Nothing called "{q}" nearby. Tap the map instead." CTA **{venue}, then review** (disabled "Pick a place"). Public venues only, never a dropped pin.
 
-From 60 minutes before the start the joined plan becomes the day-of sheet (M0: when you open the app; M1: push).
+**Review** (`plancreate`, step 4 of 4). Title "Send it out?" · sub "You don't pick who. One compatible person free at one of your times can take it."
 
-- **Still in?** card: "{activity} at {venue} · {19:00}" · primary **Still in** · ghost **Can't make it**. If confirmations fall below the minimum: "Not enough people this time. Here's another one." with one alternative plan row.
-- **Leave at {18:52}** in large title · "{9} min on foot" (computed on the phone from your position and the venue) · tertiary **Open in Maps** (hands off to Apple / Google Maps for directions).
-- **Status chips**: "on my way" · "5 min late" · "can't make it". Others see the chip as a mono line under your badge. No free text, ever.
-- **I'm here**: enabled within ~100 m of the venue (demo mode: always). Then a **spot chip**: "by the window" · "at the bar" · "outside" · "at the door". Others see "here · by the window".
-- **Show your badge** → `badgesign`: your badge full-screen on ink, "Hold this up.", screen brightness nudged up; tap anywhere to close.
-- **Pair plan**: once both are here, the sheet morphs into the compass (§5) with the label "{activity} · {venue}"; the 10-minute window, buckets, **Vanish** and **We met** work as in §5.
-- **Group plan**: primary **We met** once at least two people are here → post-meet.
-- **Vanish** (danger, small) leaves the plan at once; the others only see the count drop.
+- A card: small venue map · rows what "{picks} · {mode}" · when "{day} {time}" or "{n} times · {d} days" with a line per day, plus "± 30 min" · where "{venue}". Each row reopens its step.
+- mono "keep it open until" · `Segmented` "2 h before" / "the day before".
+- Three lines: "We offer it to compatible people, one at a time." · "When someone's in, you see their vibe and the time they picked, then confirm." · "No faces, no names. Just a vibe, a place and a time."
+- Primary **Send invitation** (`send`) → plans; the sheet leaves plan mode.
 
-### 10. Post-meet, additions — M0
+**Plan offer** (`planoffer`, ink card from the island, like a match). `x` (Decide later) top-right. Their lanyard badge, eyebrow "{her | his | their} vibe", their vibe line, tag "verified · 18+" (date) or "verified". Under it:
 
-- **Pair**: as §6, plus tertiary **Same again next week?** (`repeat`) → "waiting for them…" → "Thu 19:00 again. See you there." It creates the same plan for the same two people, +7 days, already `on` in My plans.
-- **Group**: the badges of everyone who checked in, in a row with first names: **"Say hi to Sam, Mia and Olek."** One opener for the table. **Keep in touch** per person (tap their badge; mutual as in §6). **Same again next week?** for the whole group: the new plan goes ahead with everyone who taps it, if that's at least the minimum.
+- mono "a plan for you · {mode}" + "expires in {6 h}", or "someone's in · your invitation".
+- A card: mono date "thu 8 oct" · title "{Thursday}, {19:30}" · an intent pill · a small map with the venue · headline venue · "{kind} · {n} min for you, {m} for them" (proposal) or the venue meta (someone's in).
+- Proposal only: chips for the venue and its two alternatives.
+- Glow **Accept plan** · **Suggest this place** (after picking another chip) · **Confirm plan** (someone's in). Then "waiting for them…" → "you're both in" (`success`) → plan. Ghost **Pass**.
+- Footnote: "Confirms only if they accept too." · "They see your pick and accept it, or it expires." · "If you pass, it goes to someone else. They only see 'plan filled'."
 
+**Plans** (`plans`, full page). Back · large title "Plans" · "Meet later, same rules. No faces, no chat." Sections: **proposed for you · {n}** (right "by the matching model"; empty "Nothing proposed right now. We'll ping you when a strong match is free when you are.") · **upcoming · {n}** (cards with a small map, "confirmed · {mode}", headline, venue, "compass at {18:45}") · **your invitations · {n}** (right "you don't pick who"; empty "Pick a time and a place. We offer it to compatible people."). Primary **New plan**.
+
+**Plan** (`plan`, full page). The venue map on top (300 pt, fading into the page) with a back button. Mono "confirmed · {mode} · {date}" (`success`) or "your invitation · open | someone's in · {n} times". Large title. Venue disc · name · "{meta} · {hours}".
+
+- Confirmed: `VibeCard` "who you're meeting" with their vibe line. Rows: Reminder {17:30} · Compass opens {18:45} · Names unlock "when you meet".
+- Invitation: card "You don't pick who." · "We offer it to compatible people free at one of your times. The first one in picks a time, shows up here as a vibe, and you confirm." A row per day with its times. Rows: Offered to "compatible · free then" · Open until "2 h before | the day before" · They see "vibe · place · time".
+- Footer, confirmed: glow **Open compass** (from start − 15 min, else secondary disabled "Compass opens at {18:45}") · ghost **Can't make it** → **Keep it** / danger **Cancel plan** + "They see "plan cancelled". No reason asked."
+- Footer, invitation: glow **See who's in** (taken) or secondary **Withdraw invitation**.
+
+**Compass from a plan.** Both phones tap **Open compass**; the compass (§5) opens with the label "{activity} · {venue}" and a 30-minute window. Vanish returns to the plan; **We met** → post-meet as in §6, and the plan is done.
+
+**Copy rules.** Never "{name} declined" or "{name} passed". A passed proposal only expires; a passed taker only sees "plan filled"; a cancelled plan says "plan cancelled", never why.
 ### 11. Settings, additions
 
 | Group | Rows | Stage |
 |---|---|---|
 | help | **Need to talk to someone?** → a page "You don't have to sort it out alone." with the support lines for your country, tap to call. Static list; the app never asks why. | M0 |
-| plans | Invite me to plans (switch, off) · footnote "We'll suggest at most one a day, only when you're usually around." | M1 (needs push) |
-| privacy and safety | Verified only (switch) · Meeting point first (switch; on by default in Date) · Women-only plans (switch) · Trusted contact · Recent ("last 7 days") · My reports | M1 |
+| plans | Propose plans to me (switch, on) · footnote "We'll suggest at most one at a time, only when you're usually around." | M1 (needs push) |
+| privacy and safety | Verified only (switch) · Meeting point first (switch; on by default in Date) · Trusted contact · Recent ("last 7 days") · My reports | M1 |
 
 ### 12. Block and report — M1
 
-- **Entry points**: their badge on post-meet (`more`), an attendee badge on a plan card (`more`), **Recent**, and a 10-second toast after any Vanish: "Session ended. Report them?" (Vanish itself stays one tap, no confirmation.)
-- **Block sheet**: "Block {name | this person}?" · "They won't be matched with you or put in your plans again. They're not told." · danger **Block** · secondary **Block and report**.
+- **Entry points**: their badge on post-meet (`more`), their badge on a plan (`more`), **Recent**, and a 10-second toast after any Vanish: "Session ended. Report them?" (Vanish itself stays one tap, no confirmation.)
+- **Block sheet**: "Block {name | this person}?" · "They won't be matched or planned with you again. They're not told." · danger **Block** · secondary **Block and report**.
 - **Report**: reason chips — made me uncomfortable · followed me · didn't take no · fake profile · looks under 18 · other — and an optional field "Anything the safety team should know?" (goes to people who review it, never to them) · **Send report**. Done: "Thanks. They're blocked. We review every report within 24 hours."
 - **Recent** (full page): "Recent" · "Last 7 days. Badges only, never places." Rows: their badge · "matched · Tue" or "plan · chess · Thu" · **Block** / **Report**.
-
 ### Use cases (additions)
 
 | # | Use case | Actor · pre | Main flow | Post |
 |---|---|---|---|---|
-| UC15 | Join a plan | Mate, on select | **Plans** → plan card → **I'm in** | your badge on the plan; `waiting for one more` or `on` |
-| UC16 | Plan goes ahead | joined plan | attendees reach the minimum | `on` on every attendee's phone at once |
-| UC17 | Plan doesn't happen | joined plan | not filled by start − 60 min, or confirmations drop below the minimum | everyone told before leaving; one alternative offered |
-| UC18 | Confirm | start − 60 min | **Still in** / **Can't make it** | confirmed, or left silently |
-| UC19 | Arrive | plan `on` | leave at → walk → **I'm here** + spot chip | others see "here · {spot}" |
-| UC20 | Find each other | at the venue | pair: compass (UC6) · group: **Show your badge** | **We met** → post-meet |
-| UC21 | Same again | post-meet | everyone taps **Same again next week?** | the same plan, same people, +7 days |
+| UC15 | Take a proposal | on select, a proposal in your plans | proposal card → **Accept plan** | confirmed once they accept too, else it expires |
+| UC16 | Suggest another place | proposal card | pick an alternative venue chip → **Suggest this place** | they accept the new venue, or it expires |
+| UC17 | Pass | proposal or someone's in | **Pass** | silent: the other side sees it expire, or "plan filled" |
+| UC18 | Plan for later | on select | **Plan for later** → what → when → where → review → **Send invitation** | invitation `open`, offered one person at a time |
+| UC19 | Someone's in | your invitation is taken | someone's-in card → **Confirm plan** | confirmed on both phones |
+| UC20 | Meet at the plan | confirmed, from start − 15 min | **Open compass** on both phones → compass (UC6) | **We met** → post-meet |
+| UC21 | Can't make it | confirmed | plan detail → **Can't make it** → **Cancel plan** | they see "plan cancelled" |
 | UC22 | Get help | any | Settings → **Need to talk to someone?** | local support lines, tap to call |
-| UC23 | Block or report (M1) | post-meet, plan, Recent, after Vanish | **Block** / **Block and report** | never matched or grouped again; report reviewed |
-| UC24 | Demo time skip (dev) | dev build | hidden toggle: the demo plan starts now | still in?, leave at and I'm here reachable on stage |
+| UC23 | Block or report (M1) | post-meet, plan, Recent, after Vanish | **Block** / **Block and report** | never matched or proposed again; report reviewed |
+| UC24 | Demo time skip (dev) | demo socket | plans start at now + 2 min | the compass opens on stage |
 
 ### Screen-state summary (additions)
 
 | Shape | States | Exits |
 |---|---|---|
-| plans | empty / proposals / proposals + my plans | tap a row → plan · Back to the map → select |
-| plan | open / joined: waiting · on / full / cancelled | I'm in, Not this one, Can't make it → plans |
-| dayof | still in? / leave at / on my way / here | pair, both here → compass · group, We met → postmeet · Can't make it, cancelled → plans |
-| badgesign | — | tap → dayof |
-| postmeet | + same again: idle / waiting / again | Back to the map → select |
+| select | + plans and places sections / plan mode | **Plan for later** → plan mode · a plan row → planoffer or plan · see all → plans |
+| plans | proposals / upcoming / invitations, each possibly empty | row → planoffer or plan · New plan → select in plan mode · back → select |
+| plancreate | when / review | where → where · back, close → select |
+| where | no place / place picked | back → plancreate (when) · next → plancreate (review) |
+| planoffer | idle / waiting for them / you're both in | accept → plan · Pass, x → where it came from |
+| plan | confirmed: now / later / can't make it · invitation: open / someone's in | Open compass → compass · See who's in → planoffer · Cancel, Withdraw → plans |
 | report (M1) | block / reasons / sent | done → the shape it came from |
 | recent (M1) | — | row → report · back → settings |
 
-### Protocol gaps (Plans)
+### Protocol (Plans)
 
-Protocol first: these go into `PROTOCOL.md` and `@justmate/protocol` before a screen relies on them. A suggested shape, not a decision:
-
-- **P1 · Plan list.** `plans_get` over the socket, answered with up to 3 `Plan {id, intent, category, venue {id, name, lat, lng}, startsAt, durationMin, size, min, attendees: Badge[], state}`. The server uses the `position` the client sent just before, in memory only — never as URL query parameters, which end up in logs. Venue coordinates are the only coordinates a client receives.
-- **P2 · Join and leave.** `plan_join {planId}` / `plan_leave {planId}`; leaving is silent to the others.
-- **P3 · Live updates.** `plan_update {plan}` to every attendee when the count or the state changes (`waiting | on | cancelled | dissolved`), so `on` lands on all phones at once.
-- **P4 · Still in.** `plan_confirm {planId}` from start − 60 min; the server cancels below the minimum and sends one alternative.
-- **P5 · Status and arrival.** `plan_status {planId, status: on_my_way | late | cant_make_it | here, spot?: window | bar | outside | door}`; the server checks `here` against the venue (≤ ~100 m), demo mode exempt.
-- **P6 · Pair compass from a plan.** When both attendees of a pair plan are `here`, `session_start` carries `planId`; the rest is the existing compass flow (`partner_position`, `met`, `vanish`).
-- **P7 · Group met.** `met {planId}` → `session_end {met}` to everyone who checked in, with first names (gap 6 in "Protocol gaps" below).
-- **P8 · Same again.** `again {planId}`; when everyone who checked in has tapped it (or at least the minimum, for groups), `plan_update` delivers the new plan (+7 days).
-- **P9 · Mode and age.** Plans are Mate-only in M0; `mode` is already on the wire (gap 1 in "Protocol gaps" below, resolved). The mate age rule applies: a non-adult is only ever grouped with non-adults.
-- **P10 · Venues.** A seeded server-side list of ~15 public venues in Kraków with intents and opening hours; no client endpoint beyond what `Plan.venue` carries.
-- **P11 · Demo time skip.** Dev-only: a demo plan whose `startsAt` is now + 2 min, plus a toggle that jumps to the start.
-- **P12 · M1.** Block, report and Recent endpoints (opaque ids, 7 days, no positions), verified flags, push for invites and reminders.
+The wire contract is `PROTOCOL.md` › Plans. Venue coordinates are the only coordinates a client receives; the partner's walk arrives as minutes.
 
 ## Use cases
 

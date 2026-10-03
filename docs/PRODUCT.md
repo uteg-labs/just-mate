@@ -92,11 +92,11 @@ How do you get a lonely, maybe low person to actually go? That is the product's 
 | Barrier | Mechanic | Stage |
 |---|---|---|
 | No energy to initiate | **The app proposes, you only say yes.** One concrete plan (activity, place, time, walk time) instead of a menu to browse. Inspired by behavioural activation (small, scheduled, concrete activities), as a design principle, not a clinical claim (§3.1). | M0 |
-| "Will anyone come?" | **Social proof without faces:** "2 of 4 going" plus their vibe badges. You know who is coming before you go, not what they look like. | M0 |
-| Fear of being stood up | **A plan goes ahead only when enough people confirm.** A "still in?" check before the start; if attendance drops below the minimum, everyone is told before leaving and offered another plan. | M0 in-app · M1 push |
-| Talking is hard | **Activity-first plans:** board games, a walk, climbing, a quiz — something to do side by side. Small groups (3–4) by default in Mate; 1:1 is an option, not the default. | M0 |
-| Commitment feels big | **Short and time-boxed:** every plan has a soft end ("~60 min"); leaving is a status chip, not an apology. | M0 |
-| Day-of hesitation | **"Leave at 18:52 · 9 min on foot"** on the plan card; a push reminder in M1. | M0 · M1 push |
+| "Will anyone come?" | **Social proof without faces:** the vibe badge of the one person you're meeting, before you go. You know who is coming, not what they look like. | M0 |
+| Fear of being stood up | **A plan is on only when both say yes.** Both accept a proposal, or you confirm whoever took your invitation. "Can't make it" reaches the other side before they leave. | M0 in-app · M1 push |
+| Talking is hard | **Activity-first plans:** board games, a walk, climbing, a quiz — something to do side by side, at a public venue picked for it. | M0 |
+| Commitment feels big | **Short and time-boxed:** every plan has a soft end; "Can't make it" is one tap, not an apology. | M0 |
+| Day-of hesitation | **"Compass opens at 18:45"** and a reminder 2 h before on the plan card; a push reminder in M1. | M0 · M1 push |
 | One meeting doesn't fix loneliness | **Same again next week?** after every plan and meeting; if everyone taps it, the same people get the same slot. Later: **circles**, the same 3–4 people weekly for four weeks, because friendship needs repeated time (§2). | M0 one tap · v1 circles |
 | A small push helps | **Venue perk on check-in** (e.g. first coffee −50%), paid by the partner venue. | M1 |
 | Spam kills trust | **At most one new invite a day, only in your "when are you around" slots**; declines are silent. | M1 (needs push) |
@@ -116,15 +116,15 @@ Step 1 (the profile) is shared by both loops; steps 7–8 are how both loops end
 
 ### 5.3 The Plan loop (when you need a reason to go)
 
-1. **Open Plans.** In Mate, the select sheet has a **Plans** tile next to the category bento ("Not out yet? Pick a plan for later."). Opening it exposes nothing: other people only see your badge after you say I'm in.
-2. **The app proposes.** Up to three plans for today and tomorrow, each concrete: an activity from your interests and picks, a public venue within your walk setting (5 / 10 / 15 min), a time inside your "when are you around" slots, a size (2–4), and who's going so far as vibe badges ("2 of 4 going"). No list of people, no search.
-3. **I'm in.** One tap; your badge joins the plan. At most three open plans per person.
-4. **The plan is on** once the minimum is reached (2 for a pair, size − 1 for a group); until then it reads "waiting for one more". A plan that hasn't filled an hour before the start quietly dissolves, and you're offered another one.
-5. **Still in?** From 60 minutes before the start, everyone confirms (M0: on the plan card when you open the app; M1: push). If confirmations drop below the minimum, the plan is cancelled for everyone *before* they leave.
-6. **Leave at 18:52.** Walk time from where you are to the venue, computed on the phone. The venue is the only point on your map.
-7. **At the venue.** Within ~100 m, **I'm here** plus a spot chip ("by the window", "at the bar", "outside"). Status chips replace chat: "on my way", "5 min late", "can't make it". **Show your badge** turns the phone into a full-screen sign to hold up. In a pair plan, the person compass (bearing + bucket, as in Now) unlocks once both are here.
-8. **We met → post-meet**, as in Now: names of everyone who checked in unlock, keep in touch is mutual per person, and **Same again next week?** re-creates the plan for the same people if all of them tap it.
-9. **Leave any time.** "Heading out" is a chip; Vanish works as in Now.
+Plans are 1:1, in both modes, and come two ways: the app proposes one, or you put one out yourself.
+
+1. **The app proposes.** Below the category bento, **your plans** lists what the matcher made for you: a compatible person's vibe badge, an activity from your shared interests, a public venue halfway between you, and a time inside your "when are you around" slots. Two alternative venues sit under it. Opening the sheet exposes nothing: the other person only sees your badge on their own proposal.
+2. **Accept, pass, or suggest a place.** **Accept plan** confirms only if they accept too ("waiting for them…" → "you're both in"). Picking another venue turns the button into **Suggest this place**; they see your pick and accept it, or it expires. **Pass** is silent: the other side only sees the proposal expire.
+3. **Or plan it yourself.** **Plan for later** (or a venue under **places for you**) puts the sheet into plan mode: what (the same bento), when (several days, several times each, optionally flexible by 30 min), where (a public venue on the map or from search), review, **Send invitation**. You don't pick who: it is offered to compatible people free at one of your times, one at a time, and stays open until 2 h before or the day before.
+4. **Someone's in.** The first person to take it picks one of your times. You see their vibe badge, the time and the place, then **Confirm plan** or **Pass** (it goes to someone else; they only see "plan filled").
+5. **Confirmed.** The plan card shows the reminder (T−2 h, push in M1) and when the compass opens (T−15 min). Names still unlock only when you meet.
+6. **At the plan.** **Open compass** runs the same walk as Now (bearing + bucket, never a pin, up to 30 minutes), then **We met → post-meet**.
+7. **Can't make it.** One tap, no reason asked; the other side sees "plan cancelled".
 
 ## 6. Screen specification
 
@@ -186,15 +186,17 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), plans (invite me to plans, M1 with push), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, blocked people, download my data; M1: verified-only, meeting point first, women-only plans, trusted contact, my reports), help ("Need to talk to someone?" with local support lines, §3.1), account (email, log out, delete account).
 
-### 6.8 Plans (Mate, M0)
+### 6.8 Plans (Date and Mate, M0)
 
-Screens and exact copy go into `STRUCTURE.md` (a new `plans` shape) and the wire contract into `PROTOCOL.md` before code (protocol first). Product intent:
+Screens and exact copy are in `STRUCTURE.md` §8; the wire contract is `PROTOCOL.md` › Plans. Product intent:
 
-- **Entry**: a **Plans** tile in the Mate select sheet, next to the category bento: "Not out yet? Pick a plan for later."
-- **Plan card** (paper): activity and icon ("board games"), venue name and "9 min on foot", time ("Thu 19:00 · ~90 min"), a row of mini badges with "2 of 4 going", primary **I'm in**, ghost **Not this one** (silent, no reason asked).
-- **My plans**: each joined plan with its state: "waiting for one more" · "on" · "still in?" · cancelled ("Not enough people this time. Here's another one.").
-- **Day-of card**: "Leave at 18:52", the venue as the only pin on the map, status chips, **I'm here**, **Show your badge**.
-- **After**: the post-meet surface (§6.6) with everyone who checked in, Keep in touch per person, and **Same again next week?**
+- **Entry**: below the bento the select sheet scrolls into **your plans** (up to three, "see all") with **Plan for later**, then **places for you** (venues that fit your interests; tapping one starts a plan there).
+- **Proposal card** (ink, drops from the island like a match): their badge ("her vibe"), "a plan for you · date", "expires in 6 h", day and time, the venue on a small map, "9 min for you, 7 for them", alternative venues as chips, **Accept plan** (or **Suggest this place** after picking another venue), ghost **Pass**, "Confirms only if they accept too."
+- **Plan for later**: what → when → where → review, four steps. When takes several days with several times each and "Flexible by 30 min". Where is a public venue picked on the map or from search. Review: **Send invitation**, "You don't pick who."
+- **Someone's in** (ink card): their badge, the time they picked, the place, **Confirm plan** / **Pass** ("If you pass, it goes to someone else. They only see 'plan filled'.").
+- **Plans page**: proposed for you · upcoming · your invitations ("open" / "someone's in"), and **New plan**.
+- **Plan detail**: the venue on a map, title, venue meta, who you're meeting (their vibe) or "You don't pick who."; reminder, compass opens, names unlock; **Open compass** from T−15 and **Can't make it** → "They see 'plan cancelled'. No reason asked."
+- **Copy rules**: never "X declined" or "X passed". A passed proposal only expires; a passed taker only sees "plan filled", the same way a dismissed match only "expires" (§6.4).
 - **Copy rules**: never "X declined" or "X left". Counts change silently ("3 of 4 going" → "2 of 4 going"), the same way a dismissed match only "expires" (§6.4).
 
 ## 7. Matching system
@@ -236,22 +238,23 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 
 **Vibe lines and badges.** One wry line in two lowercase clauses (*"quietly funny — will out-argue you about pizza"*), written from your onboarding answers, rerolled until you keep it. It hangs on a badge whose colours, pattern and icon are designed deterministically from your interests and answers (`DESIGN.md` §13.5). At the match moment you see *their* badge; after you've met, an opener written for the pair replaces "hey". Demo: canned lines and openers, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated.
 
-**Plan matching (M0, explainable).** Plans reuse the gates and the score above, stretched over time instead of distance-right-now:
+**Plan matching (M0, explainable).** Plans are 1:1 and reuse the gates and the score above, stretched over time instead of distance-right-now:
 
 ```
-plan      = { id, intent, venueId, startsAt, size (2–4), min, attendees[], state }
-candidate ⇔ mode = mate ∧ not blocked ∧ not in cooldown ∧ open plans < 3
-group ok  ⇔ shared intent ≥ 1 ∧ pairwise compat ≥ 0.45 ∧ overlapping "around" slot
-            ∧ every member's walk to the venue ≤ their walk setting (5 / 10 / 15 min)
-venue     = among seeded venues tagged with the intent and open in the slot,
-            the one that minimises the longest walk in the group (nobody walks much further)
+plan      = { id, kind (proposal | invite), mode, category, intents[], venueId, startsAt, members[2], state }
+proposal  ⇔ the profile rules (mode, age, safety) ∧ compat ≥ 0.45 ∧ an intent from shared interests
+            ∧ an overlapping "around" slot ∧ both anchors within 15 min on foot of the venue
+venue     = among seeded venues for the mode that fit the intent, the one that minimises the longer walk
+            (nobody walks much further); the next two are offered as alternatives
+invite    → offered to the best-scoring compatible person free at one of its times, one at a time
+            (offer TTL, then the next person) until "open until" passes
 ```
 
-- **Venues.** M0 uses a seeded list of ~15 hand-tagged public venues in Kraków (intents, opening hours); partner venues add their own slots in M1 (§16).
-- **Filling.** A plan is proposed to up to 2× its size; the first to tap I'm in fill it. Minimum to go ahead: 2 for a pair, size − 1 for a group.
-- **Pairs who met once** (M1). Two people who met and didn't both tap Keep in touch or Same again are not put in the same plan or match again for 30 days; a block makes it permanent (§10.2).
-- **Age.** The mate age rule from §10 applies to plans too: a non-adult is only ever grouped with non-adults.
-- **Ghosts** never join real plans; demo mode may show canned attendee badges, labelled as canned (§18).
+- **Venues.** M0 uses a seeded list of ~15 hand-tagged public venues in Kraków (modes, intents, opening hours); partner venues add their own in M1 (§16).
+- **One proposal at a time.** A person has at most one open proposal; passing or letting it expire frees the slot for the next one.
+- **Pairs who met once** (M1). Two people who met and didn't both tap Keep in touch are not proposed to each other again for 30 days; a block makes it permanent (§10.2).
+- **Age.** The age and safety rules from §10 apply to plans unchanged: a non-adult is only ever paired with non-adults, and date plans need both adults.
+- **Ghosts** never join plans.
 
 ## 8. Zones & location architecture
 
@@ -260,7 +263,7 @@ venue     = among seeded venues tagged with the intent and open in the slot,
 - **Data flow:** client sends position every ~2 s (while searching) → server keeps it in-memory keyed by socket → computes zone → matches → relays position *only* between mutually-accepted partners *only* during the session → everything discarded on disconnect/vanish/TTL. No database. No history. No logs of positions.
 - **Transport: one WebSocket per client** (Elysia `ws`), message schema in `docs/PROTOCOL.md`. All real-time events — zones, match offer, partner position, expiry — ride this socket. **No remote push in M0:** the app is in the foreground whenever search mode is on (that is the product), so push adds EAS/APNs/FCM setup time and a failure mode without adding anything the jury can see. Remote push is an M1 item (search mode in background).
 - **Demo mode:** scripted converging positions driven by a dev-build toggle (indoor GPS reality); identical pipeline. Scripted coordinates are expressed relative to the stage (A = stage-left end, B = stage-right end, both facing the audience) because the compass arrow uses the *real* magnetometer heading — if the scripted bearing does not match the physical layout, the arrow visibly points off-stage.
-- **Plans and venues.** Venues are the only coordinates a client ever receives. Candidate venues are picked server-side from the position you send when you open Plans (in memory, then discarded); the "leave at" time is computed on the phone. A plan stores *who* is going, never *where they are*. M0: plans live in server memory. M1: a plan and its attendee ids are kept until 24 h after it ends (so a report can still name the pair), then deleted; an opt-in **usual area** (a district you pick, stored as geohash-5 ≈ 4.9 × 4.9 km, never GPS history) lets invites arrive before you open the app.
+- **Plans and venues.** Venues are the only coordinates a client ever receives. Venue picks use an *anchor*: the position you send when you open the app, rounded to a geohash-6 cell and kept with your plans; the other person's walk is sent as minutes, never as a place. A plan stores *who* is going and *which venue*, never *where they are*. Plans live in Postgres until 24 h after the start (so a report can still name the pair), then are deleted. M1: an opt-in **usual area** (a district you pick, stored as geohash-5 ≈ 4.9 × 4.9 km, never GPS history) lets proposals arrive before you open the app.
 
 ## 9. Match session and plan lifecycle (state machines)
 
@@ -279,12 +282,14 @@ Full event-by-event schema (client ↔ server) is in `docs/PROTOCOL.md`; it is t
 **Plan lifecycle (M0):**
 
 ```
-proposed → I'm in (n < min) → waiting → I'm in (n ≥ min) → on
-waiting  → T−60 min, still n < min → dissolved ("here's another one")
-on       → still-in check from T−60 min → on | cancelled (n < min, everyone told before leaving)
-on       → start → at venue (I'm here ×n; pair plans unlock the compass) → we met
-         → post-meet (names · keep in touch · same again? → new plan, same people, +7 days) → done
-any member → can't make it | vanish → n − 1, silent to the others (may cancel if n < min)
+proposal  proposed → both accept → confirmed
+          proposed → one side suggests another venue → proposed (the other side accepts it, or it expires)
+          proposed → pass | TTL → gone (the other side only sees it expire)
+invite    open → offered to one compatible person at a time → taken (they picked one of your times)
+          taken → you confirm → confirmed | you pass → open again (they only see "plan filled")
+          open → "open until" passes → gone
+confirmed → T−15 min, both open the compass → walk (30 min TTL) → we met → post-meet → done
+confirmed → can't make it (either side) → cancelled (the other side sees "plan cancelled", no reason)
 ```
 
 ## 10. Safety & privacy by design (threat model)

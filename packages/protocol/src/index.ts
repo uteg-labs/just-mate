@@ -668,7 +668,7 @@ export function parsePlanInvite(input: unknown): Parsed<PlanInvite> {
       mode,
       category,
       intents,
-      slots: times.toSorted(),
+      slots: times.sort(),
       flex: v.flex,
       venueId: v.venueId,
       until: v.until,

@@ -1,6 +1,6 @@
 import * as Linking from "expo-linking"
 import { useLocales } from "expo-localization"
-import { DarkTheme, router, Stack, ThemeProvider } from "expo-router"
+import { DefaultTheme, router, Stack, ThemeProvider } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useRef, useState } from "react"
 import { Alert } from "react-native"
@@ -11,8 +11,16 @@ import i18n, { resolveLanguage } from "@/localization/i18n"
 import { colors } from "@/theme/colors"
 
 const theme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: colors.bg, primary: colors.glow },
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.fg1,
+    background: colors.background,
+    card: colors.surfaceCard,
+    text: colors.fg1,
+    border: colors.separator,
+    notification: colors.glow,
+  },
 }
 
 export default function RootLayout() {
@@ -57,14 +65,19 @@ export default function RootLayout() {
   }, [authDestination, isHandlingAuth, isPending, isRefetching, session])
 
   if (isPending || isHandlingAuth || authDestination) {
-    return <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }} />
+    return <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }} />
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={theme}>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
           <Stack.Protected guard={!session}>
             <Stack.Screen name="sign-in" />
             <Stack.Screen name="register" />

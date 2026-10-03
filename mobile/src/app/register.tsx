@@ -75,7 +75,7 @@ export default function Register() {
       {sent && (
         <Button
           title={t("register.changeDetails")}
-          variant="ghost"
+          variant="tertiary"
           onPress={() => setSent(false)}
         />
       )}
@@ -84,7 +84,7 @@ export default function Register() {
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger },
-  footer: { color: colors.textSecondary, textAlign: "center" },
-  link: { color: colors.glow, fontWeight: "600" },
+  error: { color: colors.fg1 },
+  footer: { color: colors.fg2, textAlign: "center" },
+  link: { color: colors.link, fontWeight: "600" },
 })

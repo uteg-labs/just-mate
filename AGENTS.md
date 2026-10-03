@@ -26,6 +26,10 @@ bun run test                 # server bun:test
 
 Done = lint, typecheck and tests green.
 
+## Releases
+
+Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them.
+
 ## Hard rules
 
 - **Protocol first.** Change `docs/PROTOCOL.md`, then `packages/protocol`, then code. Never re-declare a message type locally.

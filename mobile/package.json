@@ -46,5 +46,8 @@
     "doctor": "bunx expo-doctor",
     "typecheck": "tsc --noEmit"
   },
-  "private": true
+  "private": true,
+  "properties": {
+    "gitCommitScopeRelatedNames": "mobile,app"
+  }
 }

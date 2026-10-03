@@ -23,7 +23,7 @@ import { Chip } from "@/components/Chip"
 import { MatchBanner } from "@/components/MatchBanner"
 import { Monogram } from "@/components/Monogram"
 import { StatusPill } from "@/components/StatusPill"
-import { ZoneMap } from "@/components/ZoneMap"
+// import { ZoneMap } from "@/components/ZoneMap"
 import { authClient } from "@/lib/auth-client"
 import { usePositionReports } from "@/lib/location"
 import { send, useStore } from "@/lib/store"
@@ -48,7 +48,7 @@ export default function Home() {
   const { data: authSession } = authClient.useSession()
   const [intent, setIntent] = useState<Intent>("beer")
   const intents = useStore((s) => s.intents)
-  const zones = useStore((s) => s.zones)
+  // const zones = useStore((s) => s.zones)
   const config = useStore((s) => s.config)
   const sessionId = useStore((s) => s.session?.id)
 
@@ -61,7 +61,7 @@ export default function Home() {
 
   return (
     <View style={styles.screen}>
-      <ZoneMap zones={zones} />
+      {/* <ZoneMap zones={zones} /> */}
 
       <SafeAreaView style={styles.top} pointerEvents="box-none">
         <View pointerEvents="none">

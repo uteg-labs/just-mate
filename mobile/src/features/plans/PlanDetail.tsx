@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   fade: { position: "absolute", left: 0, right: 0, bottom: 0, height: FADE_H },
   back: { position: "absolute", left: layout.gutter },
   scroll: { paddingHorizontal: layout.gutter, paddingBottom: space.m, gap: space.l },
-  titleBlock: { gap: 6, marginTop: -18 },
+  titleBlock: { gap: 6 },
   eyebrow: { flexDirection: "row", alignItems: "center", gap: 6 },
   venue: { flexDirection: "row", alignItems: "center", gap: space.m },
   grow: { flex: 1, minWidth: 0 },

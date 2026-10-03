@@ -44,6 +44,9 @@ export type PlanCreateProps = {
   onExit: () => void
 }
 
+// a function patch reads the latest draft, so quick taps don't overwrite each other
+type Patch = Partial<Draft> | ((d: Draft) => Partial<Draft>)
+
 const noon = (day: number) => dayAt(day, "12:00").getTime()
 
 const DAYS = Array.from({ length: PLAN_DAYS }, (_, day) => day)
@@ -64,7 +67,8 @@ export const PlanCreate = ({
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
   const isWhen = step === "when"
-  const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
+  const set = (patch: Patch) =>
+    setDraft((d) => ({ ...d, ...(typeof patch === "function" ? patch(d) : patch) }))
 
   return (
     <View
@@ -106,7 +110,7 @@ export const PlanCreate = ({
   )
 }
 
-type WhenProps = { draft: Draft; set: (patch: Partial<Draft>) => void; onNext: () => void }
+type WhenProps = { draft: Draft; set: (patch: Patch) => void; onNext: () => void }
 
 const When = ({ draft, set, onNext }: WhenProps) => {
   const { t } = useTranslation()
@@ -121,17 +125,18 @@ const When = ({ draft, set, onNext }: WhenProps) => {
     days.some((d) => draft.slots[d]?.join() !== fitted(d).join())
 
   // a new day starts with the last day's times, so picking a week is one tap a day
-  const toggleDay = (day: number) => {
-    const { [day]: removed, ...rest } = draft.slots
-    if (removed) return set({ slots: rest })
-    const last = days.at(-1)
-    const carried = last === undefined ? [] : (draft.slots[last] ?? [])
-    set({
-      slots: { ...draft.slots, [day]: carried.filter((time) => timesFor(day).includes(time)) },
+  const toggleDay = (day: number) =>
+    set((d) => {
+      const { [day]: removed, ...rest } = d.slots
+      if (removed) return { slots: rest }
+      const last = pickedDays(d).at(-1)
+      const carried = last === undefined ? [] : (d.slots[last] ?? [])
+      return {
+        slots: { ...d.slots, [day]: carried.filter((time) => timesFor(day).includes(time)) },
+      }
     })
-  }
   const toggleTime = (day: number, time: string) =>
-    set({ slots: { ...draft.slots, [day]: toggle(draft.slots[day] ?? [], time).toSorted() } })
+    set((d) => ({ slots: { ...d.slots, [day]: toggle(d.slots[day] ?? [], time).sort() } }))
   const sameForAll = () => set({ slots: Object.fromEntries(days.map((d) => [d, fitted(d)])) })
 
   return (
@@ -243,11 +248,7 @@ const When = ({ draft, set, onNext }: WhenProps) => {
           <Text style={[type.body, { color: c.fg1 }]}>{t("plans.when.flex")}</Text>
           <Text style={[type.footnote, { color: c.fg2 }]}>{t("plans.when.flexSub")}</Text>
         </View>
-        <Switch
-          checked={draft.flex}
-          label={t("plans.when.flex")}
-          onToggle={() => set({ flex: !draft.flex })}
-        />
+        <Switch checked={draft.flex} onToggle={() => set((d) => ({ flex: !d.flex }))} />
       </Card>
     </Step>
   )
@@ -255,7 +256,7 @@ const When = ({ draft, set, onNext }: WhenProps) => {
 
 type ReviewProps = {
   draft: Draft
-  set: (patch: Partial<Draft>) => void
+  set: (patch: Patch) => void
   venues: Venue[]
   onWhat: () => void
   onWhen: () => void

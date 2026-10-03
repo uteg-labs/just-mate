@@ -50,7 +50,7 @@ function inOrder(plans: LivePlan[]): LivePlan[] {
   return [
     ...plans.filter(isPick),
     ...plans.filter(isTakenMine),
-    ...plans.filter((p) => p.state === "confirmed").toSorted(byStart),
+    ...plans.filter((p) => p.state === "confirmed").sort(byStart),
     ...plans.filter((p) => !isPick(p) && !isTakenMine(p) && p.state !== "confirmed"),
   ]
 }
@@ -97,7 +97,7 @@ export const SelectSheet = ({
       const reason = liked ? t("plans.places.youLike", { what: liked }) : t(`plans.kinds.${v.kind}`)
       return { venue: v, reason, liked: Number(!!liked), walk: here && walkMin(here, v) }
     })
-    .toSorted((a, b) => b.liked - a.liked || (a.walk ?? 0) - (b.walk ?? 0))
+    .sort((a, b) => b.liked - a.liked || (a.walk ?? 0) - (b.walk ?? 0))
 
   // plan mode starts at "what", wherever the sheet was scrolled
   const planning = (on: boolean, venueId?: string) => {

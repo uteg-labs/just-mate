@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { ScrollView, StyleSheet, Text, View } from "react-native"
 
 import { Button, Chip, clock, Icon, PulseDot, useScheme } from "@/components/ui"
+import { toggle } from "@/lib/list"
 import type { Searching } from "@/lib/store"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
@@ -18,10 +19,6 @@ export type SearchSheetProps = {
 
 const PAD = 20
 const DOT = 7
-
-function toggle(list: string[], item: string) {
-  return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
-}
 
 export const SearchSheet = ({ search, onPicks, onStop }: SearchSheetProps) => {
   const { t } = useTranslation()

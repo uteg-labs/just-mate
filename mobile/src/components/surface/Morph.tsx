@@ -23,6 +23,11 @@ export type Shape =
   | "compass"
   | "postmeet"
   | "settings"
+  | "plans"
+  | "plancreate"
+  | "where"
+  | "plan"
+  | "planoffer"
 
 export type MorphKind = "sheet" | "card" | "full"
 export type MorphTone = "paper" | "page" | "ink" | "night"
@@ -36,6 +41,11 @@ export const SHAPES: Record<Shape, { kind: MorphKind; tone: MorphTone }> = {
   match: { kind: "card", tone: "ink" },
   compass: { kind: "full", tone: "night" },
   postmeet: { kind: "full", tone: "night" },
+  plans: { kind: "full", tone: "page" },
+  plancreate: { kind: "full", tone: "page" },
+  where: { kind: "sheet", tone: "paper" },
+  plan: { kind: "full", tone: "page" },
+  planoffer: { kind: "card", tone: "ink" },
 }
 
 const TONES: Record<MorphTone, { fill: string; scheme: Scheme }> = {
@@ -83,8 +93,8 @@ const MorphLayer = ({
 }: LayerProps) => {
   const { kind, tone } = SHAPES[name]
   const isAuto = kind !== "full"
-  const opacity = useSharedValue(0)
-  const scale = useSharedValue(reduceMotion ? 1 : SCALE_FROM)
+  const opacity = useSharedValue(active ? 1 : 0)
+  const scale = useSharedValue(reduceMotion || active ? 1 : SCALE_FROM)
 
   useEffect(() => {
     if (active) {

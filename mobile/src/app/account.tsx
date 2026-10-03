@@ -1,10 +1,12 @@
 import { router } from "expo-router"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { Button } from "@/components/Button"
 import { authClient } from "@/lib/auth-client"
+import { resetStore } from "@/lib/store"
 import { colors } from "@/theme/colors"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
@@ -12,9 +14,18 @@ import { type } from "@/theme/type"
 export default function Account() {
   const { t } = useTranslation()
   const { data: session } = authClient.useSession()
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState("")
 
   const signOut = async () => {
-    await authClient.signOut()
+    if (pending) return
+    setPending(true)
+    setError("")
+    const result = await authClient.signOut()
+    setPending(false)
+    if (result.error) return setError(t("account.signOutError"))
+
+    resetStore()
     router.replace("/sign-in")
   }
 
@@ -37,7 +48,13 @@ export default function Account() {
         </View>
       </View>
       <View style={styles.footer}>
-        <Button title={t("account.signOut")} variant="ghost" onPress={signOut} />
+        {!!error && <Text style={[type.footnote, styles.error]}>{error}</Text>}
+        <Button
+          title={pending ? t("account.signingOut") : t("account.signOut")}
+          variant="ghost"
+          disabled={pending}
+          onPress={signOut}
+        />
         <Button title={t("account.backToMap")} onPress={() => router.back()} />
       </View>
     </SafeAreaView>
@@ -50,6 +67,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.glow, textTransform: "uppercase" },
   title: { color: colors.textPrimary },
   description: { color: colors.textSecondary },
+  error: { color: colors.danger, textAlign: "center" },
   card: {
     flexDirection: "row",
     alignItems: "center",

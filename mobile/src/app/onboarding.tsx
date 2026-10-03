@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Button } from "@/components/Button"
 import { Chip } from "@/components/Chip"
 import { authClient } from "@/lib/auth-client"
+import { completeOnboarding } from "@/lib/onboarding"
 import { send } from "@/lib/store"
 import { colors } from "@/theme/colors"
 import { radius, space } from "@/theme/layout"
@@ -17,6 +18,7 @@ const MIN_INTERESTS = 3
 
 export default function Onboarding() {
   const { t } = useTranslation()
+  const { data: session } = authClient.useSession()
   const [interests, setInterests] = useState<string[]>([])
   const [adult, setAdult] = useState(false)
 
@@ -26,6 +28,9 @@ export default function Onboarding() {
     )
 
   const enter = async () => {
+    if (!session) return
+
+    await completeOnboarding(session.user.id)
     const sessionCookie = await authClient.getCookie()
     send({ t: "hello", sessionCookie, interests, adult: true })
     router.replace("/home")

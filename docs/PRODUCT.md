@@ -25,8 +25,8 @@ Dating apps solved matching and broke meeting. JustMate replaces swiping and cha
 
 ## 3. The three rules (product constitution)
 
-1. **No faces.** No profile photos anywhere. Attraction is a private, on-device compatibility vector, never a picture to be judged. Kills the appearance economy and the mirror-anxiety of profile curation.
-2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*.
+1. **No faces.** No profile photos anywhere. Attraction is a private compatibility signal, never a picture to be judged; the only faces in the app are generated sample photos in the taste swipe, never a user. Kills the appearance economy and the mirror-anxiety of profile curation.
+2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*. Names unlock only after you've met; keeping in touch is a mutual save, not a chat.
 3. **No pins.** Location is never a point — only zones (geohash cells) with anonymous density glow. Nobody can be found, followed, or looked up. Ever.
 
 Every feature decision is tested against these three rules; anything that violates one is out by definition.
@@ -40,14 +40,14 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 5. The core loop
 
-1. **Profile once (3 minutes).** Pick interests (what you're into) and preview your vibe card. No photo. Optional nickname, never shown to others.
-2. **Pick an intent and search — deliberately, per occasion.** Default is invisible: on the Home map you pick what you want *right now* (one intent, max two) and tap **Find people**. Battery, privacy and intent in one action; the intent is the session's context, not a profile attribute. This is the anti-Highlight: session-scoped, never ambient. (Bolt-style Home — `STRUCTURE.md` §2.)
-3. **Watch zones glow.** The map shows geohash zones lit by the density of compatible searchers for your active intent. No list, no search field, no browsing — scarcity of information is the feature.
-4. **The ping (the product's heartbeat).** Two compatible people, both searching, intents aligned, within walking range (400 m — see §7) → both phones notify simultaneously: match %, shared intent ("wants: beer"), and a 2-line vibe card of the other person.
-5. **Mutual accept → compass unlocks.** Only if both tap "open compass". Either alone sees nothing more.
-6. **The walk.** A directional arrow with hot/cold color and haptics; distance as a bucket (cold/warm/hot/burning), never a map pin of the other person. 10-minute window.
-7. **Meet. Talk.** The vibe card doubles as the icebreaker. Afterward, session ends; positions are discarded.
-8. **Either can Vanish** at any moment — session destroyed for both instantly.
+1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a swipe over generated sample photos that trains your taste (date) or when you're usually around (mate). Last, one selfie: described once (hair, face shape) for matching, then dropped; the liveness check is the production path. No photo of you is ever stored or shown to anyone.
+2. **Pick what you're up for and search, deliberately, per occasion.** Default is invisible. On the map you choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick one or more things inside it, and tap **Find people for {picks}**. Battery, privacy and intent in one action; what you picked is the session's context, not a profile attribute. This is the anti-Highlight: session-scoped, never ambient. (`STRUCTURE.md` §2–3.)
+3. **Watch the map warm up.** A soft heat field shows where compatible people are searching for the same thing. No list, no search field, no browsing. Scarcity of information is the feature.
+4. **The ping (the product's heartbeat).** Two compatible people, both searching, picks aligned, within walking range (400 m, see §7) → both phones ping at the same moment. Each sees the other's badge: "her vibe · wants: wine" and their vibe line, with a 45-second countdown.
+5. **Mutual accept → compass unlocks.** Only if both tap **Open compass**. Either alone sees nothing more ("waiting for them…").
+6. **The walk.** A directional arrow with hot/cold colour and haptics. Distance is a bucket (cold / warm / hot / burning), never a map pin of the other person. 10-minute window.
+7. **Meet. Talk.** At `burning` either taps **We met**. Names unlock ("Say hi to Mia."), an opener is offered if you need one, and **Keep in touch** saves the contact only if both tap it. Then the session ends and positions are discarded.
+8. **Either can Vanish** at any moment, and the session is destroyed for both instantly.
 
 ## 6. Screen specification
 
@@ -55,11 +55,15 @@ Visual language, motion, haptics and accessibility for every screen below live i
 
 ### 6.1 Onboarding (3 screens — `STRUCTURE.md` §1 is the source of truth for the app)
 
-Intents are **not** chosen here: they are picked per session on Home (§6.2). Intent vocabulary (shared by Home chips, protocol and scoring): `soul mate · beer · coffee · attractions · friends · sports · music`.
-
-1. **"What are you into?"** — interest chips, ≥3 required: `beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food`.
-2. **"Tell us about you"** — upload one photo. An LLM reads the photo + your interests and writes a 2–3 sentence plain-prose profile (appearance + personality + what you're looking for). This text is what other people see when you match — not the photo. Demo: this step shows a canned description (deterministic per user) so we don't pay API costs on stage; production: real `gpt-4o-mini` call per user, ~$0.001 each. (Real pipeline: see §7.)
-3. **"Your vibe card."** — preview of the 2-line card others will see (generated vibes, e.g. *"quietly funny — will out-argue you about pizza"*). Reroll button. Below it a single required checkbox: **"I'm 18 or older"** (the app has no photos and no verification, so the age gate is explicit and blocking — the map is not reachable without it). Button: **Enter the map**.
+- **Auth**: one sheet over the map. Log in goes straight to the map; Create account grows into onboarding ("Next: a faceless profile. Two minutes, no photos of you shown to anyone.").
+- **Mode first.** "What are you here for?" Date ("Someone to fall for, a few streets away.") or Mate ("People to grab a beer or a game with, right now."). You can switch on the map any time; the mode picks which questions, interests and categories you see.
+- **Interests** are per mode (date: coffee, wine, cinema, books, travel…; mate: board games, climbing, running, gym, football…). At least 3; each pick opens 3 related ones.
+- **Four live questions** replace a long form: each is written from the previous answers, with fixed sample questions as the fallback. They feed the vibe line and the matching profile (`ML-MATCHING.md` §2).
+- **Your badge**: "Designed from your picks. All a match sees." Reroll the line until it fits, then **Keep this vibe**.
+- **Who you're after**: date asks who you're interested in, an age range and what you're looking for ("something real / see where it goes / something light"). Mate asks who (anyone / same gender), group size, energy and age. "Used for matching only. Nobody sees your settings."
+- **Who catches your eye** (date): swipe six *sample* photos, never real users. This is the attraction-vector story (§7) made tangible. The samples are generated faces kept on the server only for this training, which is why they don't break "no faces": nobody's own photo is ever shown. In M0 only words leave the phone: the server reduces the descriptions of the samples you were into to the traits they share, and stores that line, never a photo.
+- **When are you around** (mate): time slots and hangout length to time matches.
+- **Verify**: "One selfie, checked once, then deleted. Nobody ever sees it." Date adds the required **"I'm 18 or older"** check ("Required for dating. Checked against your selfie."). The selfie check is labelled "production path · simulated in this build".
 
 Design intent: the whole funnel communicates "this is not a profile-picture app" before the user ever sees the map.
 
@@ -90,9 +94,13 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 - **Post-meet screen (M0, cheap, on-category):** when the bucket hits `burning` and either taps **"we met"** (or the TTL ends in `burning`), show *"you walked 480 m to meet"* — distance integrated client-side from own positions during the session, plus a lifetime total ("2.3 km walked to meetings"). No backend, no persistence beyond the device; it is the one screen that makes the Sport & Healthcare framing literal.
 - Post-meet (future): optional one-tap "how did it go?" to tune matching.
 
+### 6.7 Settings
+
+Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, blocked people, download my data), account (email, log out, delete account).
+
 ## 7. Matching system
 
-**Data model.** `user = { id, intents (per session), interests[], description (text, LLM-generated from photo + profile), session: { state } }` — in M0 nothing is persisted server-side beyond the live socket. (The stretch ML service keeps a per-user embedding cache in PostgreSQL — profile vectors, never positions; see below.)
+**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, appearance (selfie features, never shown), taste (traits of the liked samples), character (five trait lines from the answers), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
@@ -108,7 +116,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · `dist ≤ R_MATCH` (400 m) · shared active intent ≥ 1 · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
+**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (400 m, or the shorter of both "walk up to" settings: 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
 
 **Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese text-embedding model with a Match Head, custom-trained by the team. The pipeline:
 
@@ -157,9 +165,10 @@ Full event-by-event schema (client ↔ server) is in `docs/PROTOCOL.md`; it is t
 | Compass abused to locate someone | Unlocks only after **mutual** accept; reveals a *bearing*, never a map position; 10-min TTL; partner sees the same compass (symmetry — they know you're walking too) |
 | Harassment | No chat = no DM channel; exposure is session-scoped; block & report (production) kill future matches pair-wide |
 | Data breach / subpoena | Positions never persisted — in-memory per socket only; nothing to leak |
-| Notification fatigue / ambush pings | Both parties opted in *per occasion* (intent pick + Find people); pair cooldown; one active session |
-| Women's safety specifically | She is invisible unless she starts a search; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant |
-| Minors | Photo + LLM still produces text descriptions; explicit, blocking **18+ gate** in onboarding (M0); production: age assurance appropriate to a dating product (M1) |
+| Notification fatigue / ambush pings | Both parties opted in *per occasion* (category + intent pick + Find people); pair cooldown; one active session |
+| Women's safety specifically | She is invisible unless she starts a search; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant; her name is only shown after she has met someone in person |
+| Fake or bot profiles | One-selfie liveness check, deleted after the check (production path in M0); a "verified" tag on the badge |
+| Minors | No photos and no identity means no implicit age signal → every profile states an age (16+), and the blocking **"I'm 18 or older"** check on the date verify step is "checked against your selfie" (selfie check is production path in M0). The 18+ gate is per mode, enforced server-side: date mode requires an adult; mate mode allows 16–17, but **a non-adult is only ever matched with another non-adult, in mate mode, and an adult is never offered a non-adult** (`PROTOCOL.md` › Server-side rules). Production: age assurance appropriate to a dating product (M1) |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA. Demo runs on test data only.
 

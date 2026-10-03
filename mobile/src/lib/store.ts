@@ -3,52 +3,103 @@ import {
   type ClientMsg,
   type Config,
   DEFAULT_CONFIG,
+  type Intent,
+  type MatchPartner,
+  type Mode,
+  type SearchStopReason,
   type ServerMsg,
+  type SessionEndReason,
 } from "@justmate/protocol"
 import { useSyncExternalStore } from "react"
 
-import { openSocket, type Socket } from "./ws"
+import { authClient } from "./auth-client"
+import { type Demo, openSocket, type Socket } from "./ws"
 
-type Offer = Extract<ServerMsg, { t: "match_offer" }> & { accepted: boolean }
+export type Searching = { mode: Mode; category: string; intents: string[]; startedAt: number }
 
-type Session = { id: string; endsAt: number; bearing?: number; bucket?: Bucket }
+export type Match = { mode: Mode; sharedIntent: Intent; partner: MatchPartner }
 
-export type State = {
-  userId?: string
-  vibe?: string
+export type Offer = { offerId: string; endsAt: number; state: "offered" | "accepted" | "expired" }
+
+export type Session = { id: string; endsAt: number; bearing?: number; bucket?: Bucket }
+
+export type Note = Exclude<SessionEndReason, "met"> | SearchStopReason
+
+export type Link = "idle" | "open" | "lost"
+
+export type Live = {
+  link: Link
   config: Config
-  intents: string[]
+  search?: Searching
   zones: { h: string; n: number }[]
   offer?: Offer
+  match?: Match
   session?: Session
+  met: boolean
+  note?: Note
+  closedWith?: number
 }
 
-let state: State = { config: DEFAULT_CONFIG, intents: [], zones: [] }
+const raw = process.env.EXPO_PUBLIC_DEMO
+const demo: Demo | undefined = raw === "a" || raw === "b" ? raw : undefined
+
+const OFFER_EXPIRED_MS = 2400
+const RETRY_MS = 2000
+
+const IDLE: Live = { link: "idle", config: DEFAULT_CONFIG, zones: [], met: false }
+
+const ENDED = {
+  search: undefined,
+  zones: [],
+  offer: undefined,
+  match: undefined,
+  session: undefined,
+} satisfies Partial<Live>
+
+let state = IDLE
 let socket: Socket | undefined
+let isWanted = false
 const listeners = new Set<() => void>()
 
-function set(patch: Partial<State>) {
+function set(patch: Partial<Live>) {
   state = { ...state, ...patch }
   for (const listener of listeners) listener()
+}
+
+function clearExpired(offerId: string) {
+  setTimeout(() => {
+    if (state.offer?.offerId === offerId) set({ offer: undefined, match: undefined })
+  }, OFFER_EXPIRED_MS)
 }
 
 function reduce(msg: ServerMsg) {
   switch (msg.t) {
     case "ready":
-      return set({ userId: msg.userId, vibe: msg.vibe, config: msg.config })
+      return set({ link: "open", config: msg.config })
+
+    case "search_stopped":
+      return set({ ...ENDED, note: msg.reason })
 
     case "zones":
+      if (!state.search) return
       return set({ zones: msg.cells })
 
     case "match_offer":
-      return set({ offer: { ...msg, accepted: false } })
+      if (!state.search) return
+      return set({
+        offer: { offerId: msg.offerId, endsAt: Date.now() + msg.expiresInMs, state: "offered" },
+        match: { mode: state.search.mode, sharedIntent: msg.sharedIntent, partner: msg.partner },
+      })
 
     case "offer_expired":
-      return set({ offer: undefined })
+      if (state.offer?.offerId !== msg.offerId) return
+      clearExpired(msg.offerId)
+      return set({ offer: { ...state.offer, state: "expired" } })
 
     case "session_start":
       return set({
         offer: undefined,
+        zones: [],
         session: { id: msg.sessionId, endsAt: Date.now() + msg.expiresInMs },
       })
 
@@ -57,37 +108,90 @@ function reduce(msg: ServerMsg) {
       return set({ session: { ...state.session, bearing: msg.bearing, bucket: msg.bucket } })
 
     case "session_end":
-      return set({ session: undefined })
+      if (state.session?.id !== msg.sessionId) return
+      if (msg.reason === "met") return set({ ...ENDED, match: state.match, met: true })
+      return set({ ...ENDED, note: msg.reason })
 
     case "error":
       console.warn(`[ws] ${msg.code}: ${msg.message}`)
   }
 }
 
-export function send(msg: ClientMsg) {
-  socket ??= openSocket(reduce)
-  socket.send(msg)
+function closed(from: Socket, code: number) {
+  if (socket !== from) return
+  socket = undefined
+  set({ ...ENDED, link: "lost", closedWith: code })
 
-  if (msg.t === "search_on") set({ intents: msg.intents })
-  if (msg.t === "search_off") set({ intents: [], zones: [], offer: undefined })
-  if (msg.t === "accept" && state.offer) set({ offer: { ...state.offer, accepted: true } })
-  if (msg.t === "dismiss") set({ offer: undefined })
-  if (msg.t === "vanish") set({ session: undefined })
+  const isFinal = code === 1000 || code >= 4000
+  if (isWanted && !isFinal) setTimeout(() => isWanted && !socket && connect(), RETRY_MS)
 }
 
-export function resetStore() {
+export async function connect() {
+  isWanted = true
+  if (socket) return
+  const sessionCookie = await authClient.getCookie()
+  if (!isWanted || socket) return
+
+  const next: Socket = openSocket(
+    { onMessage: reduce, onClose: (code) => closed(next, code) },
+    demo,
+  )
+  socket = next
+  set({ closedWith: undefined })
+  next.send({ t: "hello", sessionCookie })
+}
+
+export function disconnect() {
+  isWanted = false
   socket?.close()
   socket = undefined
-  state = { config: DEFAULT_CONFIG, intents: [], zones: [] }
+  state = IDLE
   for (const listener of listeners) listener()
 }
 
-export function useStore<T>(select: (state: State) => T): T {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener)
-      return () => listeners.delete(listener)
-    },
-    () => select(state),
-  )
+export function send(msg: ClientMsg) {
+  socket?.send(msg)
+
+  switch (msg.t) {
+    case "search_on":
+      return set({
+        search: {
+          mode: msg.mode,
+          category: msg.category,
+          intents: msg.intents,
+          startedAt: state.search?.startedAt ?? Date.now(),
+        },
+        note: undefined,
+        met: false,
+      })
+
+    case "search_off":
+      return set(ENDED)
+
+    case "accept":
+      if (!state.offer) return
+      return set({ offer: { ...state.offer, state: "accepted" } })
+
+    case "dismiss":
+      return set({ offer: undefined, match: undefined })
+
+    case "vanish":
+      return set({ ...ENDED, note: "vanished" })
+
+    case "met":
+      return set({ ...ENDED, match: state.match, met: true })
+  }
+}
+
+export function leavePostMeet() {
+  set({ met: false, match: undefined })
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+export function useLive() {
+  return useSyncExternalStore(subscribe, () => state)
 }

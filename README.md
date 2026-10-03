@@ -47,19 +47,65 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · maplibre-react-native + OpenFreeMap (fallback inside Expo Go: `react-native-maps` with circle overlays — see `docs/BUILD-PLAN.md` risks) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · Better Auth (email + password) sessions and the onboarding profile in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, a 400–1200 m walking-distance gate for matching. No location persistence, no push.
 
 **Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** a **Siamese text-embedding model** — OpenAI `text-embedding-3-small` for profile text (intents + interests + LLM-generated description) → custom **Shared Encoder** (1536→128) → **Match Head** (concat `|·|, ⊙, cos` → 257→1). Trained jointly with triplet + BCE loss on synthetic profiles in Python (PyTorch). At inference, the model runs in the Bun server's process (PyTorch or ONNX Runtime — whichever starts faster on the demo box); rule-based baseline as transparent fallback. **Photo handling:** at onboarding, the user's photo + (intents, interests) is sent to `gpt-4o-mini` (vision) which returns a 2–3 sentence plain-prose description (appearance + personality + what they want); the description becomes part of the profile and feeds the Siamese model — the photo is never shared between users. PostgreSQL + pgvector as production embedding cache (M1). See `docs/ML-MATCHING.md` and `docs/ml/PLAN.md`. Run instructions land with the scaffold.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
-mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
-server/          Bun + Elysia — zones, distance-gated matching, hard gates, compass relay, TTLs, ghosts
-ml/              (stretch) Python + FastAPI: LLM description extractor (gpt-4o-mini) · Siamese model training (Shared Encoder + Match Head, triplet + match-loss) · calibration + evaluation · pair-label dataset
-shared-infra/    (M1) PostgreSQL + pgvector schema, migrations
+mobile/          Expo dev-client app — auth, onboarding (Date / Mate), map with category picks, match card, compass, post-meet, settings
+server/          Bun + Elysia + Drizzle — auth, profile, live onboarding text, zones, matching, compass relay
+packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
+ml/              PyTorch Siamese matching model (synthetic profiles → embeddings → triplets → train → calibrate/eval) exported to ONNX; the server spawns `ml/scripts/match_scorer.py` as a long-lived subprocess (NDJSON over stdin/stdout) — see `ml/README.md`
 ```
 
-ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md) and [`docs/ml/PLAN.md`](docs/ml/PLAN.md).
+ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md), [`docs/ml/PLAN.md`](docs/ml/PLAN.md) and [`ml/README.md`](ml/README.md).
+
+## Run
+
+Needs Bun ≥ 1.3, a local PostgreSQL database, and Xcode (iOS) or Android Studio (Android). Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
+
+```bash
+bun install
+```
+
+Backend on `:3000` (`ws://<host>:3000/ws`), or the mock that replays the PROTOCOL.md happy path on `:3001`:
+
+```bash
+cp server/.env.example server/.env
+bun --cwd server db:migrate
+bun run dev:server
+```
+
+Set `DATABASE_URL` to your local PostgreSQL database and `BETTER_AUTH_SECRET` to a random value
+before starting. Drizzle owns the schema in `server/src/db` and migrations in `server/drizzle`;
+use `bun --cwd server db:generate` after schema changes. In local development, auth emails
+(password resets, magic links) are printed in the server terminal when `SMTP_HOST` is empty;
+set the `SMTP_*` variables and `AUTH_EMAIL_FROM` to deliver real email (required in production).
+`ANTHROPIC_API_KEY` is optional: without it, onboarding questions, vibe lines, related interests,
+the character, taste and selfie descriptions use fixed samples.
+
+```bash
+bun run dev:mock
+```
+
+Mobile is a dev-client build — `expo-maps` is native, so Expo Go cannot run it. Copy `mobile/.env.example` to `mobile/.env` (API/WS URLs; Google Maps key for Android), then build and run on a simulator or a plugged-in phone:
+
+```bash
+bun --cwd mobile ios
+```
+
+Or build in the cloud for both demo phones:
+
+```bash
+bunx eas-cli build --profile development --platform all
+```
+
+Checks (run before every push):
+
+```bash
+bun run lint && bun run typecheck && bun run test
+```
 
 ## What's real vs canned (demo honesty)
 

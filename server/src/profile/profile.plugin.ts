@@ -1,32 +1,82 @@
-import { INTERESTS } from "@justmate/protocol"
+import { CloseCode, type Profile, parseProfile } from "@justmate/protocol"
 import { eq } from "drizzle-orm"
-import { Elysia, t } from "elysia"
+import { Elysia } from "elysia"
 
 import { authPlugin } from "../auth/auth.plugin"
 import { db } from "../db"
-import { user as users } from "../db/schema"
+import { account, profile, session, user } from "../db/schema"
+import { closeUser, updateProfile } from "../realtime/session"
+import { saveProfileCard } from "./card"
 
-const known: readonly string[] = INTERESTS
+// a profile card per save, for the ML work; never in production or under test
+const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")
 
-export const profilePlugin = new Elysia({ name: "profile" }).use(authPlugin).put(
-  "/api/profile",
-  async ({ user, body }) => {
-    await db
-      .update(users)
-      .set({
-        interests: [...new Set(body.interests)].filter((i) => known.includes(i)),
-        character: body.character,
-        appearance: body.appearance,
-      })
-      .where(eq(users.id, user.id))
-    return { ok: true }
-  },
-  {
-    authenticated: true,
-    body: t.Object({
-      interests: t.Array(t.String(), { maxItems: 20 }),
-      character: t.String({ maxLength: 2000 }),
-      appearance: t.Nullable(t.String({ maxLength: 1000 })),
-    }),
-  },
-)
+export async function loadProfile(userId: string): Promise<Profile | undefined> {
+  const [row] = await db.select().from(profile).where(eq(profile.userId, userId))
+  if (!row) return
+  const { userId: _, createdAt, updatedAt, ...stored } = row
+  return stored
+}
+
+export const profilePlugin = new Elysia({ name: "profile" })
+  .use(authPlugin)
+  .get(
+    "/api/profile",
+    async ({ user, status }) =>
+      (await loadProfile(user.id)) ?? status(404, { error: "no_profile" }),
+    { authenticated: true },
+  )
+  .put(
+    "/api/profile",
+    async ({ user, body, status }) => {
+      const parsed = parseProfile(body)
+      if (!parsed.ok) return status(400, { error: parsed.error })
+
+      await db
+        .insert(profile)
+        .values({ userId: user.id, ...parsed.value })
+        .onConflictDoUpdate({
+          target: profile.userId,
+          set: { ...parsed.value, updatedAt: new Date() },
+        })
+      updateProfile(user.id, parsed.value)
+      if (writesCards)
+        saveProfileCard(user.id, parsed.value).catch((err) =>
+          console.warn("[profile] card not saved:", err),
+        )
+      return parsed.value
+    },
+    { authenticated: true },
+  )
+  .delete(
+    "/api/account",
+    async ({ user: me, status }) => {
+      await db.delete(user).where(eq(user.id, me.id))
+      closeUser(me.id, CloseCode.Unauthorized, "account deleted")
+      return status(204)
+    },
+    { authenticated: true },
+  )
+  .get(
+    "/api/account/export",
+    async ({ user: me }) => {
+      const [stored, sessions, accounts] = await Promise.all([
+        loadProfile(me.id),
+        db
+          .select({
+            createdAt: session.createdAt,
+            expiresAt: session.expiresAt,
+            ipAddress: session.ipAddress,
+            userAgent: session.userAgent,
+          })
+          .from(session)
+          .where(eq(session.userId, me.id)),
+        db
+          .select({ providerId: account.providerId, createdAt: account.createdAt })
+          .from(account)
+          .where(eq(account.userId, me.id)),
+      ])
+      return { user: me, profile: stored ?? null, sessions, accounts }
+    },
+    { authenticated: true },
+  )

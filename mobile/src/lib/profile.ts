@@ -1,118 +1,50 @@
-import type { Intent } from "@justmate/protocol"
+import { ADULT_AGE, type Profile } from "@justmate/protocol"
+import { type SetStateAction, useSyncExternalStore } from "react"
 
-import { authClient } from "./auth-client"
+import { ApiError, api } from "./api"
 
-const api = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000"
+// undefined = not loaded yet, null = signed in without a profile (GET answered no_profile)
+let current: Profile | null | undefined
+const listeners = new Set<() => void>()
 
-const fence = "```"
-
-const indent = (text: string, pad: string) =>
-  text
-    .split("\n")
-    .map((line) => pad + line)
-    .join("\n")
-
-const list = (items: string[]) => items.map((item) => `    - ${item}`).join("\n")
-
-export const newProfileId = () => `u_${Math.random().toString(36).slice(2, 10)}`
-
-// same shape as docs/examples/profile_card.md
-export function profileCard(
-  id: string,
-  intents: Intent[],
-  interests: string[],
-  vibe: string,
-  appearance: string,
-  taste: string,
-) {
-  const lines = vibe
-    .split("\n")
-    .map((line) => line.replace(/^\s*[-*]\s*/, "").trim())
-    .filter(Boolean)
-  const flat = lines.join(" ")
-  const embedding = `Intent: ${intents.join(", ")}.\nInterests: ${[...interests].sort().join(", ")}.\nVibe: ${flat}`
-
-  return `# just-mate — Profile Embedding Card
-
----
-
-## Profile
-
-${fence}yaml
-profile:
-  id: "${id}"
-  intents:
-${list(intents)}
-  interests:
-${list(interests)}
-  vibe: |
-${indent(lines.join("\n"), "    ")}
-  appearance: ${JSON.stringify(appearance)}
-  taste: ${JSON.stringify(taste)}
-${fence}
-
----
-
-## \`embedding_text\`
-
-${fence}yaml
-embedding_text: |
-${indent(embedding, "  ")}
-${fence}
-
----
-
-## \`banner_vibe\`
-
-${fence}yaml
-banner_vibe: |
-${indent(`"${lines.join("\n")}"`, "  ")}
-${fence}
-
----
-
-## Stats
-
-${fence}yaml
-stats:
-  intents_count: ${intents.length}
-  interests_count: ${interests.length}
-  vibe_sentences: ${lines.length}
-  vibe_words: ${flat.split(/\s+/).length}
-  vibe_pattern: "trait-concrete-${lines.length}"
-  separator: " — "
-  embedding_tokens_estimate: ~${Math.round(embedding.length / 4)}
-${fence}
-`
+function set(next: Profile | null | undefined) {
+  current = next
+  for (const listener of listeners) listener()
 }
 
-export async function saveProfileCard(id: string, markdown: string) {
-  try {
-    const res = await fetch(`${api}/dev/profiles`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, markdown }),
-    })
-    if (!res.ok) throw new Error(`${res.status}`)
-  } catch (error) {
-    console.warn("[profile] card not saved:", error)
-  }
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
 }
 
-export async function saveProfile(profile: {
-  interests: string[]
-  character: string
-  appearance: string | null
-}) {
+export function useProfile() {
+  return useSyncExternalStore(subscribe, () => current)
+}
+
+export async function loadProfile(): Promise<Profile | null> {
   try {
-    const res = await fetch(`${api}/api/profile`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Cookie: await authClient.getCookie() },
-      body: JSON.stringify(profile),
-      credentials: "omit",
-    })
-    if (!res.ok) throw new Error(`${res.status}`)
+    set(await api.profile())
   } catch (error) {
-    console.warn("[profile] not saved to the database:", error)
+    if (!(error instanceof ApiError && error.status === 404)) throw error
+    set(null)
   }
+  return current ?? null
+}
+
+export async function saveProfile(profile: Profile) {
+  const stored = await api.saveProfile({ ...profile, adult: profile.age >= ADULT_AGE })
+  set(stored)
+  return stored
+}
+
+// applies at once so switches feel instant; a rejected save reloads what the server holds
+export function updateProfile(next: SetStateAction<Profile>) {
+  if (!current) return
+  const value = typeof next === "function" ? next(current) : next
+  set(value)
+  api.saveProfile(value).catch(() => loadProfile().catch(() => {}))
+}
+
+export function clearProfile() {
+  set(undefined)
 }

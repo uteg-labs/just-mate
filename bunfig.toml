@@ -1,0 +1,3 @@
+[install]
+# react native autolinking expects a flat node_modules
+linker = "hoisted"

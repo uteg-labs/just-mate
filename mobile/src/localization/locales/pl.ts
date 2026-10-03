@@ -86,6 +86,8 @@ export const pl = {
     },
     who: {
       age: "wiek",
+      partner: "jego charakter",
+      partnerPlaceholder: "spokojny, zabawny, lubi długie spacery",
       date: {
         title: "Kogo szukasz?",
         sub: "Tylko do dopasowań. Nikt nie widzi Twoich ustawień.",

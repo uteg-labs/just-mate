@@ -14,7 +14,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.131.0",
     "@better-auth/drizzle-adapter": "^1.7.7",
     "@better-auth/expo": "^1.7.7",
     "@justmate/protocol": "workspace:*",

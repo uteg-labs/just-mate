@@ -16,12 +16,12 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 
 ## How it works
 
-1. Build a faceless profile once: interests + a 2-line vibe card. No photo.
-2. On the map, pick what you want *right now* (a beer, coffee, friends, a soul mate…) and tap **Find people** — only when you actually want to meet (default invisible: battery + privacy + intent in one action).
-3. See zones glow where compatible people might be. Search/browse doesn't exist.
-4. When two compatible people, both searching, with aligned intents come within ~400 m of each other — **both** get notified at the same moment, with a 2-line personality card of the other person.
-5. Either opens the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
-6. Walk. Meet. Talk. A real conversation in the real world — and a note of how far you walked to get there.
+1. Build a faceless profile once: pick **Date** or **Mate**, your interests and four short questions. Your answers become a one-line vibe on a badge designed from your picks. No photo of you is ever shown.
+2. On the map, choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick what you want *right now* (wine, padel, board games…) and tap **Find people** — only when you actually want to meet (default invisible: battery + privacy + intent in one action).
+3. The map warms up where compatible people are searching. Search/browse doesn't exist.
+4. When two compatible people, both searching, with a shared pick come within ~400 m of each other — **both** phones ping at the same moment, each showing the other's vibe badge. 45 seconds to decide.
+5. Both open the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
+6. Walk. Meet. Talk. First names unlock only once you've met; keep in touch only if you both tap it.
 
 ## Safety by design
 
@@ -53,7 +53,7 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
-mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
+mobile/          Expo dev-client app — auth, onboarding (Date / Mate), map with category picks, match card, compass, post-meet, settings
 server/          Bun + Elysia + Drizzle — auth schema/migrations, zones, matching, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
@@ -110,11 +110,11 @@ bun run lint && bun run typecheck && bun run test
 | Real | Canned (labelled) |
 |---|---|
 | AI onboarding interview → `profile.md` (LLM) | Ghost users adding zone density (server spawns wandering ghosts) |
-| LLM vibe cards from both profiles (shared interests) | — |
-| Zone glow from live positions | — |
+| LLM questions and vibe lines from your answers; openers for each matched pair | — |
+| Map heat from live positions | — |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
 | Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
-| Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
+| Compass (magnetometer bearing), haptics, vanish, post-meet (names, keep in touch) | Selfie verification (production path, simulated) |
 | *If the stretch ships:* Shared Encoder + Match Head training loop and the compiled `match_scorer` binary scoring `z` pairs over stdin/stdout | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
 
 Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search). PostgreSQL stores accounts and sessions only; positions remain in memory per socket and are never persisted. The pgvector cache belongs to the ML stretch.

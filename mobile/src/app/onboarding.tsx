@@ -1,5 +1,6 @@
 import { INTERESTS } from "@justmate/protocol"
 import { router } from "expo-router"
+import { Check } from "lucide-react-native"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
@@ -10,7 +11,8 @@ import { Chip } from "@/components/Chip"
 import { authClient } from "@/lib/auth-client"
 import { send } from "@/lib/store"
 import { colors } from "@/theme/colors"
-import { radius, space } from "@/theme/layout"
+import { layout, radius, space } from "@/theme/layout"
+import { pressScale } from "@/theme/motion"
 import { type } from "@/theme/type"
 
 const MIN_INTERESTS = 3
@@ -52,9 +54,16 @@ export default function Onboarding() {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable style={styles.check} onPress={() => setAdult(!adult)} hitSlop={10}>
-          <View style={[styles.box, adult && styles.boxOn]} />
-          <Text style={[type.body, styles.text]}>{t("onboarding.adult")}</Text>
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: adult }}
+          style={({ pressed }) => [styles.check, pressed && styles.checkPressed]}
+          onPress={() => setAdult(!adult)}
+        >
+          <View style={[styles.box, adult ? styles.boxOn : styles.boxOff]}>
+            {adult && <Check size={16} color={colors.background} strokeWidth={2.5} />}
+          </View>
+          <Text style={[type.headline, styles.text]}>{t("onboarding.adult")}</Text>
         </Pressable>
         <Button
           title={t("onboarding.enter")}
@@ -67,19 +76,32 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: space.l, gap: space.l },
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: layout.gutter, gap: space.l },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space.s },
-  footer: { padding: space.l, gap: space.l },
-  check: { flexDirection: "row", alignItems: "center", gap: space.m },
+  footer: { padding: layout.gutter, gap: space.l },
+  check: {
+    minHeight: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: space.l,
+    paddingVertical: space.m,
+    borderRadius: radius.row,
+    borderCurve: "continuous",
+    backgroundColor: colors.surfaceRaised,
+    boxShadow: `inset 0 0 0 1px ${colors.separator}`,
+  },
+  checkPressed: { transform: [{ scale: pressScale.row }] },
   box: {
     width: 24,
     height: 24,
-    borderRadius: radius.button / 2,
-    borderWidth: 2,
-    borderColor: colors.textSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.full,
   },
-  boxOn: { backgroundColor: colors.glow, borderColor: colors.glow },
-  text: { color: colors.textPrimary },
-  muted: { color: colors.textSecondary },
+  boxOff: { boxShadow: `inset 0 0 0 1.5px ${colors.fg3}` },
+  boxOn: { backgroundColor: colors.fg1 },
+  text: { color: colors.fg1 },
+  muted: { color: colors.fg2 },
 })

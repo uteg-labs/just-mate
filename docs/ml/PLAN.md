@@ -1,201 +1,127 @@
-# just-mate — ML implementation plan
+# just-mate — ML plan
 
-> Master plan for the ML matching pipeline. Per-task specs live in `docs/ml/specs/<NN>-<name>.md`. Read `docs/ML-MATCHING.md` first for the design rationale.
+> **Goal**: extract rich text descriptions from user photos via an LLM API, then match profiles using a Siamese text-embedding model. **No face detection, no ONNX, no embeddings beyond text.**
 
-## What we're building
-
-A Siamese compatibility model that scores two faceless profiles. Trained in Python, exported to ONNX, served by a compiled C++ binary (`match_scorer`) that the Bun/Elysia server spawns once and pipes newline-delimited JSON to over stdin/stdout. Vectors cached in PostgreSQL with pgvector.
-
-**Rule-based baseline is M0 primary** (per PRODUCT §7). This plan covers the ML pipeline that becomes the **stretch** path: when the model works it scores; when it doesn't, the server falls back to the baseline transparently. **The demo must not break if ML is unfinished.**
-
-## Scope (this plan covers)
-
-- Synthetic data generation (profiles, triplets, ground truth)
-- OpenAI embedding pipeline + pgvector cache
-- Model architecture (Shared Encoder + Match Head)
-- Joint training loop (triplet + binary match)
-- Threshold calibration
-- ONNX export
-- C++ `match_scorer` binary + JSON-lines IPC
-- Binary tests, end-to-end smoke
-
-Out of scope (owned by **backend** role):
-- Bun/Elysia server wiring (subprocess spawn, fallback, hard gates)
-- pgvector schema migration — see [Prerequisites](#prerequisites)
-- WebSocket protocol implementation
-
-Out of scope (owned by **mobile** role):
-- Onboarding UI, vibe-card reroll
-- Match banner rendering
-- Demo mode scripted positions
-
-## Architecture in 30 seconds
+## Pipeline
 
 ```
-profile text
+photo + (intents, interests)
    ↓
-profile_to_embedding_text()           ← T02
+LLM API (GPT-4o-mini vision)         ← T07
    ↓
-OpenAI text-embedding-3-small         ← T05
-   ↓ e (1536d, cached in pgvector)
-Shared Encoder                        ← T06
-   ↓ z (128d, cached in pgvector)
-Match Head (ONNX, in match_scorer)    ← T07, T10, T11
+description text: 2-3 sentences covering
+   appearance + personality + preferences
    ↓
-sigmoid → score ∈ [0, 1]              ← T11, T09 threshold
+profile text: "Intent: ... Interests: ... Description: ..."
+   ↓
+OpenAI text-embedding-3-small (1536d)   ← T03
+   ↓ e
+Shared Encoder (1536 → 128)              ← T04 (trained)
+   ↓ z
+Match Head (257 → 1)                     ← T04 (trained)
+   ↓
+sigmoid → score ∈ [0, 1]                ← T06 (evaluated)
 ```
 
-Per-pair inference: encoder never runs. `z` is cached per user. Match Head takes pre-cached `z_a`, `z_b` and outputs the score. Latency target: **<5 ms CPU per pair** (256 candidates = 1.3 s for full zone evaluation).
+A single Siamese text-based pipeline. The photo enters once, via the LLM API, and produces a text description. Everything downstream is text embeddings.
 
-## Prerequisites (backend owns these)
+## Tasks
 
-Before T05 starts, the backend must have:
-
-1. **PostgreSQL 16+** with `pgvector` extension installed
-2. **`users` table** with columns:
-   ```sql
-   user_id     TEXT NOT NULL PRIMARY KEY
-   intents     TEXT[]   NOT NULL
-   interests   TEXT[]   NOT NULL
-   vibe        TEXT     NOT NULL
-   embedding   VECTOR(1536)         -- populated by ML T05
-   z           VECTOR(128)           -- populated by ML T10
-   last_embedded_at  TIMESTAMPTZ
-   ```
-3. **HNSW index** on `z` for M1 candidate selection (M0: brute-force is fine, but the index speeds up calibration queries):
-   ```sql
-   CREATE INDEX users_z_hnsw ON users USING hnsw (z vector_cosine_ops);
-   ```
-
-**If prerequisites are not ready by T05**, ML T05 is blocked. Backend should prioritise this — without it, the cache layer cannot be tested.
-
-## Task order
-
-Each row is one spec file. Reorder is not recommended — each task depends on the previous.
-
-| # | Task | Spec file | Time | Critical path? |
-|---|---|---|---|---|
-| 01 | Bootstrap (uv, pyproject, C++ toolchain, dirs) | `specs/01-bootstrap.md` | 30 min | yes — blocks all |
-| 02 | Vibe pool + embedding template | `specs/02-vibe-pool-embedding-template.md` | 30 min | no — but blocks T03 |
-| 03 | Synthetic profile generator | `specs/03-synthetic-profile-generator.md` | 45 min | yes |
-| 04 | Triplet sampler + ground truth | `specs/04-triplets-ground-truth.md` | 30 min | yes |
-| 05 | OpenAI embedding pipeline + pgvector cache | `specs/05-embedding-cache.md` | 60 min | yes — **requires prereqs** |
-| 06 | Shared Encoder (1536 → 128) | `specs/06-shared-encoder.md` | 30 min | yes |
-| 07 | Match Head (257 → 1) | `specs/07-match-head.md` | 30 min | yes |
-| 08 | Joint training loop | `specs/08-training-loop.md` | 90 min | **stretch after Sat 19:00** |
-| 09 | Calibration | `specs/09-calibration.md` | 45 min | after T08 |
-| 10 | ONNX export + z-cache population | `specs/10-onnx-export-cache-population.md` | 60 min | after T09 |
-| 11 | C++ `match_scorer` binary | `specs/11-cpp-match-scorer.md` | 120 min | **stretch** |
-| 12 | Binary tests (`test_scorer_binary`) | `specs/12-binary-tests.md` | 45 min | after T10, T11 |
-| 13 | End-to-end smoke test | `specs/13-end-to-end-smoke.md` | 30 min | after T12 |
-
-**Total**: ~9 h focused work. Realistic for one ML engineer with no other context switching.
-
-## Critical path (must work for any ML in demo)
-
-```
-T01 → T02 → T03 → T06 → T07 → T08 → T10 → T11 → T12
-```
-
-Stretch tasks: T04 (triplets), T05 (OpenAI), T13 (smoke). If we run out of time, **T05 can be replaced by a deterministic precomputed fake-score table** (per-pair hash → score). This means the demo can show "ML scores" without ever calling OpenAI, at the cost of no real semantic matching. Document this fallback in `specs/05-embedding-cache.md` §"Offline fallback".
-
-## Time budget vs. BUILD-PLAN milestones
-
-| BUILD-PLAN milestone | ML tasks in scope | Notes |
+| # | Task | Status |
 |---|---|---|
-| Sat 16:00 — Model v0 trained | T01–T08 | Synthetic dataset → model served by C++ binary |
-| Sat 19:00 — The project is real | T10, T11, T12 | Binary exported + Bun can call it |
-| Sun 07:00 — FREEZE | T13 | Final smoke test |
-| Stretch | T05, T09, T13 | Calibration real metrics, OpenAI real, end-to-end |
+| 01 | Project bootstrap (Python + deps) | required |
+| 02 | 1000 synthetic profiles + descriptions | required (descriptions come from T07 or canned pool) |
+| 03 | Pair-label dataset (OpenAI text embeddings + labels) | required |
+| 04 | Model architecture (Encoder + Match Head) | required |
+| 05 | Training | required |
+| 06 | Evaluation (model vs rule-based baseline) | required |
+| **07** | **Photo → LLM → text description** | **primary deliverable** |
 
-## What can ship without ML
+## T07 architecture
 
-Even if T01–T13 are not all done, the demo can ship:
+```
+photo_path + (intents, interests)
+   ↓
+[OpenAI gpt-4o-mini with vision]
+   prompt: "Describe this person: appearance, personality, who they're looking for"
+   ↓
+description: "30-year-old athletic man with short dark hair, outgoing. 
+              Looking for active women aged 25-35 who enjoy outdoors."
+   ↓
+saved to profile["description"]
+```
 
-- **Rule-based baseline** (PRODUCT.md §7) is M0 primary and ships independently
-- **Canned vibes** work without ML (T02 alone)
-- **Demo mode positions** work without ML (mobile role)
-- **Hard gates** work without ML (backend)
+- **Model**: `gpt-4o-mini` (vision-capable, ~$1-2 for 1000 photos)
+- **Input**: photo (base64 in message) + intent/interests chips as text
+- **Output**: 2-3 sentence plain prose description
 
-ML is **one of three scorers** the server can use:
-1. **match_scorer binary** (preferred, when alive)
-2. **Rule-based baseline** (fallback when binary dies)
-3. **Canned fake-score** (M0 stretch — deterministic, no model needed)
+## Profile shape
 
-If T01–T13 don't finish, the demo ships with option 2 (baseline only). The architecture decision to keep ML as a separate subprocess with a try/except means the demo never breaks if ML is unfinished.
+```python
+{
+  "id": "u_000001",
+  "intents": ["beer", "friends"],            # text signal
+  "interests": ["rock", "hiking", "dogs"],   # text signal
+  "description": "30-year-old athletic man with short dark hair, ...",  # NEW (from LLM)
+  "photo_path": "/path/to/photo.jpg",         # for re-running T07
+}
+```
 
-## Out-of-band for ML (T14+, optional)
+## Embedding text
 
-If time permits after T13:
-- **T14** — Bun-side reference impl of the JSON-lines client (helps backend integrate; backend can copy-paste)
-- **T15** — Local ONNX inference before the dominant fallback (sanity check during dev)
-- **T16** — Real OpenAI key integration test (smoke against live API)
-- **T17** — Synthetic data augmentation (more vibes, more interest combinations)
+```
+Intent: beer, friends.
+Interests: dogs, hiking, rock, tech.
+Description: 30-year-old athletic man with short dark hair, outgoing personality. Looking for active women aged 25-35 who enjoy outdoors.
+```
 
-## Reference: file layout after all tasks done
+~150-300 tokens per profile. ~$0.001 per profile to embed.
+
+## Cost estimate (1000 profiles)
+
+- T07 LLM calls (gpt-4o-mini vision): ~$1-2 for 1000 photos
+- T03 OpenAI text embeddings: ~$0.001 for 1000 profiles
+- T05 training: ~free (CPU, 1000 samples)
+- **Total: ~$2-3 for end-to-end M0 pipeline**
+
+## Out of scope (other roles)
+
+- Photo upload + storage — backend
+- Profile edit UI — mobile role
+- ONNX / C++ binary serving — backend (only needed if model goes to production; M0 ships rule-based baseline)
+- Bun/Elysia integration — backend
+
+## File layout
 
 ```
 ml/
-├── pyproject.toml                 ← T01
-├── uv.lock
-├── README.md
-├── .python-version                ← T01
-├── .gitignore                     ← T01
-├── canned/
-│   └── vibes.json                 ← T02
-├── src/
-│   └── just_mate_ml/
-│       ├── __init__.py
-│       ├── embedding_text.py      ← T02
-│       ├── data/
-│       │   ├── __init__.py
-│       │   ├── profiles.py        ← T03
-│       │   └── triplets.py        ← T04
-│       ├── cache/
-│       │   ├── __init__.py
-│       │   └── pgvector.py        ← T05
-│       ├── embedding/
-│       │   ├── __init__.py
-│       │   └── openai_client.py   ← T05
-│       ├── model/
-│       │   ├── __init__.py
-│       │   ├── encoder.py         ← T06
-│       │   ├── head.py            ← T07
-│       │   └── losses.py          ← T08
-│       ├── train.py               ← T08
-│       ├── calibrate.py            ← T09
-│       ├── export.py              ← T10
-│       └── populate_z.py          ← T10
-├── inference/                     ← T11
-│   ├── CMakeLists.txt
-│   ├── src/
-│   │   ├── main.cpp
-│   │   ├── scorer.hpp
-│   │   ├── protocol.hpp
-│   │   └── nlohmann/json.hpp      ← vendored
-│   └── build/
-│       └── match_scorer
-├── checkpoints/                   ← T10, T09
-│   ├── encoder_v0.pt
-│   ├── head_v0.pt
-│   ├── model_v0.onnx              ← only Match Head
-│   ├── MATCH_THRESHOLD            ← single float
-│   └── MODEL_CARD.md              ← calibration metrics
-├── data/                          ← T03, T04
-│   ├── synthetic_profiles.jsonl
-│   └── triplets.jsonl
+├── pyproject.toml
+├── data/
+│   ├── profiles.jsonl             # 1000 profiles incl. description (from T07)
+│   ├── embeddings.npy             # 1000 × 1536 (text embeddings only)
+│   ├── user_id_index.json
+│   ├── pairs.npz
+│   └── photos/                    # input for T07 (one photo per profile, by id)
+├── src/just_mate_ml/
+│   ├── profile_text.py            # includes description
+│   ├── describe.py                # T07: photo + LLM → description (NEW)
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── data/
+│   │   ├── profiles.py            # now generates/loads with description
+│   │   ├── pairs.py
+│   │   ├── triplets.py
+│   │   ├── embed.py
+│   │   ├── compat.py
+│   │   └── baseline.py
+│   └── model/
+│       ├── encoder.py
+│       ├── head.py
+│       ├── losses.py
+│       └── siamese.py
+├── checkpoints/
+│   └── model_v0.pt
+├── reports/
+│   └── eval_report.md
 └── tests/
-    ├── __init__.py
-    ├── test_embedding_text.py
-    ├── test_vibes.py
-    ├── test_profiles.py
-    ├── test_triplets.py
-    ├── test_encoder_shape.py
-    ├── test_match_head_shape.py
-    ├── test_training_step.py
-    ├── test_calibration.py
-    ├── test_pgvector_cache.py     ← requires backend's prereqs
-    ├── test_export_onnx.py
-    ├── test_scorer_binary.py      ← spawns match_scorer
-    └── test_end_to_end.py
 ```

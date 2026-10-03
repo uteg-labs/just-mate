@@ -32,6 +32,8 @@ Conventional commits drive versions. On push to `main`, `.github/workflows/bump-
 
 A stable `@justmate/server` tag starts `server-release.yml` (ours, not from the toolkit): it builds `server/Dockerfile` into `ghcr.io/uteg-labs/just-mate-server` and calls the Dokploy deploy webhook (`DOKPLOY_SERVER_WEBHOOK` secret), so Dokploy pulls `:latest`. The container applies Drizzle migrations on start. Env vars live in Dokploy, mirroring `server/.env.example`.
 
+A stable `@justmate/mobile` tag also starts `eas-release.yml` (ours, not from the toolkit): EAS builds iOS and auto-submits it to TestFlight (`production` profile), and builds an internal Android APK (`preview` profile) that testers install from expo.dev. It needs the `EXPO_TOKEN` secret; signing credentials and the `production` env vars (`EXPO_PUBLIC_API_URL`, `GOOGLE_MAPS_API_KEY`) live on EAS. Run it by hand via `workflow_dispatch` to rebuild one platform.
+
 ## Hard rules
 
 - **Protocol first.** Change `docs/PROTOCOL.md`, then `packages/protocol`, then code. Never re-declare a message type locally.

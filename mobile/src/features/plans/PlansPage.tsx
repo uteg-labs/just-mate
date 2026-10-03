@@ -30,7 +30,7 @@ export const PlansPage = ({ plans, venues, leadMs, onBack, onOpen, onNew }: Plan
   const venueOf = (plan: LivePlan) => venues.find((v) => v.id === plan.venueId)
 
   const picks = plans.filter(isPick)
-  const upcoming = plans.filter((p) => p.state === "confirmed").toSorted(byStart)
+  const upcoming = plans.filter((p) => p.state === "confirmed").sort(byStart)
   const invites = plans.filter((p) => p.kind === "invite" && !isPick(p) && p.state !== "confirmed")
 
   return (

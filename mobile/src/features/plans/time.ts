@@ -55,7 +55,7 @@ export function capital(text: string): string {
 
 export function slotGroups(slots: readonly number[]): { day: number; times: number[] }[] {
   const days = new Map<number, number[]>()
-  for (const ms of slots.toSorted((a, b) => a - b)) {
+  for (const ms of [...slots].sort((a, b) => a - b)) {
     const day = new Date(ms).setHours(0, 0, 0, 0)
     days.set(day, [...(days.get(day) ?? []), ms])
   }

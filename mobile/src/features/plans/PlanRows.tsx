@@ -89,12 +89,14 @@ export const PlanRow = ({ plan, venue, onPress }: PlanRowProps) => {
         solid={isTaken && plan.mine}
       />
       <Lines title={title} sub={place} />
-      <Badge
-        label={t(`plans.status.${status}`)}
-        color={status === "someonesIn" ? "glow" : "gray"}
-        variant="dot"
-        size="sm"
-      />
+      <View>
+        <Badge
+          label={t(`plans.status.${status}`)}
+          color={status === "someonesIn" ? "glow" : "gray"}
+          variant="dot"
+          size="sm"
+        />
+      </View>
       <Icon name="chevron-right" size={16} strokeWidth={2} color={c.fg3} />
     </TapCard>
   )

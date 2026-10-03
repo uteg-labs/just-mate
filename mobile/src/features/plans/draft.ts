@@ -38,7 +38,7 @@ export function timesFor(day: number): string[] {
 export function pickedDays(draft: Draft): number[] {
   return Object.keys(draft.slots)
     .map(Number)
-    .toSorted((a, b) => a - b)
+    .sort((a, b) => a - b)
 }
 
 export function slotTimes(draft: Draft): number[] {

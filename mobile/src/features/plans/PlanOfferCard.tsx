@@ -222,13 +222,11 @@ export const PlanOfferCard = ({
   )
 }
 
-// "café · 9 min for you, 7 for them"
+// "café · 9 min for you, 7 for them": their walk is known only for the venue the server sent
 function walkLine(t: TFunction, venue: Venue, mine: number | undefined, plan: LivePlan) {
-  const kind = t(`plans.kinds.${venue.kind}`)
-  if (mine && plan.partnerWalkMin) {
-    return t("plans.offer.walks", { kind, mine, theirs: plan.partnerWalkMin })
-  }
-  return kind
+  const theirs = venue.id === plan.venueId ? plan.partnerWalkMin : undefined
+  if (!mine || !theirs) return venueMeta(t, venue, mine)
+  return t("plans.offer.walks", { kind: t(`plans.kinds.${venue.kind}`), mine, theirs })
 }
 
 const styles = StyleSheet.create({

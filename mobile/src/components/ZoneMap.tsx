@@ -195,7 +195,12 @@ const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasP
           emphasis: AppleMapsMapStyleEmphasis.MUTED,
           pointsOfInterest: { including: [] },
         }}
-        uiSettings={{ compassEnabled: false, scaleBarEnabled: false, togglePitchEnabled: false }}
+        uiSettings={{
+          compassEnabled: false,
+          myLocationButtonEnabled: false,
+          scaleBarEnabled: false,
+          togglePitchEnabled: false,
+        }}
       />
     )
   }

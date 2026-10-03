@@ -85,7 +85,7 @@ export const PlanWhereSheet = ({
   const needle = query.trim().toLowerCase()
   const rows = venues
     .filter((v) => `${v.name} ${t(`plans.kinds.${v.kind}`)}`.toLowerCase().includes(needle))
-    .toSorted((a, b) => fits(b) - fits(a) || (walkOf(a) ?? 0) - (walkOf(b) ?? 0))
+    .sort((a, b) => fits(b) - fits(a) || (walkOf(a) ?? 0) - (walkOf(b) ?? 0))
 
   return (
     <View style={[styles.sheet, { height: Math.round(height * SHEET_SHARE) }]}>

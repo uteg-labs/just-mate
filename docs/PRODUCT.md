@@ -98,7 +98,7 @@ idle → searching → [match offered ⇉ both phones]
 | Compass abused to locate someone | Unlocks only after **mutual** accept; reveals a *bearing*, never a map position; 10-min TTL; partner sees the same compass (symmetry — they know you're walking too) |
 | Harassment | No chat = no DM channel; exposure is session-scoped; block & report (production) kill future matches pair-wide |
 | Data breach / subpoena | Positions never persisted — in-memory per socket only; nothing to leak |
-| Notification fatigue / ambush pings | Both parties opted in *per occasion* (search toggle); pair cooldown; one active session |
+| Notification fatigue / ambush pings | Both parties opted in *per occasion* (intent pick); pair cooldown; one active session |
 | Women's safety specifically | She is invisible unless she switches search on; she can dismiss any match invisibly; Vanish is one tap and instant |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA. Demo runs on test data only.

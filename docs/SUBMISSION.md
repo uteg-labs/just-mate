@@ -22,7 +22,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 2. **Problem** — swiping replaced meeting; 3 stats (loneliness ≈ 15 cigarettes/day; hours swiped per real date; % matches never meet)
 3. **Why now** — happn (proximity, retrospective) · Breeze (skip chat, scheduled) · S'More (faceless, dead) · Zenly (live maps, friends) — "nobody assembled the walk"
 4. **The idea** — three rules + one-liner + app screenshot
-5. **How it works** — the 6-step loop as a diagram (profile → search toggle → zones → mutual ping → compass → meet)
+5. **How it works** — the 6-step loop as a diagram (profile → intent pick → zones → mutual ping → compass → meet)
 6. **Safety by design** — mutual / zones-not-pins / ephemeral / 10-min / Vanish
 7. **Demo** — live, or the 60s video + two phone screenshots
 8. **Tech** — geofenced sessions, geohash-6 zones, custom-trained compatibility model, Expo app, Bun + Elysia backend; real-vs-canned honesty line

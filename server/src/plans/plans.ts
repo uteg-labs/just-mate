@@ -22,7 +22,7 @@ import type { Client } from "../realtime/session"
 import { atLocal, DAY_MS, HOUR_MS, isOpen, MIN_MS } from "./city"
 import { isFree } from "./free"
 import { memoryRepo, type PlanRepo, type PlanRow } from "./repo"
-import { VENUES, venueById } from "./venues"
+import { setVenues, venueById, venues } from "./venues"
 
 export type PlanLink = {
   now(): number
@@ -70,6 +70,7 @@ export async function loadPlans(
 ) {
   planStore.repo = repo
   const saved = await repo.load()
+  setVenues(saved.venues)
   for (const row of saved.rows) plans.set(row.id, row)
   for (const [userId, at] of saved.anchors) anchors.set(userId, at)
 
@@ -400,7 +401,8 @@ function proposal(a: string, b: string, now: number, config: Config) {
 
   const demo = isDemo(a)
   const anchored = from as LatLng[]
-  const venues = VENUES.filter((v) => v.modes.includes(mode) && v.fits.includes(what.intent))
+  const fitting = venues
+    .filter((v) => v.modes.includes(mode) && v.fits.includes(what.intent))
     .map((venue) => ({ venue, far: Math.max(...anchored.map((p) => distanceM(p, venue))) }))
     .filter((x) => demo || x.far <= MAX_WALK_M)
     .toSorted((x, y) => x.far - y.far)
@@ -408,7 +410,7 @@ function proposal(a: string, b: string, now: number, config: Config) {
 
   const times = demo ? [demoStart(now)] : freeTimes(pa, pb, mode, now)
   for (const startsAt of times) {
-    const [venue, ...alts] = venues.filter((v) => demo || isOpen(v, startsAt))
+    const [venue, ...alts] = fitting.filter((v) => demo || isOpen(v, startsAt))
     if (!venue) continue
 
     const ttl = now + config.planProposalTtlMs

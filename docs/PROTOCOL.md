@@ -228,7 +228,7 @@ Venues are public places. They are the only coordinates a client ever receives.
 
 | Route | Reply | Notes |
 |---|---|---|
-| `GET /api/venues` | `Venue[]` | The seeded list for the city. Public, no session needed. Cache it per app run. |
+| `GET /api/venues` | `Venue[]` | Every row of the server's `venue` table, loaded at startup (seeded by migration). Public, no session needed. Cache it per app run. |
 
 ```ts
 {

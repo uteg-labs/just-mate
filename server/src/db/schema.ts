@@ -9,6 +9,7 @@ import type {
   PlanUntil,
   QA,
   Settings,
+  VenueKind,
 } from "@justmate/protocol"
 import { relations } from "drizzle-orm"
 import {
@@ -153,6 +154,23 @@ export const planAnchor = pgTable("plan_anchor", {
     .references(() => user.id, { onDelete: "cascade" }),
   lat: doublePrecision("lat").notNull(),
   lng: doublePrecision("lng").notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+// PROTOCOL.md › Venue: public places plans happen at; partner venues pay for the table (PRODUCT.md §7)
+export const venue = pgTable("venue", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").$type<VenueKind>().notNull(),
+  rating: doublePrecision("rating"),
+  opens: text("opens"),
+  closes: text("closes"),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  modes: jsonb("modes").$type<Mode[]>().notNull(),
+  fits: jsonb("fits").$type<Intent[]>().notNull(),
+  partner: boolean("partner").default(false).notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
 

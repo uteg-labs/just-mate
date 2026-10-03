@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 
 import { db } from "../db"
-import { plan, planAnchor } from "../db/schema"
+import { plan, planAnchor, venue } from "../db/schema"
 import type { PlanRepo, PlanRow } from "./repo"
 
 type Stored = typeof plan.$inferSelect
@@ -20,13 +20,15 @@ function toStored(row: PlanRow) {
 
 export const pgRepo: PlanRepo = {
   async load() {
-    const [rows, anchors] = await Promise.all([
+    const [rows, anchors, venues] = await Promise.all([
       db.select().from(plan),
       db.select().from(planAnchor),
+      db.select().from(venue),
     ])
     return {
       rows: rows.map(toRow),
       anchors: anchors.map((a) => [a.userId, { lat: a.lat, lng: a.lng }]),
+      venues: venues.map(({ partner, createdAt, updatedAt, ...v }) => v),
     }
   },
 

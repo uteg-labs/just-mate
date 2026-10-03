@@ -7,16 +7,16 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | Path | What | Source of truth |
 |---|---|---|
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
-| `server/` | Bun + Elysia, one WebSocket per client; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
+| `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens |
 | `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
-| `shared-infra/` | (stretch) Postgres + pgvector | `docs/ML-MATCHING.md` §6 |
 
 ## Commands
 
 ```bash
 bun install                  # whole workspace, hoisted (bunfig.toml)
 bun run dev:server           # :3000
+bun --cwd server db:migrate # apply server-owned Drizzle migrations
 bun run dev:mock             # :3001, scripted transcript
 bun --cwd mobile ios         # dev-client build on simulator / device
 bun run lint                 # biome; `bun run format` to fix

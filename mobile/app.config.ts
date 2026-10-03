@@ -15,6 +15,7 @@ export default (): ExpoConfig => ({
   ios: {
     icon: "./assets/expo.icon",
     bundleIdentifier: "sk.uteg.justmate",
+    config: { usesNonExemptEncryption: false },
   },
   android: {
     package: "sk.uteg.justmate",
@@ -31,6 +32,8 @@ export default (): ExpoConfig => ({
   plugins: [
     "expo-router",
     "expo-dev-client",
+    "expo-localization",
+    "expo-secure-store",
     [
       "expo-splash-screen",
       { backgroundColor: "#0A0A0D", image: "./assets/images/splash-icon.png", imageWidth: 76 },

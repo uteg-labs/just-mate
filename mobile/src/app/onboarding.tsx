@@ -1,6 +1,7 @@
 import { INTENTS, type Intent } from "@justmate/protocol"
 import { router } from "expo-router"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Button } from "@/components/Button"
 import { Chip } from "@/components/Chip"
 import { SwipeDeck } from "@/components/SwipeDeck"
+import { authClient } from "@/lib/auth-client"
 import { interestsFor } from "@/lib/interests"
 import { describeTaste, nextQuestion, QUESTIONS, type QA, warmUp, writeVibe } from "@/lib/llm"
 import { newProfileId, profileCard, saveProfileCard } from "@/lib/profile"
@@ -30,24 +32,14 @@ import { type } from "@/theme/type"
 const MIN_INTERESTS = 3
 const INTERVIEW = 2
 const TASTE = 3
-
-const STEPS = [
-  { title: "What are you up for?", hint: "Pick everything that fits." },
-  { title: "What are you into?", hint: `Tailored to your picks. At least ${MIN_INTERESTS}.` },
-  { title: "Let's get to know you", hint: `${QUESTIONS} quick questions, one at a time.` },
-  {
-    title: "What catches your eye?",
-    hint: "Swipe left for yes, right for no. Confirm keeps your picks, Skip drops them all.",
-  },
-]
-
-const label = (intent: string) => intent.replace("_", " ")
+const SLOTS = Array.from({ length: QUESTIONS }, (_, i) => i)
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
 }
 
 export default function Onboarding() {
+  const { t } = useTranslation()
   const [step, setStep] = useState(0)
   const [intents, setIntents] = useState<Intent[]>([])
   const [picked, setPicked] = useState<string[]>([])
@@ -65,6 +57,19 @@ export default function Onboarding() {
   const interviewing = step === INTERVIEW
   const tasting = step === TASTE
   const { status, photos } = useTastePhotos(tasting)
+
+  const steps = [
+    { title: t("onboarding.intentsTitle"), hint: t("onboarding.intentsHint") },
+    {
+      title: t("onboarding.title"),
+      hint: t("onboarding.interestsHint", { count: MIN_INTERESTS }),
+    },
+    {
+      title: t("onboarding.interviewTitle"),
+      hint: t("onboarding.interviewHint", { count: QUESTIONS }),
+    },
+    { title: t("onboarding.tasteTitle"), hint: t("onboarding.tasteHint") },
+  ]
 
   useEffect(() => {
     warmUp()
@@ -109,7 +114,8 @@ export default function Onboarding() {
     const card = profileCard(id, intents, interests, vibe, taste)
     console.log(card)
     await saveProfileCard(id, card)
-    send({ t: "hello", interests, adult: true })
+    const sessionCookie = await authClient.getCookie()
+    send({ t: "hello", sessionCookie, interests, adult: true })
     router.replace("/home")
   }
 
@@ -129,12 +135,13 @@ export default function Onboarding() {
     if (step + 1 === INTERVIEW) ask([])
   }
 
-  const answerTitle = qa.length === QUESTIONS - 1 ? "Show photos" : "Next question"
+  const answerTitle =
+    qa.length === QUESTIONS - 1 ? t("onboarding.showPhotos") : t("onboarding.nextQuestion")
   const nextTitle = [
-    "Pick interests",
-    "Start questions",
+    t("onboarding.pickInterests"),
+    t("onboarding.startQuestions"),
     answerTitle,
-    finishing ? "Writing your profile…" : "Confirm",
+    finishing ? t("onboarding.writing") : t("onboarding.confirm"),
   ][step]
 
   return (
@@ -149,15 +156,15 @@ export default function Onboarding() {
           scrollEnabled={!tasting}
         >
           <Animated.View key={step} entering={FadeIn.duration(fade.duration)} style={styles.step}>
-            <Text style={[type.largeTitle, styles.text]}>{STEPS[step]?.title}</Text>
-            <Text style={[type.body, styles.muted]}>{STEPS[step]?.hint}</Text>
+            <Text style={[type.largeTitle, styles.text]}>{steps[step]?.title}</Text>
+            <Text style={[type.body, styles.muted]}>{steps[step]?.hint}</Text>
 
             {step === 0 && (
               <View style={styles.chips}>
                 {INTENTS.map((intent) => (
                   <Chip
                     key={intent}
-                    label={label(intent)}
+                    label={t(`intents.${intent}`)}
                     selected={intents.includes(intent)}
                     onPress={() => setIntents(toggle(intents, intent))}
                   />
@@ -170,7 +177,7 @@ export default function Onboarding() {
                 {available.map((interest) => (
                   <Chip
                     key={interest}
-                    label={interest}
+                    label={t(`interests.${interest}`)}
                     selected={interests.includes(interest)}
                     onPress={() => setPicked(toggle(interests, interest))}
                   />
@@ -181,15 +188,18 @@ export default function Onboarding() {
             {interviewing && (
               <>
                 <Text style={[type.footnote, styles.muted]}>
-                  Question {Math.min(qa.length + 1, QUESTIONS)} of {QUESTIONS}
+                  {t("onboarding.question", {
+                    current: Math.min(qa.length + 1, QUESTIONS),
+                    total: QUESTIONS,
+                  })}
                 </Text>
                 <View style={styles.dots}>
-                  {Array.from({ length: QUESTIONS }, (_, i) => (
-                    <View key={i} style={[styles.dot, i <= qa.length && styles.dotOn]} />
+                  {SLOTS.map((slot) => (
+                    <View key={slot} style={[styles.dot, slot <= qa.length && styles.dotOn]} />
                   ))}
                 </View>
                 <Text style={[type.title, question ? styles.text : styles.muted]}>
-                  {question ?? "Thinking of a question…"}
+                  {question ?? t("onboarding.thinking")}
                 </Text>
                 <TextInput
                   value={draft}
@@ -197,7 +207,7 @@ export default function Onboarding() {
                   editable={!!question}
                   multiline
                   maxLength={280}
-                  placeholder="Your answer"
+                  placeholder={t("onboarding.answerPlaceholder")}
                   placeholderTextColor={colors.textTertiary}
                   style={[type.body, styles.input]}
                 />
@@ -207,20 +217,22 @@ export default function Onboarding() {
             {tasting && (
               <>
                 {status === "loading" && (
-                  <Text style={[type.body, styles.muted]}>Loading photos…</Text>
+                  <Text style={[type.body, styles.muted]}>{t("onboarding.photosLoading")}</Text>
                 )}
                 {status === "failed" && (
-                  <Text style={[type.body, styles.muted]}>
-                    Photos are not available right now. You can skip this step.
-                  </Text>
+                  <Text style={[type.body, styles.muted]}>{t("onboarding.photosFailed")}</Text>
                 )}
                 {status === "ready" && photos.length === 0 && (
-                  <Text style={[type.body, styles.muted]}>No photos to show right now.</Text>
+                  <Text style={[type.body, styles.muted]}>{t("onboarding.photosEmpty")}</Text>
                 )}
                 {status === "ready" && !finishing && seen < photos.length && (
                   <>
                     <Text style={[type.footnote, styles.muted]}>
-                      {seen + 1} of {photos.length} · {liked.length} picked
+                      {t("onboarding.progress", {
+                        current: seen + 1,
+                        total: photos.length,
+                        liked: liked.length,
+                      })}
                     </Text>
                     <SwipeDeck photos={photos.slice(seen)} onSwipe={swipe} />
                   </>
@@ -234,14 +246,21 @@ export default function Onboarding() {
           {step === 0 && (
             <Pressable style={styles.check} onPress={() => setAdult(!adult)} hitSlop={10}>
               <View style={[styles.box, adult && styles.boxOn]} />
-              <Text style={[type.body, styles.text]}>I'm 18 or older</Text>
+              <Text style={[type.body, styles.text]}>{t("onboarding.adult")}</Text>
             </Pressable>
           )}
           <Button title={nextTitle ?? ""} disabled={!canNext} onPress={onNext} />
           {tasting && (
-            <Button title="Skip" variant="ghost" disabled={finishing} onPress={() => finish([])} />
+            <Button
+              title={t("onboarding.skip")}
+              variant="ghost"
+              disabled={finishing}
+              onPress={() => finish([])}
+            />
           )}
-          {step > 0 && !tasting && <Button title="Back" variant="ghost" onPress={back} />}
+          {step > 0 && !tasting && (
+            <Button title={t("onboarding.back")} variant="ghost" onPress={back} />
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

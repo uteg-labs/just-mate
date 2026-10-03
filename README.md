@@ -47,24 +47,23 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · passwordless Better Auth sessions in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No location persistence, no push.
 
 **Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
-server/          Bun + Elysia — zones, distance-gated matching, hard gates, compass relay, TTLs, ghosts
+server/          Bun + Elysia + Drizzle — auth schema/migrations, zones, matching, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
-shared-infra/    (stretch) PostgreSQL + pgvector schema, migrations
 ```
 
 ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ## Run
 
-Needs Bun ≥ 1.3 and Xcode (iOS) or Android Studio (Android); Docker only for the stretch pgvector cache. Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
+Needs Bun ≥ 1.3, a local PostgreSQL database, and Xcode (iOS) or Android Studio (Android). Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
 
 ```bash
 bun install
@@ -73,14 +72,22 @@ bun install
 Backend on `:3000` (`ws://<host>:3000/ws`), or the mock that replays the PROTOCOL.md happy path on `:3001`:
 
 ```bash
+cp server/.env.example server/.env
+bun --cwd server db:migrate
 bun run dev:server
 ```
+
+Set `DATABASE_URL` to your local PostgreSQL database and `BETTER_AUTH_SECRET` to a random value
+before starting. Drizzle owns the schema in `server/src/db` and migrations in `server/drizzle`;
+use `bun --cwd server db:generate` after schema changes. In local development, magic links are
+printed in the server terminal when `RESEND_API_KEY` is empty; configure Resend and
+`AUTH_EMAIL_FROM` to deliver real email.
 
 ```bash
 bun run dev:mock
 ```
 
-Mobile is a dev-client build — `expo-maps` is native, so Expo Go cannot run it. Copy `mobile/.env.example` to `mobile/.env` (WS URL; Google Maps key for Android), then build and run on a simulator or a plugged-in phone:
+Mobile is a dev-client build — `expo-maps` is native, so Expo Go cannot run it. Copy `mobile/.env.example` to `mobile/.env` (API/WS URLs; Google Maps key for Android), then build and run on a simulator or a plugged-in phone:
 
 ```bash
 bun --cwd mobile ios
@@ -98,21 +105,16 @@ Checks (run before every push):
 bun run lint && bun run typecheck && bun run test
 ```
 
-Stretch: the pgvector cache (`ml/` is bootstrapped by `docs/ml/specs/01-bootstrap.md`):
-
-```bash
-docker compose -f shared-infra/docker-compose.yml up -d
-```
-
 ## What's real vs canned (demo honesty)
 
 | Real | Canned (labelled) |
 |---|---|
-| Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
-| Zone glow from live positions | Vibe-card strings (until the model generates them) |
+| AI onboarding interview → `profile.md` (LLM) | Ghost users adding zone density (server spawns wandering ghosts) |
+| LLM vibe cards from both profiles (shared interests) | — |
+| Zone glow from live positions | — |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
 | Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
 | Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
 | *If the stretch ships:* Shared Encoder + Match Head training loop and the compiled `match_scorer` binary scoring `z` pairs over stdin/stdout | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
 
-Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search) and any database (positions live in memory per socket; the pgvector cache belongs to the ML stretch).
+Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search). PostgreSQL stores accounts and sessions only; positions remain in memory per socket and are never persisted. The pgvector cache belongs to the ML stretch.

@@ -27,7 +27,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 7. **Demo** — live, or the 60s video + two phone screenshots
 8. **Tech** — session-scoped WebSocket, geohash-6 zones (display) + 400 m distance gate (matching), bearing-only relay, explainable scoring, Expo app, Bun + Elysia backend; real-vs-canned honesty line
 9. **Launch** — density-first: one campus/festival/city; venue partnerships ("first beer"); zone glow is an aggregate so the map is alive from day one
-10. **Credits & licenses** — AI use credited (compatibility function + canned cards), Apple Maps / Google Maps attribution (shown by the native map), test data only
+10. **Credits & licenses** — AI use credited (LLM interview, embeddings, matching model, LLM vibe cards), Apple Maps / Google Maps attribution (shown by the native map), test data only
 
 ## Screenshots to capture (for gallery + deck)
 
@@ -39,7 +39,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 ## AI-use disclosure (required by rules)
 
-"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. Matching in the demo is a transparent scoring function; personality cards are canned strings. [If a learned model ships:] A compatibility model was additionally trained by the team during the event on synthetic data."
+"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. The product itself uses AI: an LLM interviews the user and writes their profile, profiles are embedded (OpenAI text-embedding-3-small) and scored by a compatibility model the team trained during the event on synthetic data, and an LLM writes the vibe card from both matched profiles."
 
 ## Pre-submit checklist (Sun 10:30)
 
@@ -47,7 +47,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 - [ ] ≥1 image uploaded (money shot first)
 - [ ] Deck exported to PDF, ≤10 slides, English
 - [ ] Repo public/judge-accessible, README run instructions work from clean clone
-- [ ] Every sentence in description + deck describes the demo or is labelled "production path" (no "computed on device", no "AI matching" unless true)
+- [ ] Every sentence in description + deck describes the demo or is labelled "production path" (no "computed on device"; AI claims only for parts that run in the build)
 - [ ] Stats in slide 2 each have a named source, or were cut
 - [ ] Demo link (if included) + credentials
 - [ ] Submitted by 10:30 — screenshot the confirmation

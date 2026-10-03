@@ -1,4 +1,4 @@
-const root = `${import.meta.dir}/../taste`
+const root = `${import.meta.dir}/../../taste`
 const groups: readonly string[] = ["man", "women"]
 const images = new Bun.Glob("*.{jpg,jpeg,png,webp}")
 

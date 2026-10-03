@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { Image, StyleSheet, Text, useWindowDimensions, View } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
@@ -30,6 +31,7 @@ const Photo = ({ uri }: { uri: string }) => (
 )
 
 const TopCard = ({ photo, onSwipe }: CardProps) => {
+  const { t } = useTranslation()
   const { width } = useWindowDimensions()
   const x = useSharedValue(0)
 
@@ -72,10 +74,10 @@ const TopCard = ({ photo, onSwipe }: CardProps) => {
       <Animated.View style={[styles.card, card]}>
         <Photo uri={photo.uri} />
         <Animated.View style={[styles.label, styles.yes, yesLabel]}>
-          <Text style={[type.title, { color: colors.glow }]}>YES</Text>
+          <Text style={[type.title, { color: colors.glow }]}>{t("onboarding.yes")}</Text>
         </Animated.View>
         <Animated.View style={[styles.label, styles.no, noLabel]}>
-          <Text style={[type.title, { color: colors.textPrimary }]}>NO</Text>
+          <Text style={[type.title, { color: colors.textPrimary }]}>{t("onboarding.no")}</Text>
         </Animated.View>
       </Animated.View>
     </GestureDetector>

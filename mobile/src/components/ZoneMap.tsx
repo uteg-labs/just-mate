@@ -1,3 +1,6 @@
+export {}
+
+/*
 import { AppleMaps, GoogleMaps } from "expo-maps"
 import ngeohash from "ngeohash"
 import { Platform, StyleSheet } from "react-native"
@@ -71,3 +74,4 @@ export const ZoneMap = ({ zones }: Props) => {
     />
   )
 }
+*/

@@ -1,11 +1,13 @@
 import { INTERESTS } from "@justmate/protocol"
 import { router } from "expo-router"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { Button } from "@/components/Button"
 import { Chip } from "@/components/Chip"
+import { authClient } from "@/lib/auth-client"
 import { send } from "@/lib/store"
 import { colors } from "@/theme/colors"
 import { radius, space } from "@/theme/layout"
@@ -14,6 +16,7 @@ import { type } from "@/theme/type"
 const MIN_INTERESTS = 3
 
 export default function Onboarding() {
+  const { t } = useTranslation()
   const [interests, setInterests] = useState<string[]>([])
   const [adult, setAdult] = useState(false)
 
@@ -22,24 +25,25 @@ export default function Onboarding() {
       current.includes(interest) ? current.filter((i) => i !== interest) : [...current, interest],
     )
 
-  const enter = () => {
-    send({ t: "hello", interests, adult: true })
+  const enter = async () => {
+    const sessionCookie = await authClient.getCookie()
+    send({ t: "hello", sessionCookie, interests, adult: true })
     router.replace("/home")
   }
 
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[type.largeTitle, styles.text]}>What are you into?</Text>
+        <Text style={[type.largeTitle, styles.text]}>{t("onboarding.title")}</Text>
         <Text style={[type.body, styles.muted]}>
-          Pick at least {MIN_INTERESTS}. No photos, ever.
+          {t("onboarding.description", { count: MIN_INTERESTS })}
         </Text>
 
         <View style={styles.chips}>
           {INTERESTS.map((interest) => (
             <Chip
               key={interest}
-              label={interest}
+              label={t(`interests.${interest}`)}
               selected={interests.includes(interest)}
               onPress={() => toggle(interest)}
             />
@@ -50,10 +54,10 @@ export default function Onboarding() {
       <View style={styles.footer}>
         <Pressable style={styles.check} onPress={() => setAdult(!adult)} hitSlop={10}>
           <View style={[styles.box, adult && styles.boxOn]} />
-          <Text style={[type.body, styles.text]}>I'm 18 or older</Text>
+          <Text style={[type.body, styles.text]}>{t("onboarding.adult")}</Text>
         </Pressable>
         <Button
-          title="Enter the map"
+          title={t("onboarding.enter")}
           disabled={!adult || interests.length < MIN_INTERESTS}
           onPress={enter}
         />

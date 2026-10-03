@@ -18,6 +18,7 @@ export type Conn = {
 export type Client = {
   id: string
   conn: Conn
+  userIdForCookie: (cookie: string) => Promise<string | undefined>
   demo?: "a" | "b"
   interests?: string[]
   intents: Intent[]
@@ -39,11 +40,16 @@ const MAX_INTENTS = 2
 
 export const clients = new Map<string, Client>()
 
-export function connect(conn: Conn, demo?: "a" | "b"): Client {
+export function connect(
+  conn: Conn,
+  demo?: "a" | "b",
+  userIdForCookie: (cookie: string) => Promise<string | undefined> = async () => undefined,
+): Client {
   const client: Client = {
     id: `u_${crypto.randomUUID().slice(0, 8)}`,
     conn,
     demo,
+    userIdForCookie,
     intents: [],
     searching: false,
   }
@@ -55,7 +61,7 @@ export function disconnect(client: Client) {
   clients.delete(client.id)
 }
 
-export function receive(client: Client, frame: unknown) {
+export async function receive(client: Client, frame: unknown) {
   const msg = parseClientMsg(frame)
   if (!msg) return
 
@@ -90,7 +96,9 @@ export function receive(client: Client, frame: unknown) {
   }
 }
 
-function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
+async function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
+  const userId = await client.userIdForCookie(msg.sessionCookie)
+  if (!userId) return client.conn.close(CloseCode.Unauthorized, "authentication required")
   if (msg.adult !== true) return client.conn.close(CloseCode.AdultRequired, "18+ only")
 
   const interests = [...new Set(msg.interests)].filter((i) =>
@@ -99,7 +107,10 @@ function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
   if (interests.length < MIN_INTERESTS)
     return client.conn.close(CloseCode.InvalidProfile, "min 3 interests")
 
+  clients.delete(client.id)
+  client.id = userId
   client.interests = interests
+  clients.set(client.id, client)
   client.conn.send({
     t: "ready",
     userId: client.id,

@@ -62,7 +62,7 @@ export const DEFAULT_CONFIG: Config = {
 }
 
 export type ClientMsg =
-  | { t: "hello"; interests: string[]; nickname?: string; adult: true }
+  | { t: "hello"; sessionCookie: string; interests: string[]; nickname?: string; adult: true }
   | { t: "search_on"; intents: string[] }
   | { t: "search_off" }
   | ({ t: "position"; heading?: number } & Position)
@@ -101,6 +101,7 @@ export const CloseCode = {
   AdultRequired: 4001,
   InvalidProfile: 4002,
   ProtocolViolation: 4003,
+  Unauthorized: 4004,
 } as const
 
 const CLIENT_TYPES = new Set<string>([

@@ -7,7 +7,7 @@ import {
 } from "@justmate/protocol"
 import type { ServerWebSocket } from "bun"
 
-import { bucketFor } from "../src/geo"
+import { bucketFor } from "../src/matching/geo"
 
 // replays the PROTOCOL.md happy path so mobile can run without the real backend
 

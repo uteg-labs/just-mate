@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 
 import { send, useStore } from "@/lib/store"
@@ -9,6 +10,7 @@ import { Button } from "./Button"
 
 // STRUCTURE.md §3 — buttons only, no swipe-to-dismiss
 export const MatchBanner = () => {
+  const { t } = useTranslation()
   const offer = useStore((s) => s.offer)
   if (!offer) return null
 
@@ -17,21 +19,21 @@ export const MatchBanner = () => {
       <View style={styles.card}>
         <Text style={[type.display, styles.primary]}>{offer.matchPct}%</Text>
         <Text style={[type.headline, styles.secondary]}>
-          wants: {offer.sharedIntent.replace("_", " ")}
+          {t("match.wants", { intent: t(`intents.${offer.sharedIntent}`) })}
         </Text>
         <Text style={[type.vibe, styles.primary]}>“{offer.vibe}”</Text>
 
         <Button
-          title={offer.accepted ? "waiting for them…" : "Open compass"}
+          title={offer.accepted ? t("match.waiting") : t("match.openCompass")}
           disabled={offer.accepted}
           onPress={() => send({ t: "accept", offerId: offer.offerId })}
         />
         <Button
-          title="Dismiss"
+          title={t("match.dismiss")}
           variant="ghost"
           onPress={() => send({ t: "dismiss", offerId: offer.offerId })}
         />
-        <Text style={[type.footnote, styles.secondary]}>unlocks only if they accept too</Text>
+        <Text style={[type.footnote, styles.secondary]}>{t("match.unlocks")}</Text>
       </View>
     </View>
   )

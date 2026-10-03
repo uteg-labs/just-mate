@@ -47,14 +47,14 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · passwordless Better Auth sessions in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No location persistence, no push.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · Better Auth (email + password) sessions and the onboarding profile in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, a 400–1200 m walking-distance gate for matching. No location persistence, no push.
 
 **Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — auth, onboarding (Date / Mate), map with category picks, match card, compass, post-meet, settings
-server/          Bun + Elysia + Drizzle — auth schema/migrations, zones, matching, compass relay
+server/          Bun + Elysia + Drizzle — auth, profile, live onboarding text, zones, matching, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
 ```
@@ -79,9 +79,10 @@ bun run dev:server
 
 Set `DATABASE_URL` to your local PostgreSQL database and `BETTER_AUTH_SECRET` to a random value
 before starting. Drizzle owns the schema in `server/src/db` and migrations in `server/drizzle`;
-use `bun --cwd server db:generate` after schema changes. In local development, magic links are
-printed in the server terminal when `RESEND_API_KEY` is empty; configure Resend and
-`AUTH_EMAIL_FROM` to deliver real email.
+use `bun --cwd server db:generate` after schema changes. In local development, auth emails
+(password resets, magic links) are printed in the server terminal when `RESEND_API_KEY` is empty;
+configure Resend and `AUTH_EMAIL_FROM` to deliver real email. `ANTHROPIC_API_KEY` is optional:
+without it, onboarding questions, vibe lines and related interests use fixed samples.
 
 ```bash
 bun run dev:mock

@@ -18,6 +18,11 @@ The `soft_jacc` field is REQUIRED for v3 models (the third input). Use
 `compute_soft_jaccard_pair()` from `just_mate_ml.data.embed` to derive it
 from two profiles' interests.
 
+One-shot CLI mode (for ad-hoc / debugging):
+    python scripts/match_scorer.py <model.onnx> \
+        --score target_emb.json,self_emb.json \
+        --soft-jacc 0.5
+
 Errors are returned as:
   response → stdout:  {"id":"req_42", "error":"<message>"}
 
@@ -146,7 +151,11 @@ def main() -> None:
     parser.add_argument("--self-test", action="store_true",
                         help="run a sanity check and exit")
     parser.add_argument("--score", type=str, default=None,
-                        help="score one pair inline: 'target.json,target.json' (comma-separated)")
+                        help="score one pair inline: 'target_emb.json,self_emb.json' "
+                             "(paths to JSON files each holding 1536 floats)")
+    parser.add_argument("--soft-jacc", type=float, default=0.0,
+                        help="soft_jacc value for --score mode (REQUIRED for v3 models; "
+                             "ignored by v2 models that take only 2 inputs)")
     args = parser.parse_args()
 
     model_path = Path(args.model)
@@ -166,13 +175,13 @@ def main() -> None:
     if args.score:
         # Inline single-shot scoring for ad-hoc use.
         # Format: "target_emb.json,self_emb.json" — paths to JSON files each
-        # holding a list of 1536 floats.
+        # holding a list of 1536 floats. soft_jacc passed via --soft-jacc.
         try:
             t_path, s_path = args.score.split(",", 1)
             target = json.loads(Path(t_path).read_text())
             self_ = json.loads(Path(s_path).read_text())
-            s = score_one(sess, target, self_)
-            print(json.dumps({"score": s}))
+            s = score_one(sess, target, self_, args.soft_jacc)
+            print(json.dumps({"score": s, "soft_jacc": args.soft_jacc}))
         except Exception as e:
             print(json.dumps({"error": str(e)}), file=sys.stderr)
             sys.exit(1)

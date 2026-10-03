@@ -1,9 +1,16 @@
 import type {
+  AppearanceReply,
+  AppearanceRequest,
+  CharacterReply,
+  CharacterRequest,
   Profile,
   QuestionReply,
   QuestionRequest,
   RelatedReply,
   RelatedRequest,
+  TasteReply,
+  TasteRequest,
+  TasteSample,
   VibeReply,
   VibeRequest,
 } from "@justmate/protocol"
@@ -47,4 +54,11 @@ export const api = {
     request<QuestionReply>("POST", "/api/onboarding/question", body),
   vibe: (body: VibeRequest) => request<VibeReply>("POST", "/api/onboarding/vibe", body),
   related: (body: RelatedRequest) => request<RelatedReply>("POST", "/api/onboarding/related", body),
+  character: (body: CharacterRequest) =>
+    request<CharacterReply>("POST", "/api/onboarding/character", body),
+  taste: (body: TasteRequest) => request<TasteReply>("POST", "/api/onboarding/taste", body),
+  appearance: (body: AppearanceRequest) =>
+    request<AppearanceReply>("POST", "/api/onboarding/appearance", body),
+
+  tasteSamples: () => request<TasteSample[]>("GET", "/taste"),
 }

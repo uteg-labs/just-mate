@@ -6,6 +6,10 @@ import { authPlugin } from "../auth/auth.plugin"
 import { db } from "../db"
 import { account, profile, session, user } from "../db/schema"
 import { closeUser, updateProfile } from "../realtime/session"
+import { saveProfileCard } from "./card"
+
+// a profile card per save, for the ML work; never in production or under test
+const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")
 
 export async function loadProfile(userId: string): Promise<Profile | undefined> {
   const [row] = await db.select().from(profile).where(eq(profile.userId, userId))
@@ -36,6 +40,10 @@ export const profilePlugin = new Elysia({ name: "profile" })
           set: { ...parsed.value, updatedAt: new Date() },
         })
       updateProfile(user.id, parsed.value)
+      if (writesCards)
+        saveProfileCard(user.id, parsed.value).catch((err) =>
+          console.warn("[profile] card not saved:", err),
+        )
       return parsed.value
     },
     { authenticated: true },

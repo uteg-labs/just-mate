@@ -8,8 +8,8 @@ Better Auth owns `/api/auth/*`, its PostgreSQL tables, cookie sessions and verif
 
 - **Email + password** is the primary sign-in: `POST /api/auth/sign-up/email` `{ email, password, name }` and `POST /api/auth/sign-in/email` `{ email, password }`. Passwords need 6+ characters. Sign-up signs the user in.
 - **Forgot password:** `POST /api/auth/request-password-reset` `{ email, redirectTo }` emails a single-use link (valid 1 h). The link lands on `redirectTo?token=…`; the app then calls `POST /api/auth/reset-password` `{ newPassword, token }`. A reset signs out every other session.
-- **Magic link** stays available: `POST /api/auth/sign-in/magic-link` `{ email }`.
-- Without `RESEND_API_KEY` the server prints every auth email to its console.
+- **Magic link** stays available: `POST /api/auth/sign-in/magic-link` `{ email, callbackURL }`. With a `justmate://` `callbackURL` the verified link lands on `justmate://…?cookie=…`; the app stores that cookie as its session.
+- Auth emails go out over SMTP (`SMTP_*`). Without `SMTP_HOST` the server prints them to its console instead; production refuses to start without it.
 - Trusted origins: `justmate://`, plus `exp://` in development, plus `AUTH_TRUSTED_ORIGINS` (comma-separated, e.g. `http://localhost:8081` for web).
 
 The Expo client persists the session cookie in the device's secure store. Every route below (HTTP and WebSocket) requires that session; HTTP routes answer `401 { error: "unauthorized" }` without it.
@@ -39,8 +39,10 @@ Profile = {
           ageMin, ageMax, when: ("weekday mornings" | "lunch breaks" | "after work" | "late nights" | "weekends")[],
           length: "hour" | "few" | "day" }
   adult: boolean                                // "I'm 18 or older"; must equal age ≥ 18
-  verified: boolean                             // selfie check — simulated in this build (production path: set by the verifier, not the client)
-  taste: number                                 // on-device appearance score, a number only; never a photo; the server never uses it
+  verified: boolean                             // selfie taken — liveness simulated in this build (production path: set by the verifier, not the client)
+  appearance: string                            // ≤ 300 chars, visible hair and face features from the selfie (`/api/onboarding/appearance`); "" when skipped; never shown to anyone
+  taste: string                                 // ≤ 300 chars, traits the liked sample photos share (`/api/onboarding/taste`); "" when none; never a photo
+  character: string                             // ≤ 1000 chars, five "Trait — concrete detail" lines from the answers (`/api/onboarding/character`); "" until written; never sent to a match
   settings: { startMode: "date" | "mate" | null, walkMin: 5 | 10 | 15, autoStop: boolean,
               haptics: boolean, sounds: boolean, reduceMotion: boolean }
 }
@@ -49,6 +51,8 @@ Profile = {
 - Age ranges are integers; `ageMin ≤ ageMax ≤ 99`, and `99` reads as "60+". Date ranges start at 18, mate ranges at 16.
 - `mode: "date"` requires `adult: true`.
 - Both `date` and `mate` preferences are always present, because the map switches mode at any time. `DEFAULT_PROFILE` in the package holds the prototype defaults.
+- `appearance`, `taste` and `character` feed matching later (`ML-MATCHING.md`); M0 stores them and never sends them in `match_offer`.
+- In development (`NODE_ENV` ≠ `production`) every `PUT` also writes the profile card (`docs/examples/profile_card.md` shape) to `temporary/<userId>.md` at the repo root, for the ML work.
 
 ## Onboarding helpers (HTTP)
 
@@ -59,12 +63,18 @@ Live text for onboarding, written by an LLM. Each call has a hard timeout; on a 
 | `POST /api/onboarding/question` | `{ mode, name, interests, qa }` | `{ question, options: [4], source }` | 12 s |
 | `POST /api/onboarding/vibe` | `{ mode, interests, qa, avoid?: string[] }` | `{ vibe, source }` | 10 s |
 | `POST /api/onboarding/related` | `{ item, mode, have: string[] }` | `{ items: string[] }` (≤ 3) | 8 s |
+| `POST /api/onboarding/character` | `{ mode, interests, qa }` | `{ character, source }` | 10 s |
+| `POST /api/onboarding/taste` | `{ picks: string[] }` (≤ 30 descriptions of liked samples, ≤ 400 chars each) | `{ taste, source }` | 8 s |
+| `POST /api/onboarding/appearance` | `{ photo }` (one base64 JPEG, ≤ `PHOTO_MAX` chars) | `{ appearance, source }` | 12 s |
 
 `source` is `"live" | "sample"`. Invalid bodies get `400 { error: "invalid_request" }`.
 
 - **Question:** sentence case, under 60 characters, no emoji, no exclamation marks, never a topic already asked. Exactly 4 options, lowercase, under 26 characters each. Sample: the mode's fixed question number `qa.length` (mod 4).
 - **Vibe:** two short lowercase clauses joined by `" — "`, wry and specific, 60 characters at most, no names, emoji or quotes, not one of `avoid`. Sample: a fixed line not in `avoid`.
 - **Related:** 3 lowercase interests (≤ 24 chars) close to `item`, none already in `have`. Sample: the fixed related list for `item`, minus `have` (empty for unknown items).
+- **Character:** five lines, one sentence each, shaped "Trait — concrete detail.", third person, no looks, age, names or places; ≤ 1000 chars. Sample: the answers, one per line.
+- **Taste:** one line of comma-separated traits that repeat across `picks`, nothing invented; ≤ 300 chars. Sample: the picks joined with `; `, cut to 300.
+- **Appearance:** one line of visible hair and face features only (hair, face shape, cheekbones, eyes, brows, facial hair, glasses), never age, ethnicity, gender, weight, emotion or identity; ≤ 300 chars, `""` when no face is visible. Sample: `""`. The photo is passed to the model once and never stored or logged.
 
 ## WebSocket
 
@@ -202,6 +212,15 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 - `STAGE_A` / `STAGE_B` are env vars (`"lat,lng"`) set *after* seeing the stage: A = stage-left end, B = stage-right end, both facing the audience. Only their direction matters for `b`: because the arrow uses the real magnetometer, the scripted bearing must match the physical direction B actually walks — otherwise the arrow visibly points off-stage.
 - Demo sockets are matched only with each other, so neither phone can be offered anyone else, and a demo pair skips the pair cooldown so the run can be rehearsed back to back.
 - Ghosts: 9 server-side wanderers circling around `STAGE_A`. They count in demo sockets' `zones` (whatever the search) and nowhere else, and never match.
+
+## Taste samples (HTTP)
+
+Sample photos for the date-mode swipe step. They are generated faces, never users, so they are public (no session needed).
+
+| Route | Reply | Notes |
+|---|---|---|
+| `GET /taste` | `TasteSample[]` = `{ id: "<group>/<n>", group: "man" \| "women", description: string, photo: string }[]` | From `server/taste/<group>/<n>/` (`description.txt` + one image), sorted by id. Folders without an image are skipped. `photo` is a path on the same host. |
+| `GET /taste/:group/:n/photo` | the image | `404` if the folder or image does not exist. |
 
 ## Minimal happy-path transcript
 

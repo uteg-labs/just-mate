@@ -11,7 +11,9 @@ CREATE TABLE "profile" (
 	"mate" jsonb NOT NULL,
 	"adult" boolean NOT NULL,
 	"verified" boolean NOT NULL,
-	"taste" double precision NOT NULL,
+	"appearance" text DEFAULT '' NOT NULL,
+	"taste" text DEFAULT '' NOT NULL,
+	"character" text DEFAULT '' NOT NULL,
 	"settings" jsonb NOT NULL,
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"updatedAt" timestamp with time zone DEFAULT now() NOT NULL

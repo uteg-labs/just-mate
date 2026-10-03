@@ -69,9 +69,11 @@ describe("parseProfile", () => {
     expect(errorFor({ settings: { ...settings, startMode: "mate" } })).toBeUndefined()
   })
 
-  test("taste is a finite number", () => {
-    expect(errorFor({ taste: Number.NaN })).toBe("invalid_taste")
-    expect(errorFor({ taste: "photo.jpg" })).toBe("invalid_taste")
+  test("the model-written texts may be empty but stay within their caps", () => {
+    expect(errorFor({ appearance: "", taste: "", character: "" })).toBeUndefined()
+    expect(errorFor({ appearance: "x".repeat(301) })).toBe("invalid_appearance")
+    expect(errorFor({ taste: 3 })).toBe("invalid_taste")
+    expect(errorFor({ character: undefined })).toBe("invalid_character")
   })
 })
 

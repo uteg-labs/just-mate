@@ -196,6 +196,18 @@ export const AGE_MAX = 99
 
 export type QA = { q: string; a: string }
 
+/** Length caps of the model-written profile texts. */
+export const APPEARANCE_MAX = 300
+export const TASTE_MAX = 300
+export const CHARACTER_MAX = 1000
+
+/** Sample-photo groups of `GET /taste`: generated faces for taste training, never real users. */
+export const TASTE_GROUPS = ["man", "women"] as const
+export type TasteGroup = (typeof TASTE_GROUPS)[number]
+
+/** One `GET /taste` item; `photo` is a path on the API host. */
+export type TasteSample = { id: string; group: TasteGroup; description: string; photo: string }
+
 export type DatePrefs = { seek: Seek; ageMin: number; ageMax: number; looking: LookingFor }
 
 export type MatePrefs = {
@@ -230,10 +242,14 @@ export type Profile = {
   mate: MatePrefs
   /** "I'm 18 or older"; always equals `age >= ADULT_AGE`. Required for date mode. */
   adult: boolean
-  /** Selfie check, simulated in this build. */
+  /** Selfie check: one photo, described once and dropped; the liveness check is simulated in this build. */
   verified: boolean
-  /** On-device appearance score; a number only, never a photo. */
-  taste: number
+  /** Visible hair and face features from the selfie, written by the server's model; `""` when skipped. Never shown to anyone. */
+  appearance: string
+  /** Traits the liked sample photos share, written by the server's model; `""` when none. Never a photo. */
+  taste: string
+  /** Five "Trait — concrete detail" lines written from the answers; `""` until written. Never sent to a match. */
+  character: string
   settings: Settings
 }
 
@@ -258,7 +274,9 @@ export const DEFAULT_PROFILE: Profile = {
   },
   adult: false,
   verified: false,
-  taste: 0,
+  appearance: "",
+  taste: "",
+  character: "",
   settings: {
     startMode: null,
     walkMin: 10,
@@ -360,7 +378,8 @@ function parseSettings(v: unknown): Settings | undefined {
  */
 export function parseProfile(input: unknown): Parsed<Profile> {
   if (!isObject(input)) return fail("profile")
-  const { mode, name, gender, age, interests, qa, vibe, adult, verified, taste } = input
+  const { mode, name, gender, age, interests, qa, vibe, adult, verified } = input
+  const { appearance, taste, character } = input
 
   if (!isOneOf(MODES, mode)) return fail("mode")
   if (!isText(name, 40)) return fail("name")
@@ -380,7 +399,9 @@ export function parseProfile(input: unknown): Parsed<Profile> {
   const isAdultAge = age >= ADULT_AGE
   if (adult !== isAdultAge || (mode === "date" && !isAdultAge)) return fail("adult")
   if (typeof verified !== "boolean") return fail("verified")
-  if (typeof taste !== "number" || !Number.isFinite(taste)) return fail("taste")
+  if (!isText(appearance, APPEARANCE_MAX, 0)) return fail("appearance")
+  if (!isText(taste, TASTE_MAX, 0)) return fail("taste")
+  if (!isText(character, CHARACTER_MAX, 0)) return fail("character")
 
   return {
     ok: true,
@@ -396,7 +417,9 @@ export function parseProfile(input: unknown): Parsed<Profile> {
       mate,
       adult,
       verified,
+      appearance,
       taste,
+      character,
       settings,
     },
   }
@@ -613,6 +636,21 @@ export type VibeReply = { vibe: string; source: LlmSource }
 export type RelatedRequest = { item: string; mode: Mode; have: string[] }
 export type RelatedReply = { items: string[] }
 
+/** `POST /api/onboarding/character` */
+export type CharacterRequest = { mode: Mode; interests: string[]; qa: QA[] }
+export type CharacterReply = { character: string; source: LlmSource }
+
+/** `POST /api/onboarding/taste`; `picks` = descriptions of the liked sample photos. */
+export type TasteRequest = { picks: string[] }
+export type TasteReply = { taste: string; source: LlmSource }
+
+/** `POST /api/onboarding/appearance`; `photo` = one base64 JPEG, described and dropped. */
+export type AppearanceRequest = { photo: string }
+export type AppearanceReply = { appearance: string; source: LlmSource }
+
+/** Longest base64 selfie `POST /api/onboarding/appearance` accepts (~3 MB of JPEG). */
+export const PHOTO_MAX = 4_000_000
+
 /** Validates a `POST /api/onboarding/question` body. */
 export function parseQuestionRequest(input: unknown): Parsed<QuestionRequest> {
   if (!isObject(input) || !isOneOf(MODES, input.mode)) return fail("request")
@@ -636,4 +674,24 @@ export function parseRelatedRequest(input: unknown): Parsed<RelatedRequest> {
   const { mode, item, have } = input
   if (!isText(item, 32) || !isTextList(have, 200, 32)) return fail("request")
   return { ok: true, value: { mode, item: item.trim().toLowerCase(), have } }
+}
+
+/** Validates a `POST /api/onboarding/character` body. */
+export function parseCharacterRequest(input: unknown): Parsed<CharacterRequest> {
+  if (!isObject(input) || !isOneOf(MODES, input.mode)) return fail("request")
+  const { mode, interests, qa } = input
+  if (!isInterestList(interests) || !isQaList(qa)) return fail("request")
+  return { ok: true, value: { mode, interests, qa } }
+}
+
+/** Validates a `POST /api/onboarding/taste` body. */
+export function parseTasteRequest(input: unknown): Parsed<TasteRequest> {
+  if (!isObject(input) || !isTextList(input.picks, 30, 400)) return fail("request")
+  return { ok: true, value: { picks: input.picks } }
+}
+
+/** Validates a `POST /api/onboarding/appearance` body. */
+export function parseAppearanceRequest(input: unknown): Parsed<AppearanceRequest> {
+  if (!isObject(input) || !isText(input.photo, PHOTO_MAX)) return fail("request")
+  return { ok: true, value: { photo: input.photo } }
 }

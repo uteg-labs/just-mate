@@ -3,9 +3,16 @@ import { describe, expect, test } from "bun:test"
 import { type Question, SAMPLE_QUESTIONS, SAMPLE_VIBES } from "../src/onboarding/samples"
 
 delete process.env.ANTHROPIC_API_KEY
-const { isQuestion, isVibe, writeQuestion, writeRelated, writeVibe } = await import(
-  "../src/onboarding/llm"
-)
+const {
+  describeAppearance,
+  isQuestion,
+  isVibe,
+  writeCharacter,
+  writeQuestion,
+  writeRelated,
+  writeTaste,
+  writeVibe,
+} = await import("../src/onboarding/llm")
 
 describe("without an API key", () => {
   test("questions fall back to the mode's sample for that step", async () => {
@@ -27,6 +34,32 @@ describe("without an API key", () => {
       items: ["café hopping", "specialty roasters"],
     })
     expect(await writeRelated({ mode: "date", item: "knitting", have: [] })).toEqual({ items: [] })
+  })
+
+  test("the character falls back to the answers, one per line", async () => {
+    const qa = [
+      { q: "Pick a deal-breaker.", a: "no banter" },
+      { q: "Sunday plan?", a: "a long walk" },
+    ]
+    expect(await writeCharacter({ mode: "date", interests: ["coffee"], qa })).toEqual({
+      character: "no banter\na long walk",
+      source: "sample",
+    })
+  })
+
+  test("taste falls back to the picks themselves, and no picks is no taste", async () => {
+    expect(await writeTaste({ picks: ["dark hair", "glasses"] })).toEqual({
+      taste: "dark hair; glasses",
+      source: "sample",
+    })
+    expect(await writeTaste({ picks: [] })).toEqual({ taste: "", source: "sample" })
+  })
+
+  test("the selfie is not described without a model", async () => {
+    expect(await describeAppearance({ photo: "/9j/4AAQ" })).toEqual({
+      appearance: "",
+      source: "sample",
+    })
   })
 })
 

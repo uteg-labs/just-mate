@@ -7,7 +7,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | Path | What | Source of truth |
 |---|---|---|
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
-| `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
+| `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket, onboarding LLM helpers; `taste/` holds the generated swipe samples; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
 | `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
 
@@ -25,6 +25,10 @@ bun run test                 # server bun:test
 ```
 
 Done = lint, typecheck and tests green.
+
+## Releases
+
+Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them. One local change: `bump-version.yml` checks out and pushes with the `GH_TOKEN` secret (a PAT) instead of `GITHUB_TOKEN`, since tags pushed by `GITHUB_TOKEN` never start `release-on-tag`. Re-apply it after every `update`.
 
 ## Hard rules
 

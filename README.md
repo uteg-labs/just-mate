@@ -80,9 +80,10 @@ bun run dev:server
 Set `DATABASE_URL` to your local PostgreSQL database and `BETTER_AUTH_SECRET` to a random value
 before starting. Drizzle owns the schema in `server/src/db` and migrations in `server/drizzle`;
 use `bun --cwd server db:generate` after schema changes. In local development, auth emails
-(password resets, magic links) are printed in the server terminal when `RESEND_API_KEY` is empty;
-configure Resend and `AUTH_EMAIL_FROM` to deliver real email. `ANTHROPIC_API_KEY` is optional:
-without it, onboarding questions, vibe lines and related interests use fixed samples.
+(password resets, magic links) are printed in the server terminal when `SMTP_HOST` is empty;
+set the `SMTP_*` variables and `AUTH_EMAIL_FROM` to deliver real email (required in production).
+`ANTHROPIC_API_KEY` is optional: without it, onboarding questions, vibe lines, related interests,
+the character, taste and selfie descriptions use fixed samples.
 
 ```bash
 bun run dev:mock

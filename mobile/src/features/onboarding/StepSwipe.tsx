@@ -1,6 +1,7 @@
+import { type Seek, TASTE_MAX, type TasteGroup, type TasteSample } from "@justmate/protocol"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { StyleSheet, Text, View } from "react-native"
+import { Image, StyleSheet, Text, View } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
   clamp,
@@ -14,7 +15,9 @@ import Animated, {
 import Svg, { Defs, Pattern, Rect } from "react-native-svg"
 import { scheduleOnRN } from "react-native-worklets"
 
-import { Button, Icon, IconButton, type IconName, useScheme } from "@/components/ui"
+import { Button, Icon, IconButton, type IconName, Thinking, useScheme } from "@/components/ui"
+import { api } from "@/lib/api"
+import { apiURL } from "@/lib/auth-client"
 import { radius, space } from "@/theme/layout"
 import { duration, spring } from "@/theme/motion"
 import { type } from "@/theme/type"
@@ -48,15 +51,36 @@ const Stamp = ({ x, side, icon, label }: StampProps) => {
   )
 }
 
+const SEEK_GROUPS: Record<Seek, TasteGroup[]> = {
+  women: ["women"],
+  men: ["man"],
+  everyone: ["women", "man"],
+}
+
+// a sample photo from GET /taste, or a striped placeholder when the server has none
+type Sample = { traits: string; uri?: string }
+
+// "everyone" alternates the groups
+function samplesFor(all: TasteSample[], seek: Seek): Sample[] {
+  const groups = SEEK_GROUPS[seek].map((g) => all.filter((s) => s.group === g))
+  return Array.from(
+    { length: COUNT },
+    (_, i) => groups[i % groups.length]?.[Math.floor(i / groups.length)],
+  )
+    .filter((s) => s !== undefined)
+    .map((s) => ({ traits: s.description, uri: `${apiURL}${s.photo}` }))
+}
+
 type CardProps = {
   index: number
-  traits: string
+  count: number
+  sample: Sample
   pending?: boolean
   onVote: (isInto: boolean) => void
 }
 
 // keyed per sample, so every card starts centred with its own offset
-const SwipeCard = ({ index, traits, pending, onVote }: CardProps) => {
+const SwipeCard = ({ index, count, sample, pending, onVote }: CardProps) => {
   const { t } = useTranslation()
   const { c, shadow } = useScheme()
   const x = useSharedValue(0)
@@ -101,30 +125,27 @@ const SwipeCard = ({ index, traits, pending, onVote }: CardProps) => {
         style={[styles.card, { backgroundColor: c.surfaceCard, boxShadow: shadow[3] }, move]}
       >
         <View style={[styles.photo, { backgroundColor: c.surfaceRaised }]}>
-          <Svg style={StyleSheet.absoluteFill}>
-            <Defs>
-              <Pattern
-                id="stripes"
-                width={14}
-                height={14}
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)"
-              >
-                <Rect width={7} height={14} fill={c.surfaceChip} />
-              </Pattern>
-            </Defs>
-            <Rect width="100%" height="100%" fill="url(#stripes)" />
-          </Svg>
-          <Text style={[type.mono, { color: c.fg2 }]}>
-            {t("onboarding.swipe.photo", { n: number })}
-          </Text>
+          {sample.uri ? (
+            <Image
+              source={{ uri: sample.uri }}
+              resizeMode="cover"
+              style={StyleSheet.absoluteFill}
+            />
+          ) : (
+            <Placeholder number={number} />
+          )}
           <Stamp x={x} side={1} icon="heart" label={t("onboarding.swipe.into")} />
           <Stamp x={x} side={-1} icon="x" label={t("onboarding.swipe.not")} />
         </View>
         <View style={styles.meta}>
-          <Text style={[type.headline, { color: c.fg1 }]}>{traits}</Text>
+          <Text
+            numberOfLines={3}
+            style={[sample.uri ? type.footnote : type.headline, { color: c.fg1 }]}
+          >
+            {sample.traits}
+          </Text>
           <Text style={[type.mono, { color: c.fg2 }]}>
-            {t("onboarding.swipe.count", { n: index + 1, m: COUNT })}
+            {t("onboarding.swipe.count", { n: index + 1, m: count })}
           </Text>
         </View>
       </Animated.View>
@@ -132,22 +153,82 @@ const SwipeCard = ({ index, traits, pending, onVote }: CardProps) => {
   )
 }
 
-export const StepSwipe = ({ set, next, eyebrow }: StepProps) => {
+const Placeholder = ({ number }: { number: string }) => {
+  const { t } = useTranslation()
+  const { c } = useScheme()
+
+  return (
+    <>
+      <Svg style={StyleSheet.absoluteFill}>
+        <Defs>
+          <Pattern
+            id="stripes"
+            width={14}
+            height={14}
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <Rect width={7} height={14} fill={c.surfaceChip} />
+          </Pattern>
+        </Defs>
+        <Rect width="100%" height="100%" fill="url(#stripes)" />
+      </Svg>
+      <Text style={[type.mono, { color: c.fg2 }]}>
+        {t("onboarding.swipe.photo", { n: number })}
+      </Text>
+    </>
+  )
+}
+
+export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
   const { t } = useTranslation()
   const { c, shadow } = useScheme()
+  const [samples, setSamples] = useState<Sample[]>()
   const [votes, setVotes] = useState<boolean[]>([])
   const [pending, setPending] = useState<boolean>()
-  const traits = t("onboarding.swipe.traits", { returnObjects: true }) as string[]
+  const [isWriting, setIsWriting] = useState(false)
+  const seek = profile.date.seek
+  const count = samples?.length ?? COUNT
   const index = votes.length
-  const isDone = index >= COUNT
+  const isDone = index >= count
   const into = votes.filter(Boolean).length
 
-  // only the count of "into it" leaves this step: the on-device taste score
+  useEffect(() => {
+    const placeholders = (t("onboarding.swipe.traits", { returnObjects: true }) as string[]).map(
+      (traits) => ({ traits }),
+    )
+    let isLive = true
+    api
+      .tasteSamples()
+      .then((all) => samplesFor(all, seek))
+      .catch(() => [])
+      .then((photos) => {
+        if (!isLive) return
+        for (const { uri } of photos) if (uri) Image.prefetch(uri).catch(() => {})
+        setSamples(photos.length ? photos : placeholders)
+      })
+    return () => {
+      isLive = false
+    }
+  }, [seek, t])
+
+  // only words leave this step: the traits the liked samples share, never a photo
+  const writeTaste = (picks: string[]) => {
+    if (!picks.length) return set({ taste: "" })
+    setIsWriting(true)
+    api
+      .taste({ picks })
+      .then((reply) => set({ taste: reply.taste }))
+      .catch(() => set({ taste: picks.join("; ").slice(0, TASTE_MAX) }))
+      .finally(() => setIsWriting(false))
+  }
+
   const vote = (isInto: boolean) => {
     const all = [...votes, isInto]
     setVotes(all)
     setPending(undefined)
-    if (all.length === COUNT) set({ taste: all.filter(Boolean).length })
+    if (all.length === count)
+      writeTaste((samples ?? []).filter((_, i) => all[i]).map((s) => s.traits))
   }
 
   return (
@@ -160,9 +241,10 @@ export const StepSwipe = ({ set, next, eyebrow }: StepProps) => {
           title={
             isDone
               ? t("onboarding.swipe.cta")
-              : t("onboarding.swipe.ctaLeft", { count: COUNT - index })
+              : t("onboarding.swipe.ctaLeft", { count: count - index })
           }
           fullWidth
+          loading={isWriting}
           disabled={!isDone}
           onPress={next}
         />
@@ -180,15 +262,18 @@ export const StepSwipe = ({ set, next, eyebrow }: StepProps) => {
           <Icon name="circle-check" size={40} color={c.success} strokeWidth={1.75} />
           <Text style={[type.headline, { color: c.fg1 }]}>{t("onboarding.swipe.done")}</Text>
           <Text style={[type.footnote, { color: c.fg2 }]}>
-            {t("onboarding.swipe.tally", { into, not: COUNT - into })}
+            {t("onboarding.swipe.tally", { into, not: count - into })}
           </Text>
         </Animated.View>
+      ) : !samples ? (
+        <Thinking label={t("onboarding.swipe.loading")} />
       ) : (
         <>
           <SwipeCard
             key={index}
             index={index}
-            traits={traits[index]}
+            count={count}
+            sample={samples[index] as Sample}
             pending={pending}
             onVote={vote}
           />
@@ -202,7 +287,7 @@ export const StepSwipe = ({ set, next, eyebrow }: StepProps) => {
               onPress={() => setPending(false)}
             />
             <Text style={[type.mono, styles.count, { color: c.fg2 }]}>
-              {t("onboarding.swipe.progress", { n: index, m: COUNT })}
+              {t("onboarding.swipe.progress", { n: index, m: count })}
             </Text>
             <IconButton
               icon="heart"

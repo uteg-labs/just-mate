@@ -10,7 +10,7 @@ import * as Linking from "expo-linking"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { StyleSheet, View } from "react-native"
+import { Alert, StyleSheet, View } from "react-native"
 import Animated from "react-native-reanimated"
 
 import { Morph, SHAPES, type Shape } from "@/components/surface/Morph"
@@ -19,6 +19,7 @@ import { AuthSheet, type AuthTab } from "@/features/auth/AuthSheet"
 import type { OnboardingStep } from "@/features/onboarding/flow"
 import { Onboarding } from "@/features/onboarding/Onboarding"
 import { Settings } from "@/features/settings/Settings"
+import { authCookieOf, storeAuthCookie } from "@/lib/auth-callback"
 import { authClient } from "@/lib/auth-client"
 import { usePositionReports } from "@/lib/location"
 import { clearProfile, loadProfile, updateProfile, useProfile } from "@/lib/profile"
@@ -64,7 +65,7 @@ function pronounOf(profile: Profile, mode: Mode): Pronoun {
 
 export const Surface = () => {
   const { t } = useTranslation()
-  const { data: auth, isPending } = authClient.useSession()
+  const { data: auth, isPending, refetch } = authClient.useSession()
   const profile = useProfile()
   const live = useLive()
   const url = Linking.useURL()
@@ -79,6 +80,7 @@ export const Surface = () => {
   const userId = auth?.user.id
   const hasProfile = !!profile
   const resetToken = url === handledUrl ? undefined : resetTokenOf(url)
+  const authCookie = url === handledUrl ? undefined : authCookieOf(url)
   const signedIn = userId ? shapeOf(profile, place, live) : "auth"
   const shape = resetToken ? "auth" : isPending ? null : signedIn
   const mode = tab ?? profile?.settings.startMode ?? profile?.mode ?? "date"
@@ -89,6 +91,17 @@ export const Surface = () => {
     !!live.search || !!live.session,
     live.session ? config.sessionIntervalMs : config.positionIntervalMs,
   )
+
+  useEffect(() => {
+    if (!authCookie) return
+    setHandledUrl(url)
+    storeAuthCookie(authCookie)
+      .then(() => {
+        clearProfile()
+        return refetch()
+      })
+      .catch(() => Alert.alert(t("auth.errors.link")))
+  }, [authCookie, url, refetch, t])
 
   useEffect(() => {
     if (userId && profile === undefined) loadProfile().catch(() => {})

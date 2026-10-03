@@ -6,8 +6,8 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 
 ## Division of labor (4 roles)
 
-- **Mobile**: Expo dev-client app — onboarding (+18+ gate), map screen, glow zones, match banner, compass + haptics, post-meet distance screen. **This is the critical path**: one person, six screens.
-- **Backend**: Bun/Elysia — ws per `docs/PROTOCOL.md`, distance-gated matching, hard gates (zone / intent / cooldown / session), compass relay, offer/session TTLs, ghost seeding, demo tracks, ML fallback. Target: protocol-complete by Sat 15:00, then **moves to mobile** (second pair of hands on the critical path). Learned model only after Sat 19:00 if the core loop is already demoable.
+- **Mobile**: Expo dev-client app — onboarding (+18+ gate), Home "Where to?" (map + intent sheet), glow zones, match banner, compass + haptics, post-meet distance screen. **This is the critical path**: one person, six screens.
+- **Backend**: Bun/Elysia — ws per `docs/PROTOCOL.md`, distance-gated matching (400 m, not zone), hard gates (active intent / cooldown / session / ghost), bearing-only compass relay, offer/session TTLs, ghost seeding, demo tracks, ML fallback. Target: protocol-complete by Sat 15:00, then **moves to mobile** (second pair of hands on the critical path). Learned model only after Sat 19:00 if the core loop is already demoable.
 - **ML (M1+ stretch, only after Sat 19:00)**: PyTorch training (synthetic data, Shared Encoder + Match Head, triplet + match-loss, calibration) → `export.py` writes `model_v0.onnx` → CMake builds the C++ binary `match_scorer` against `onnxruntime` → Bun spawns it once at server startup, `/compat` calls pipe JSON-lines over stdin/stdout, falls back to the explainable baseline if the subprocess is down / errors / times out. Architecture documented in `docs/ML-MATCHING.md`; not a critical-path role in M0.
 - **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter; owns `DESIGN.md` tokens
 
@@ -36,7 +36,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Risk | Sev | Mitigation |
 |---|---|---|
 | Indoor GPS at the arena | HIGH | Demo mode (`?demo=a/b`) by design; pipeline identical; compass heading is magnetometer (works indoors); scripted track calibrated to the physical stage layout |
-| **Expo Go cannot run this stack** | **HIGH** | `maplibre-react-native` is a native module (not in Expo Go); remote push does not work in Expo Go on Android since SDK 53. → EAS dev-client builds queued by 12:00 (15–40 min each, both platforms, both demo phones). If builds are not on phones by 14:30: **fallback = SVG/Canvas "radar"** (concentric rings + glowing blobs on dark background) instead of a real map, which runs in Expo Go; compass, haptics, ws all still work there |
+| **Expo Go cannot run this stack** | **HIGH** | `maplibre-react-native` is a native module (not in Expo Go); remote push does not work in Expo Go on Android since SDK 53. → EAS dev-client builds queued by 12:00 (15–40 min each, both platforms, both demo phones). Decision point 14:30 — if dev-client builds are not on both phones: **fallback 1 = `react-native-maps`**, which ships inside Expo Go (Apple Maps on iOS with `userInterfaceStyle="dark"`, Google Maps on Android with a dark `customMapStyle`); glow zones become `Circle` overlays (halo + core, amber, low alpha) — same screen, same data, no native build. **Fallback 2 = SVG/Canvas "radar"** (concentric rings + glowing blobs) if even that misbehaves. Compass, haptics, ws are unaffected by either. Keep the map behind one `ZoneMap` component so the swap is one import |
 | Jury raises stalking | HIGH | Safety-by-design slide at 3:30 — turn the question into the answer |
 | Live demo dies on stage | MED | Backup video recorded twice; never debug on stage |
 | Cold-start question | MED | Density-first launch answer rehearsed (campus/festival/venue partners) |

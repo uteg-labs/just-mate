@@ -86,6 +86,8 @@ export const en = {
     },
     who: {
       age: "age",
+      partner: "their character",
+      partnerPlaceholder: "calm, funny, loves long walks",
       date: {
         title: "Who are you looking for?",
         sub: "Used for matching only. Nobody sees your settings.",

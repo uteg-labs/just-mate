@@ -6,13 +6,22 @@ import {
   GROUPS,
   LOOKING_FOR,
   MATE_WHO,
+  PARTNER_CHARACTER_MAX,
   SEEKS,
 } from "@justmate/protocol"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, View } from "react-native"
 
-import { Button, Chip, FieldLabel, type Range, RangeSlider, Segmented } from "@/components/ui"
+import {
+  Button,
+  Chip,
+  FieldLabel,
+  type Range,
+  RangeSlider,
+  Segmented,
+  TextField,
+} from "@/components/ui"
 import { space } from "@/theme/layout"
 
 import { ageLabel, SLIDER_MAX, type StepProps } from "./flow"
@@ -60,6 +69,16 @@ export const StepWho = ({ profile, setProfile, next, eyebrow }: StepProps) => {
     </Field>
   )
 
+  const partner = (
+    <TextField
+      label={t("onboarding.who.partner")}
+      maxLength={PARTNER_CHARACTER_MAX}
+      value={profile.partnerCharacter}
+      onChangeText={(partnerCharacter) => setProfile((p) => ({ ...p, partnerCharacter }))}
+      placeholder={t("onboarding.who.partnerPlaceholder")}
+    />
+  )
+
   if (isDate)
     return (
       <Step
@@ -89,6 +108,7 @@ export const StepWho = ({ profile, setProfile, next, eyebrow }: StepProps) => {
               ))}
             </View>
           </Field>
+          {partner}
         </View>
       </Step>
     )
@@ -123,6 +143,7 @@ export const StepWho = ({ profile, setProfile, next, eyebrow }: StepProps) => {
           />
         </Field>
         {age}
+        {partner}
       </View>
     </Step>
   )

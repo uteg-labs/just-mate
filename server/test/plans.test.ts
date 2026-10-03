@@ -33,6 +33,7 @@ const HOUR = 60 * MIN
 let now = 0
 
 beforeEach(() => {
+  resetPlans()
   now = MONDAY_10
   clock.now = () => now
 })
@@ -44,11 +45,20 @@ afterEach(() => {
   clock.now = () => Date.now()
 })
 
-async function join(id: string, profile = wineLover(), demo?: "a" | "b"): Promise<User> {
+async function join(
+  id: string,
+  profile = wineLover(),
+  demo?: "a" | "b",
+  isDangerous = false,
+): Promise<User> {
   const sent: ServerMsg[] = []
   const client = connect(
     { send: (msg) => sent.push(msg), close: () => {} },
-    { userIdForCookie: async () => id, profileFor: async () => profile },
+    {
+      userIdForCookie: async () => id,
+      profileFor: async () => profile,
+      isDangerous: async () => isDangerous,
+    },
     demo,
   )
   await receive(client, { t: "hello", sessionCookie: id })
@@ -342,6 +352,27 @@ describe("plan compass", () => {
     await send(c, { t: "plan_go", planId })
     expect(lastOf(c, "error")?.code).toBe("invalid_plan")
   })
+})
+
+test("a flagged profile is never proposed or offered", async () => {
+  const a = await join("u_a")
+  const b = await join("u_b", wineLover(), undefined, true)
+  await send(a, { t: "plans_get", ...RYNEK })
+  await send(b, { t: "plans_get", ...RYNEK })
+  expect(plans.size).toBe(0)
+
+  await send(a, {
+    t: "plan_invite",
+    mode: "date",
+    category: "food",
+    intents: ["wine"],
+    slots: [MONDAY_17],
+    flex: false,
+    venueId: "dvor",
+    until: "2h",
+  })
+  jump(1000)
+  expect(planOf(b)).toBeUndefined()
 })
 
 test("demo sockets get a proposal two minutes out, only with each other", async () => {

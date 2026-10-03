@@ -106,7 +106,9 @@ export const profile = pgTable("profile", {
   appearance: text("appearance").default("").notNull(),
   taste: text("taste").default("").notNull(),
   character: text("character").default("").notNull(),
+  partnerCharacter: text("partnerCharacter").default("").notNull(),
   settings: jsonb("settings").$type<Settings>().notNull(),
+  dangerous: boolean("dangerous").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })

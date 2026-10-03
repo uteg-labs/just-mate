@@ -1,4 +1,4 @@
-# just-mate — design system (visual · motion · interaction)
+# JustMate — design system (visual · motion · interaction)
 
 Source of truth for how the app **looks, moves, and feels**. Screens and flows live in `STRUCTURE.md`; this doc says how to build them.
 

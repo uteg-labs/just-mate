@@ -26,9 +26,9 @@ Socket close = search off = session vanished (if any). No goodbye frame needed.
 
 | `t` | Payload | Notes |
 |---|---|---|
-| `hello` | `{ intents: string[], interests: string[], nickname?: string, adult: true }` | First frame. `adult: true` is required (18+ gate); server closes the socket with code `4001` otherwise. ≥1 intent, ≥3 interests, else `4002`. |
-| `search_on` | `{}` | Enter search mode. Matchable from the first `position`. |
-| `search_off` | `{}` | Leave search mode. Ends an active session as `vanished`. |
+| `hello` | `{ interests: string[], nickname?: string, adult: true }` | First frame. `adult: true` is required (18+ gate); server closes the socket with code `4001` otherwise. ≥3 interests, else `4002`. Intents are **not** part of the profile — they are chosen per session (`search_on`). |
+| `search_on` | `{ intents: string[] }` | Enter search mode under 1–2 intents from the shared vocabulary (`soul_mate · beer · coffee · attractions · friends · sports · music`); else `error{invalid_intents}`. Sending `search_on` while already searching **replaces** the intents (UC8 "switch intent"). Matchable from the first `position`. |
+| `search_off` | `{}` | Leave search mode. Expires an open offer and ends an active session as `vanished`. |
 | `position` | `{ lat, lng, acc, heading?: number }` | Every ~2 s while searching, and every ~1 s while in an active session. `heading` (0–360, magnetometer) is optional and only informational. |
 | `accept` | `{ offerId: string }` | Accept a match offer. Idempotent. |
 | `dismiss` | `{ offerId: string }` | Decline. **Server never forwards a dismiss**; the other side only ever sees `offer_expired`. Idempotent. |
@@ -41,7 +41,7 @@ Socket close = search off = session vanished (if any). No goodbye frame needed.
 |---|---|---|
 | `ready` | `{ userId: string, vibe: string, config: Config }` | Reply to `hello`. `vibe` is the user's own 2-line card (canned, deterministic per `userId` in M0). |
 | `error` | `{ code: string, message: string }` | Non-fatal validation errors (e.g. `position_before_search_on`). Fatal ones close the socket with a 4xxx code instead. |
-| `zones` | `{ cells: { h: string, n: number }[] }` | Every ~2 s while searching. `h` = geohash-6, `n` = searching users incl. ghosts. Cells with `n < K` are **omitted** in production; in demo mode the server sends all. Client renders only what it receives. |
+| `zones` | `{ cells: { h: string, n: number }[] }` | Every ~2 s while searching. `h` = geohash-6, `n` = searching users *compatible with the recipient's active intent* (shared intent ≥ 1), incl. ghosts. Cells with `n < K` are **omitted** in production; in demo mode the server sends all. Client renders only what it receives. |
 | `match_offer` | `{ offerId, matchPct: number, sharedIntent: string, vibe: string, expiresInMs: number }` | Sent to **both** parties within the same tick. `vibe` is the *other* person's card. `matchPct` = round(compat × 100). |
 | `offer_expired` | `{ offerId }` | Offer TTL ran out, or the other side dismissed, or the other side went `search_off` / disconnected. The client shows the same neutral "offer expired" for all three. |
 | `session_start` | `{ sessionId, expiresInMs: number }` | Both accepted. Compass unlocks in state `waiting` until the first `partner_position`. |
@@ -69,8 +69,8 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 
 ## Server-side rules (what mobile may assume)
 
-1. **Match gate:** both `searching` ∧ `haversine(a, b) ≤ matchRadiusM` ∧ `|intents_a ∩ intents_b| ≥ 1` ∧ `compat ≥ 0.45` ∧ pair not in cooldown ∧ neither has an open offer or active session ∧ neither is a ghost.
-2. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)`. If a learned model is enabled it is called behind the same function and must return the same shape.
+1. **Match gate:** both `searching` ∧ `haversine(a, b) ≤ matchRadiusM` ∧ `|activeIntents_a ∩ activeIntents_b| ≥ 1` ∧ `compat ≥ threshold` ∧ pair not in cooldown ∧ neither has an open offer or active session ∧ neither is a ghost. (Same table as `ML-MATCHING.md` §7.)
+2. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared active intents|)`, threshold `0.45`. If the stretch model is enabled it is called behind the same function, returns the same shape, and uses its own calibrated threshold (`ML-MATCHING.md` §8); on any ML error the server falls back to the formula.
 3. **Ghosts** add to `zones.n` only. They never appear in `match_offer`.
 4. **Offer TTL** 45 s. Any of: TTL, `dismiss`, `search_off`, disconnect → `offer_expired` to the *other* side (and to the dismissing side too, for symmetry of client code). Pair enters cooldown.
 5. **Session TTL** 10 min from `session_start`. Server emits `session_end{expired}` to both.
@@ -89,9 +89,9 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 ## Minimal happy-path transcript
 
 ```
-A→ hello {intents:[beer], interests:[rock,hiking,food,dogs], adult:true}
+A→ hello {interests:[rock,hiking,food,dogs], adult:true}
 A← ready {userId:"u_A", vibe:"…", config:{…}}
-A→ search_on {}
+A→ search_on {intents:[beer]}
 A→ position {lat,lng,acc}            (every 2 s)
 A← zones {cells:[{h:"u2yhw5",n:7}]}  (every 2 s)
      … B does the same, enters 400 m …
@@ -113,6 +113,6 @@ B← session_end {sessionId:"s1", reason:"met"}
 | Code | Meaning |
 |---|---|
 | `4001` | `adult` not true |
-| `4002` | invalid profile (intent/interest minimums) |
+| `4002` | invalid profile (interest minimum) |
 | `4003` | protocol violation (e.g. frame before `hello`) |
 | `1000` | normal close |

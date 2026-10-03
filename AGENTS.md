@@ -9,7 +9,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket, onboarding LLM helpers; `taste/` holds the generated swipe samples; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
-| `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
+| `ml/` | PyTorch Siamese matching model → ONNX, `scripts/match_scorer.py` NDJSON scorer; not wired into the server yet | `ml/README.md`, `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
 
 ## Commands
 

@@ -49,14 +49,14 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 **M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
 
-**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** Python + FastAPI ML service · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss) behind the same `/compat` interface · OpenAI `text-embedding-3-small` for profile text · PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
+**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
 server/          Bun + Elysia — zones, distance-gated matching, hard gates, compass relay, TTLs, ghosts
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
-ml/              (stretch) Python + FastAPI — Shared Encoder, Match Head, training, calibration, scoring
+ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
 shared-infra/    (stretch) PostgreSQL + pgvector schema, migrations
 ```
 
@@ -64,7 +64,7 @@ ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ## Run
 
-Needs Bun ≥ 1.3, Xcode (iOS) or Android Studio (Android); `uv` and Docker only for the stretch pieces. Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
+Needs Bun ≥ 1.3 and Xcode (iOS) or Android Studio (Android); Docker only for the stretch pgvector cache. Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
 
 ```bash
 bun install
@@ -98,7 +98,7 @@ Checks (run before every push):
 bun run lint && bun run typecheck && bun run test
 ```
 
-Stretch: ML scoring service and the pgvector cache (see `ml/README.md`):
+Stretch: the pgvector cache (`ml/` is bootstrapped by `docs/ml/specs/01-bootstrap.md`):
 
 ```bash
 docker compose -f shared-infra/docker-compose.yml up -d
@@ -113,6 +113,6 @@ docker compose -f shared-infra/docker-compose.yml up -d
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
 | Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
 | Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
-| *If the stretch ships:* Shared Encoder + Match Head training loop and `/score` service | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
+| *If the stretch ships:* Shared Encoder + Match Head training loop and the compiled `match_scorer` binary scoring `z` pairs over stdin/stdout | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
 
 Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search) and any database (positions live in memory per socket; the pgvector cache belongs to the ML stretch).

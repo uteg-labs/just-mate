@@ -9,7 +9,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia, one WebSocket per client; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens |
-| `ml/` | (stretch) FastAPI `/score`, baseline today | `docs/ML-MATCHING.md` |
+| `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
 | `shared-infra/` | (stretch) Postgres + pgvector | `docs/ML-MATCHING.md` §6 |
 
 ## Commands
@@ -22,7 +22,6 @@ bun --cwd mobile ios         # dev-client build on simulator / device
 bun run lint                 # biome; `bun run format` to fix
 bun run typecheck            # every TS package
 bun run test                 # server bun:test
-cd ml && uv run pytest && uv run ruff check
 ```
 
 Done = lint, typecheck and tests green.
@@ -43,7 +42,7 @@ Done = lint, typecheck and tests green.
 
 ## Code style — sparse
 
-Write the minimum code that still reads. Biome (`biome.json`) enforces format: no semicolons, double quotes, 2 spaces, width 100. ruff does the same for `ml/`. The rest is on you:
+Write the minimum code that still reads. Biome (`biome.json`) enforces format: no semicolons, double quotes, 2 spaces, width 100. The rest is on you:
 
 ### The ladder
 

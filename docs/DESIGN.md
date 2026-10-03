@@ -53,6 +53,7 @@ Dark-only for M0 (the map is the brand). Colors are tokens in `mobile/theme/colo
 | `glow` | `#FFB23F` (amber) | zone glow, primary CTA fill, active intent chip |
 | `glowCore` | `#FFD9A0` | centre of dense zones |
 | `onGlow` | `#1A1205` | text/icons on amber |
+| `self` | `#5EEAD4` (mint) | own position dot on the map — the only dot ever drawn |
 | `danger` | `#FF453A` | **Vanish only** — reserved, never decorative |
 | `success` | `#30D158` | "both accepted" tick, nothing else |
 
@@ -272,8 +273,10 @@ Also: never convey bucket or state by colour alone (label + haptic always paired
 
 - **Onboarding** — `largeTitle` per step, chips as solid `surfaceRaised` (selected = `glow` fill + `selectionAsync`). Step transitions slide horizontally and reverse on back. Vibe-card reroll: card cross-fades the text in place, card itself doesn't move.
 - **Home** — map fullscreen, thin-material pill on top, thick-material sheet at bottom with detents `[collapsed, expanded]`. Primary CTA **Find people** is the only `glow`-filled button on screen.
-- **Match** — scrim + solid card from the top; `display` match %, `vibe` quote, primary **Open compass**, ghost **Dismiss**, `footnote` "unlocks only if they accept too". After accept: button morphs in place into "waiting for them…" (no new screen).
+- **Match** — scrim + solid card from the top; `display` match %, `vibe` quote, primary **Open compass**, ghost **Dismiss**, `footnote` "unlocks only if they accept too". After accept: button morphs in place into "waiting for them…" (no new screen). Offer TTL (45 s) runs out or they dismiss → the same spot quietly cross-fades to *"offer expired"* — never "they declined".
 - **Compass** — opaque `bg`; large arrow (≥ 60% screen width) tinted by bucket; bucket label in `title`; `display` countdown with tabular figures; vibe card pinned low; Vanish bottom-left in `danger`, always visible, never covered.
+- **Post-meet** — on **we met** (or TTL ending in `burning`): the compass ring settles and the screen cross-fades to *"you walked 480 m to meet"* in `display` (tabular figures), lifetime total in `footnote`, success haptic. Calm, no confetti.
+- **18+ gate** — the onboarding checkbox is a full-width row (≥ 44 pt), not a tiny box; **Enter the map** stays disabled (`textTertiary`) until it's checked.
 
 ## 11. Process
 

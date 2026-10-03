@@ -111,7 +111,7 @@ Profile (name, interests, questions and vibe, who you're after, appearance taste
 
 ## 7. Matching system
 
-**Data model.** `user = { id, mode, name, interests[], answers[], vibe, prefs (date: seek, age, looking · mate: who, group, energy, age, when, length), verified, adult, attractionVector (private, on-device), session: { mode, category, intents[], state } }` — in M0 nothing is persisted server-side beyond the live socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
+**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, taste (a number), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
@@ -127,7 +127,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · `dist ≤ R_MATCH` (400 m) · shared active intent ≥ 1 · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
+**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (400 m, or the shorter of both "walk up to" settings: 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
 
 **Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese model with a Match Head, custom-trained by the team. Profile text (intents + interests + vibe card) is embedded via OpenAI `text-embedding-3-small` (frozen), passed through a learned **Shared Encoder** that projects to 128-d compatibility vectors `z_a`, `z_b`, then through a **Match Head** that consumes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility score in `[0, 1]`. Trained with **triplet loss + binary match loss** jointly (one triplet yields two training examples for the head).
 
@@ -175,7 +175,7 @@ Full event-by-event schema (client ↔ server) is in `docs/PROTOCOL.md`; it is t
 | Notification fatigue / ambush pings | Both parties opted in *per occasion* (category + intent pick + Find people); pair cooldown; one active session |
 | Women's safety specifically | She is invisible unless she starts a search; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant; her name is only shown after she has met someone in person |
 | Fake or bot profiles | One-selfie liveness check, deleted after the check (production path in M0); a "verified" tag on the badge |
-| Minors | No photos and no identity means no implicit age signal → explicit, blocking **"I'm 18 or older"** check on the date verify step, "checked against your selfie" (selfie check is production path in M0); the server still requires `adult: true` on every connection, for Mate too (open decision in `STRUCTURE.md` › Protocol gaps); production: age assurance appropriate to a dating product (M1) |
+| Minors | No photos and no identity means no implicit age signal → every profile states an age (16+), and the blocking **"I'm 18 or older"** check on the date verify step is "checked against your selfie" (selfie check is production path in M0). The 18+ gate is per mode, enforced server-side: date mode requires an adult; mate mode allows 16–17, but **a non-adult is only ever matched with another non-adult, in mate mode, and an adult is never offered a non-adult** (`PROTOCOL.md` › Server-side rules). Production: age assurance appropriate to a dating product (M1) |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA. Demo runs on test data only.
 

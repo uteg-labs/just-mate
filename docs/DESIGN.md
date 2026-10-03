@@ -135,6 +135,9 @@ Physical metaphor: metal heating up. Colour is always paired with a label and a 
 | `--tint` | `rgb(0 0 0 / 0.06)` | `rgb(255 255 255 / 0.12)` | secondary button, `tint` icon button |
 | `--tint-hover` | `rgb(0 0 0 / 0.05)` | `rgb(255 255 255 / 0.16)` | secondary hover |
 | `--track-off` | `#E5E5E5` | `#333333` | switch track off, neutral badge fill |
+| `--thumb` | `#FFFFFF` | `#FFFFFF` | switch and range slider thumbs |
+| `--white` | `#FFFFFF` | `#FFFFFF` | badge face light: top highlight, pattern, shine, blob and metal tints |
+| `--black` | `#000000` | `#000000` | *ink* morph tone (match card), badge edge darkening |
 | `--separator` | `rgba(0,0,0,0.06)` | `rgba(255,255,255,0.08)` | inset 1px rings on chips, rows, dial; only where a scroll-edge fade can't be used |
 | `--hairline-top` | `rgba(255,255,255,0.9)` | `rgba(255,255,255,0.12)` | 1px bright top edge on blurred surfaces |
 | `--scrim` | `rgba(0,0,0,0.28)` | `rgba(0,0,0,0.45)` | dim behind modal tasks (match) |
@@ -176,9 +179,17 @@ Native: `expo-maps` (Apple Maps on iOS, Google Maps on Android) in the light col
 
 ## 4. Typography
 
-**Inter Variable** (`mobile/assets/fonts/InterVariable.ttf`, weight axis 100–900, optical size axis). Fallback stack: `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif`. Mono: `ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace`.
+**Inter.** Web: Inter Variable (`mobile/assets/fonts/InterVariable.ttf`, weight axis 100–900, optical size axis). Fallback stack: `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif`. Mono: `ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace`.
 
-Native: load the file with `expo-font` as family `Inter`; weights come from `fontWeight`. Check every weight on Android, where a single variable file can fall back to regular.
+Native: React Native can't drive a variable font's weight axis, so the app embeds static cuts from `@expo-google-fonts/inter` with the `expo-font` config plugin. Each cut is its own family, named after its PostScript name on both platforms, and the family carries the weight (`font.*` in `mobile/src/theme/type.ts`; never set `fontWeight` or `fontStyle` next to it):
+
+| Web weight | Native family |
+|---|---|
+| `--fw-normal` 400 | `Inter-Regular` |
+| `--fw-medium` 450 | `Inter-Medium` (500) |
+| `--fw-semibold` 550 | `Inter-SemiBold` (600) |
+| `--fw-bold` 700 | `Inter-Bold` |
+| medium italic (vibe) | `Inter-MediumItalic` |
 
 ### 4.1 Weight paired with optical size
 
@@ -245,6 +256,9 @@ Fluid Functionalism shadow ladder, levels 1–8, each paired with `surface-N`. F
 - **Light recipe**: a 1px ring (`0 0 0 1px`) plus halving drops, all at `rgb(0 0 0 / 0.06)`. Level N adds drops of 1, 3, 6, 12, 24, 48, 96px (offset = blur, spread = −blur/2).
 - **Dark recipe**: inset 1px top highlight (0.01 → 0.06 white) + inset 1px ring (0.02 → 0.06 white) + an outer black ring (0.12 → 0.22) + the same stacked drops at `rgba(0,0,0,0.18)`.
 - **`--shadow-glow`** (amber button only): light `0 0 0 1px rgba(255,178,63,0.45), 0 8px 24px -8px rgba(255,160,40,0.55)` · dark `0 0 0 1px rgba(255,178,63,0.35), 0 8px 32px -8px rgba(255,178,63,0.55)`.
+- **`--shadow-thumb`** (switch thumb): `0 1px 2px rgba(0,0,0,0.25)` in both scopes.
+- **`--shadow-badge`** (vibe badge card): `0 34px 50px -22px rgba(0,0,0,0.38), 0 10px 20px -10px rgba(0,0,0,0.2)` in both scopes.
+- **`--shadow-clip`** (vibe badge metal clip): `0 6px 10px -4px rgba(0,0,0,0.4)` in both scopes.
 - **`--shadow-sheet`**: light `0 0 0 1px rgb(0 0 0 / 0.05), 0 -12px 40px -12px rgba(0,0,0,0.14)` · dark `0 -1px 0 0 hairline-top, 0 -24px 48px -12px rgba(0,0,0,0.5)`.
 
 Level 3 is the default: cards, vibe card, status pill, floating icon buttons. Level 8 is the match card. Go higher only for something that floats above another card.
@@ -271,10 +285,10 @@ Every control is a full pill. iOS uses `borderCurve: 'continuous'` on every roun
 | `--radius-card` | 24 | cards, vibe card |
 | match card | 32 | match card |
 | `--radius-sheet` | 32 | `Sheet` component top corners |
-| morph sheet · morph card | 40 | the morph surface as a floating sheet or card, inset 8 from the screen edges (§13.1) |
+| `--radius-morph` · morph sheet · morph card | 40 | the morph surface as a floating sheet or card, inset 8 from the screen edges (§13.1) |
 | morph full | device corner | onboarding, settings, compass, post-meet (48 on the 402 × 874 frame) |
-| bento tile · open card · folded pill | 20 · 28 · 26 | category bento (§13.3) |
-| vibe badge · selfie panel | 20 · 32 | §13.4, §13.6 |
+| `--radius-tile` · `--radius-tile-open` · `--radius-tile-pill` | 20 · 28 · 26 | category bento: tile · open card · folded pill (§13.3) |
+| `--radius-badge` · selfie panel | 20 · 32 | vibe badge (§13.4) · selfie panel (§13.6) |
 | `--radius-container` | 12 | small containers inside cards |
 | `--radius-inner` | 8 | inner elements, focus target of the switch row |
 | `--radius-full` | `9999` | anything circular |
@@ -300,6 +314,14 @@ Every control is a full pill. iOS uses `borderCurve: 'continuous'` on every roun
 | `--press-scale` | 0.97 | pressed scale for buttons, chips, bento tiles, mode cards |
 | morph | 520 ms (Reduce Motion 220 ms) | the one surface changing shape (§13.1) |
 | bento | 440 ms | category tile ↔ open card ↔ folded strip |
+| `--stagger-word` | 55 ms | per-word delay in the rotating headline |
+| `--dur-follow` | 120 ms | badge tilt following the finger |
+| `--dur-word` | 360 ms | headline word opacity in / out |
+| `--dur-lift` · `--ease-lift` | 420 ms · `cubic-bezier(0.5, 0, 0.75, 0)` | badge lifting away |
+| `--dur-settle` | 700 ms | badge tilt settling back after release |
+| `--dur-swing` | 1100 ms | badge swinging back on its strap after a drag |
+| `--dur-drop` | 1300 ms, `ease-out` per keyframe | badge dropping in on its strap |
+| `--dur-headline` | 3200 ms | how long each headline line holds |
 
 ### 8.2 Springs (native, default for anything touchable)
 
@@ -317,6 +339,8 @@ Apple's two designer-facing parameters map onto Reanimated's `withSpring({ dampi
 | `spring.sensor` | 1.0 | 250 | `--dur-sensor` `--ease-spring` | compass arrow re-targeting on each heading sample |
 | `spring.morph` | 1.0 | 520 | 520 ms `--ease-spring` | morph surface geometry (position, size, radius) |
 | `spring.bento` | 1.0 | 440 | 440 ms `--ease-spring` | bento tile ↔ open card ↔ folded strip |
+| `spring.settle` | 1.0 | 700 | `--dur-settle` `--ease-spring` | badge tilt back to flat after release |
+| `spring.swing` | 0.8 | 1100 | `--dur-swing` `--ease-momentum` | badge swinging back after a drag, carrying the release velocity |
 
 Rule: **bounce only when the user's gesture carried momentum.** A sheet you flicked may overshoot; a match card that arrived on its own may not. The compass arrow uses `dampingRatio 1`: sensor noise + overshoot reads as wobble.
 
@@ -330,6 +354,8 @@ export const spring = {
   sensor: { dampingRatio: 1, duration: 250 },
   morph: { dampingRatio: 1, duration: 520 },
   bento: { dampingRatio: 1, duration: 440 },
+  settle: { dampingRatio: 1, duration: 700 },
+  swing: { dampingRatio: 0.8, duration: 1100 },
 } as const
 ```
 
@@ -563,7 +589,7 @@ The whole app is **one continuous surface over the map** that changes shape, the
 |---|---|---|---|
 | *paper* | `material-thick` + `blur-thick` | inset 1px `hairline-top` + `shadow-6` | `.light` |
 | *page* | `background` | none | `.light` |
-| *ink* | `#000` | `shadow-8` | `.dark` |
+| *ink* | `--black` | `shadow-8` | `.dark` |
 | *night* | `--jm-ink` | none | `.dark` |
 
 - **Geometry** (position, width, height, corner radius) springs with `spring.morph` (520 ms, `--ease-spring`). Background colour follows over 60% of that, the shadow over all of it.

@@ -5,7 +5,7 @@
 ## 1. TL;DR
 
 - **What it does:** given two faceless profiles (intents + interests + vibe card), output a pairwise compatibility score in `[0, 1]`.
-- **Stack:** OpenAI `text-embedding-3-small` → custom PyTorch model (Shared Encoder + Match Head) served by **Python + FastAPI**. Vectors cached in **PostgreSQL with pgvector**.
+- **Stack:** OpenAI `text-embedding-3-small` → custom PyTorch model (Shared Encoder + Match Head) trained in Python, **exported to ONNX** at build time, and **served by a compiled C++ binary** (`match_scorer`, built against `onnxruntime`) that the Bun/Elysia server **spawns once at startup as a long-lived subprocess**. Communication between server and binary is **newline-delimited JSON over stdin/stdout** — **no HTTP, no FastAPI**. Vectors cached in **PostgreSQL with pgvector**.
 - **Training objective:** triplet loss + binary match loss, jointly, on synthetic profiles for M0 / HackYeah 2026; on real meeting outcomes for M1.
 - **Hard rules (zones, cooldown, session limit, K-anonymity, intent gate) are NOT learned.** Model is one of several gates; everyone else is server-side logic.
 
@@ -175,28 +175,53 @@ For every position update from a searching user (every ~2s):
 
 ```
 1. client → server: { user_id, lat, lon, ts, session_state }
-2. server → db:  SELECT user_embedding WHERE user_id = ?       -- e (cached)
-3. server → ml:   POST /score { e_self, candidates: [e_i ...] }  -- z cached server-side
-4. ml:           z_self = encoder(e_self)                       -- cached
-                 for each candidate_i:
-                     z_i = encoder(e_i)                          -- cached
-                     score_i = sigmoid(match_head(z_self, z_i))
-5. ml → server:  [{ user_id, score_i }]
-6. server:       apply hard gates (distance ≤ 400 m, active intent, cooldown, K-anon)
-                 for each surviving candidate:
-                     if score_i >= threshold_calibrated:
-                         offer mutual match
+2. server → db:    SELECT user_embedding WHERE user_id = ?     -- e (cached)
+3. server → db:    SELECT user_z WHERE user_id IN (?, ?)       -- z (cached, 128d)
+4. server → match_scorer (subprocess):
+                   stdin:  {"id":"req_42","z_a":[...],"z_b":[...]}\n
+                   stdout: {"id":"req_42","score":0.78}\n
+   (one JSON-line request per candidate pair; per-pair Match Head inference)
+5. server:         apply hard gates (distance ≤ 400 m, active intent, cooldown, K-anon)
+                   for each surviving candidate:
+                       if score_i >= threshold_calibrated:
+                           offer mutual match
 ```
 
-**Key point: per-pair encoders are NOT re-encoded on each candidate. `z` is cached per user (in PostgreSQL), keyed by `user_id`.**
+**Key point: per-pair encoders are NOT re-encoded on each candidate. `z` is cached per user (in PostgreSQL), keyed by `user_id`. The compiled binary only runs the Match Head — the Shared Encoder exists in the Python training project, is applied once per user to populate `users.z`, and never runs at inference time.** The binary is spawned once at Bun server startup and kept alive for the lifetime of the server process; per-pair requests are pipelined over its stdin/stdout.
 
-### Cache strategy
+### 6.1 IPC contract — server ↔ `match_scorer` binary
+
+The Bun/Elysia server and `match_scorer` exchange newline-delimited JSON over the binary's stdin/stdout. The binary is started with `--model path/to/model_v0.onnx`; it loads the ONNX graph at boot, then enters a read-line loop.
+
+**Request (server → stdin):**
+```json
+{"id":"req_<n>","z_a":[<128 floats>], "z_b":[<128 floats>]}
+```
+`z_a` and `z_b` are the cached compatibility vectors (already L2-normalized). The binary concatenates `concat(|z_a − z_b|, z_a ⊙ z_b, [cos(z_a, z_b)])` → 257d, runs the ONNX session, applies `sigmoid`, returns the score.
+
+**Response (stdout → server):**
+```json
+{"id":"req_<n>","score":0.78}
+```
+The server correlates by `id` (so it can pipeline multiple candidate pairs in flight at once).
+
+**Error response (stdout → server):**
+```json
+{"id":"req_<n>","error":"onnx_runtime_failed"}
+```
+The server treats any error / malformed JSON / per-request latency >50ms as a subprocess fallback signal.
+
+**Why stdio, not unix socket or TCP localhost:** zero config (no socket file, no port collision, no permissions), works across container restarts, and per-request overhead is negligible for the Match Head (<1ms CPU on a 257→128→32→1 MLP). The single-machine constraint of the deployment (see §13) means there's no benefit from a socket either. M1 production may upgrade to a unix-domain socket if request volume justifies the lower per-call syscall overhead.
+
+**Process lifecycle:** Bun spawns `match_scorer` once at server startup. If the subprocess exits unexpectedly, Bun restarts it (with backoff, capped at 5 attempts within 60s) and falls back to the explainable baseline in the meantime. If restart budget is exhausted, the server logs and keeps using the baseline until manual restart.
+
+### 6.2 Cache strategy
 
 | Stage | Cache layer | Key | Value | Recomputed on |
 |---|---|---|---|---|
 | OpenAI embedding | PostgreSQL `users.embedding` | `user_id` | `vector(1536)` | profile change |
 | Shared encoder z | PostgreSQL `users.z` (pgvector) | `user_id` | `vector(128)` | encoder retrain / profile change |
-| Match Head | in-process | — | weights | model reload |
+| Match Head | in-process (inside the compiled binary) | — | weights | binary restart with new `.onnx` |
 
 `pgvector` lets us do approximate nearest-neighbour over `z` for fast candidate selection (production: HNSW index, M=16, ef_construction=64). For hackathon: brute-force cosine over all searching users within `R_MATCH` (fine at small scale).
 
@@ -236,16 +261,18 @@ For M0 hackathon demo: a single `MATCH_THRESHOLD = 0.65` constant, tuned manuall
 
 ## 9. Fallback path
 
-The match head is **not** on the critical path of the demo. If anything fails (model not loaded, encoder OOM, FastAPI timeout), the server falls back to the explainable baseline:
+The match head is **not** on the critical path of the demo. If anything fails (subprocess not spawned, ONNX load error at boot, stdin/stdout read timeout, non-zero exit, malformed JSON, missing/error field in response), the server falls back to the explainable baseline:
 
 ```python
 def compat(a, b):
     try:
-        score = ml_client.score(z_a, z_b, timeout_ms=200)
+        score = match_scorer.score(z_a, z_b, timeout_ms=200)
         return score
-    except (Timeout, ServiceUnavailable, ModelNotLoaded):
+    except (SubprocessDown, ReadTimeout, ProtocolError, ONNXRunFailed):
         return baseline_compat(a, b)   # 0.7 * jaccard + 0.3 * shared_intents
 ```
+
+`match_scorer.score` writes one JSON-line request to the subprocess's stdin and awaits the correlated response on stdout (matched by `id`). The server also restarts the subprocess on unexpected exit (see §6.1); the baseline keeps the demo alive while restart is in flight.
 
 This means the demo never breaks if the ML service has a hiccup, and the explainable baseline stays as a transparent sanity check (and as the actual scoring algorithm if the model is disabled).
 
@@ -259,7 +286,7 @@ This means the demo never breaks if the ML service has a hiccup, and the explain
 | Cache backend | PostgreSQL + pgvector (small) | PostgreSQL + pgvector + HNSW index |
 | Embedding | OpenAI `text-embedding-3-small` cached | Same, with TTL + user-side regeneration on profile change |
 | Position crypto | Plaintext (in-process) | E2E position encryption between matched session |
-| Model serving | FastAPI on localhost | FastAPI behind reverse proxy + health checks + metrics |
+| Model serving | Compiled `match_scorer` binary on the same machine, spawned by Bun, stdin/stdout JSON-lines | `match_scorer` supervised (systemd / supervisord) with restart-on-exit, optional upgrade to unix-domain socket if per-call syscall overhead matters at scale |
 | Audit | None | Persistence-free audit log (decision-only, no positions) |
 | DPIA | None | RODO DPIA filed; data subject rights delegated |
 
@@ -281,14 +308,16 @@ This means the demo never breaks if the ML service has a hiccup, and the explain
 - **Vibe card as input.** Should vibe-card text be concatenated to the profile text fed to OpenAI? Recommendation: yes — it carries personality signal.
 - **Attraction vector.** M0 uses simulated deterministic scalar; M1 will train on-device. Model input should accept it as a one-dim side feature `cat([features, abs(attr_a − attr_b), attr_a * attr_b])` → 259d. Optional for M0.
 - **Calibration data size.** Need at least 1000 positive + 1000 negative pairs for stable calibration; generate from ~5000 synthetic profiles.
-- **Where is the model file?** Convention: `ml/checkpoints/model_v0.pt`, versioned. FastAPI startup loads the latest.
+- **Where is the model file?** Two versioned artifacts: the **ONNX graph** at `ml/checkpoints/model_v0.onnx` (serialized Match Head, ~tens of KB), and the **compiled binary** at `ml/inference/build/match_scorer` (C++ executable against `onnxruntime`). Bun spawns the binary on launch with `--model ml/checkpoints/model_v0.onnx`; the binary loads the graph into memory at boot and serves JSON-line requests on stdin/stdout for the rest of its life. If the binary exits unexpectedly, Bun restarts it (with backoff) and falls back to the explainable baseline in the meantime (see §6.1, §9).
 - **Latency budget.** End-to-end score for one candidate pair (cached z) should be <5ms on CPU. Encoder step (proxy) cached; only Match Head runs.
 
 ## 13. File layout
 
+Training lives in Python (PyTorch). Inference lives in a compiled C++ binary (`match_scorer`). The Bun/Elysia server spawns the binary at startup; there is no Python process in the inference path.
+
 ```
 ml/
-├── pyproject.toml
+├── pyproject.toml                 # Python training project (uv / poetry)
 ├── src/
 │   └── just_mate_ml/
 │       ├── __init__.py
@@ -301,14 +330,40 @@ ml/
 │       │   └── losses.py          # triplet + bce
 │       ├── train.py               # training loop
 │       ├── calibrate.py           # threshold calibration on hold-out
-│       ├── export.py              # torch → onnx or torchscript
-│       └── serve/
-│           ├── app.py             # FastAPI app
-│           ├── cache.py           # pgvector read/write
-│           └── routes.py          # /score, /health, /reload
+│       └── export.py              # trained PyTorch → model_v0.onnx
+├── inference/                     # C++ inference binary (compiled)
+│   ├── CMakeLists.txt             # finds onnxruntime, builds match_scorer
+│   ├── src/
+│   │   ├── main.cpp               # argv: --model path/to/model_v0.onnx
+│   │   ├── scorer.hpp             # load ONNX, build 257-d feature, run session
+│   │   └── protocol.hpp           # JSON-lines read/write on stdin/stdout
+│   └── build/match_scorer         # the compiled binary (gitignored or LFS)
+├── checkpoints/
+│   └── model_v0.onnx              # exported graph, loaded by match_scorer at boot
 └── tests/
     ├── test_encoder_shape.py
     ├── test_match_head_shape.py
     ├── test_training_step.py
-    └── test_serve.py
+    └── test_scorer_binary.py      # spawns match_scorer, pipes JSON-lines, asserts score
 ```
+
+**Deployment (single server, all on one box):**
+
+```
+┌─────────────────────────────────────────────────┐
+│  one machine                                    │
+│                                                 │
+│   ┌──────────────┐    stdin/stdout    ┌────────┐│
+│   │  Bun server  │ ─────JSON-lines──► │match_  ││
+│   │  (Elysia)    │ ◄───────────────── │scorer  ││
+│   └──────┬───────┘                    │(binary)││
+│          │                            └────────┘│
+│          ▼                                      │
+│   ┌──────────────┐                               │
+│   │  PostgreSQL  │                               │
+│   │  + pgvector  │                               │
+│   └──────────────┘                               │
+└─────────────────────────────────────────────────┘
+```
+
+No HTTP between Bun and `match_scorer`; no FastAPI; no second Python interpreter in the inference path. The compiled binary is the entire model-serving surface.

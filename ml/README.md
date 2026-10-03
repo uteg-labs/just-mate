@@ -207,7 +207,18 @@ Response on stdout (one JSON object per line):
 
 Errors come back as `{"id":"req_42","error":"<message>"}` on stdout (the server handles them — no exit, no exception).
 
-Run it foreground for dev; the server manages its lifecycle in production. Server-side see [`../server/`](../server/) and [`../docs/PROTOCOL.md`](../docs/PROTOCOL.md) §6.1 for the spawner config.
+**One-shot CLI mode** (ad-hoc, no subprocess plumbing):
+
+```bash
+uv run python scripts/match_scorer.py checkpoints/model_v3_best.onnx \
+    --score target_emb.json,self_emb.json \
+    --soft-jacc 0.5
+# → {"score": 0.7823, "soft_jacc": 0.5}
+```
+
+`target_emb.json` and `self_emb.json` are files each holding a JSON list of 1536 floats. `--soft-jacc` defaults to 0.0; pass it for v3 models.
+
+Run serve loop foreground for dev; the server manages its lifecycle in production. Server-side see [`../server/`](../server/) and [`../docs/PROTOCOL.md`](../docs/PROTOCOL.md) §6.1 for the spawner config.
 
 ---
 

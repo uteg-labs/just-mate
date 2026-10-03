@@ -47,14 +47,17 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) · Bun + Elysia backend over one WebSocket per client · explainable compatibility scoring (learned model as a drop-in stretch) · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
+Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` for profile text · custom-trained Siamese model (Shared Encoder + Match Head, triplet + match-loss) · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
 
 ```
-docs/     product definition, protocol (client↔server contract), pitch/demo scripts, build plan, submission pack
-mobile/   Expo dev-client app — onboarding, zone map, match banner, compass, post-meet
-server/   Bun + Elysia — zones, matching, compass relay
-ml/       compatibility-model training
+docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
+mobile/          Expo dev-client app — onboarding, zone map, match banner, compass, push
+server/          Bun + Elysia — zones, matching, compass relay, hard gates
+ml/              Python + FastAPI — Shared Encoder, Match Head, training, calibration, scoring
+shared-infra/    PostgreSQL + pgvector schema, migrations
 ```
+
+ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ## What's real vs canned (demo honesty)
 
@@ -63,7 +66,9 @@ ml/       compatibility-model training
 | Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
 | Zone glow from live positions | Vibe-card strings (until the model generates them) |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
-| Explainable compatibility scoring | Attraction vector (simulated); learned model, if shown, trained on synthetic data |
+| Shared Encoder + Match Head (architecture, weights, training loop) | Training labels (rule-based synthetic ground truth, not real interactions) |
+| OpenAI embedding pipeline (cached per user in pgvector) | Attraction-side training data (synthetic until M1) |
+| Explainable baseline as fallback & jury sanity check | Negative sampling strategy (random for demo, semi-hard for production) |
 | Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
 
 Not in M0 by decision: remote push (the app is in the foreground whenever search mode is on; push is an M1 item for background search).

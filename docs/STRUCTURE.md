@@ -1,8 +1,8 @@
 # JustMate — app structure (screens · use cases · flows)
 
-Source of truth for the mobile app. Product rationale lives in `PRODUCT.md`, pitch copy in `DEMO.md`. The session state machine is `PRODUCT.md` §9.
+Source of truth for the mobile app. Product rationale lives in `PRODUCT.md`, pitch copy in `DEMO.md`. The session state machine is `PRODUCT.md` §9. **Visual, motion and interaction rules (colors, type, materials, springs, haptics, accessibility) live in `DESIGN.md`** — tokens referenced below in `code` come from there.
 
-Design north star for Home: **Bolt** — map fullscreen, one bottom sheet, one primary action. Bolt's "pick a destination, see supply heat, order" becomes "pick an intent, see compatible-people heat, start searching".
+Layout north star for Home: **Bolt** — map fullscreen, one bottom sheet, one primary action. Feel north star for everything: **Apple fluid interfaces** (see `DESIGN.md`) — instant press feedback, interruptible springs, translucent chrome over the map. Bolt's "pick a destination, see supply heat, order" becomes "pick an intent, see compatible-people heat, start searching".
 
 ## Screen map
 
@@ -37,8 +37,9 @@ Map fullscreen; everything else is state layered on it.
 
 **Layout**
 
-- **Map**: dark base, amber **zone glow** (heatmap circles, size/brightness = density of *compatible* searchers for the active intent). No pins, ever. Zone tap → aggregate only: *"~4 compatible around here"*.
-- **Top pill** (status): `invisible` (default) · `● searching: beer`.
+- **Map**: dark desaturated base (`mapBase`), amber **zone glow** (`glow` → `glowCore` for dense zones; heatmap circles, size/brightness = density of *compatible* searchers for the active intent). Glow grows/shrinks from its centre once per update — no idle breathing. No pins, ever. Zone tap → aggregate only: *"~4 compatible around here"*.
+- **Top pill** (status, thin translucent material): `invisible` (default) · `● searching: beer`. Own avatar (monogram, no photo) top-right → edit profile.
+- **Bottom sheet** (thick translucent material, map scrolls under; chips/buttons on it are solid; 1:1 drag, momentum-projected snap, rubber-band past the top — `DESIGN.md` §6.4).
 - **Bottom sheet — collapsed (idle)**: prompt **"Where to?"** + horizontally scrolling intent chips: **Soul mate · Beer · Coffee · Attractions · Friends · Sports · Music**. Single intent per session (max 2).
 - **Bottom sheet — expanded**: intent grid, one-line compat teaser, primary CTA **Find people**.
 - **Active (searching)**: sheet collapses to a status card — intent, elapsed time, ghost button **Stop searching**. Zones animate in.
@@ -47,16 +48,21 @@ Map fullscreen; everything else is state layered on it.
 
 ### 3. Match — overlay on Home, arrives on both phones
 
+Solid card + dim scrim over the map, enters from the top like a system notification and leaves the same way. Buttons only — no swipe-to-dismiss (an accidental swipe would trigger the pair cooldown).
+
+
 - `78% · wants: beer` + vibe card in quotes
 - **[ Open compass ]** primary · **[ Dismiss ]** ghost · caption *"unlocks only if they accept too"*
-- Accept → banner shows *waiting for them…* until mutual → Compass opens. Dismiss → pair cooldown (5 min).
-- Arrival vibration `[200,100,200]` + native push (backgrounded).
+- Accept → the button morphs in place into *waiting for them…* until mutual → Compass expands from the button. Dismiss → pair cooldown (5 min).
+- Arrival vibration `[200,100,200]` + success haptic on the same frame as the banner (both phones), delivered over the live WebSocket — no remote push in M0 (see `PRODUCT.md` §8).
 
 ### 4. Compass — fullscreen
 
 - **Arrow**: `bearing(me→partner) − magnetometer heading`. Partner position is used *only* for this math — never rendered on a map.
-- **Distance bucket** (deliberately imprecise): `cold` >200 m · `warm` <200 m · `hot` <80 m · `burning` <30 m — color + haptic escalation.
-- **Countdown** 10:00 · **Vanish** always visible (red, kills session for both) · partner's vibe card pinned (the icebreaker).
+- **Arrow** re-targets with a critically damped spring on every heading sample (shortest-angle path, no overshoot wobble); dims to 40% in `waiting-for-signal`.
+- **Distance bucket** (deliberately imprecise): `cold` >200 m (`tempCold` blue) · `warm` <200 m (`tempWarm` amber) · `hot` <80 m (`tempHot` orange) · `burning` <30 m (`tempBurning` white-hot) — color + label + haptic escalation (heartbeat 3 s → 1.5 s → 0.7 s). Never color alone.
+- **Countdown** 10:00 in tabular figures (warning haptic + `tempHot` at 1:00) · **Vanish** always visible (`danger` red — the only red in the app; one tap, no confirmation, kills session for both) · partner's vibe card pinned (the icebreaker).
+- Opaque background — no map, no translucency; the walk is the only thing on screen.
 - States: `waiting-for-signal` · `active` · `expired` · `vanished`.
 
 ## Use cases

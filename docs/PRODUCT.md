@@ -43,7 +43,7 @@ Every feature decision is tested against these three rules; anything that violat
 1. **Profile once (3 minutes).** Pick intents (what you're looking for) and interests (what you're into). No photo. Optional nickname, never shown to others.
 2. **Search mode ON — deliberately, per occasion.** Default is OFF: you activate it when you're actually out and open to meeting (battery, privacy, and intent all in one toggle). This is the anti-Highlight: session-scoped, never ambient.
 3. **Watch zones glow.** The map shows geohash zones lit by the density of searching users. No list, no search field, no browsing — scarcity of information is the feature.
-4. **The ping (the product's heartbeat).** Two compatible people, both searching, intents aligned, same zone → both phones notify simultaneously: match %, shared intent ("wants: beer"), and a 2-line vibe card of the other person.
+4. **The ping (the product's heartbeat).** Two compatible people, both searching, intents aligned, within walking range (400 m — see §7) → both phones notify simultaneously: match %, shared intent ("wants: beer"), and a 2-line vibe card of the other person.
 5. **Mutual accept → compass unlocks.** Only if both tap "open compass". Either alone sees nothing more.
 6. **The walk.** A directional arrow with hot/cold color and haptics; distance as a bucket (cold/warm/hot/burning), never a map pin of the other person. 10-minute window.
 7. **Meet. Talk.** The vibe card doubles as the icebreaker. Afterward, session ends; positions are discarded.
@@ -55,7 +55,7 @@ Every feature decision is tested against these three rules; anything that violat
 
 1. **"What are you looking for?"** — intent chips, multi-select, ≥1 required: `date · friends · beer · coffee · walking · sports · music`.
 2. **"What are you into?"** — interest chips, ≥3 required: `beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food`.
-3. **"Your vibe card."** — preview of the 2-line card others will see (generated vibes, e.g. *"quietly funny — will out-argue you about pizza"*). Explains the attraction vector in one sentence: *"Optionally (production): train your private attraction profile on your own device — photos never leave your phone; only a compatibility number ever does."* Button: **Enter the map**.
+3. **"Your vibe card."** — preview of the 2-line card others will see (generated vibes, e.g. *"quietly funny — will out-argue you about pizza"*). Explains the attraction vector in one sentence: *"Optionally (production): train your private attraction profile on your own device — photos never leave your phone; only a compatibility number ever does."* Below it a single required checkbox: **"I'm 18 or older"** (the app has no photos and no verification, so the age gate is explicit and blocking — the map is not reachable without it). Button: **Enter the map**.
 
 Design intent: the whole funnel communicates "this is not a profile-picture app" before the user ever sees the map.
 
@@ -73,7 +73,8 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 - Vibe card in quotes: *"quietly funny — will out-argue you about pizza"*
 - **[ open compass ]** — primary; **[ dismiss ]** — ghost button
 - Caption: *"unlocks only if they accept too"* — consent made visible.
-- Vibration `[200,100,200]` on arrival.
+- Vibration `[200,100,200]` on arrival (expo-haptics; delivered over the live WebSocket while the app is open — no remote push in M0, see §8).
+- **Offer TTL: 45 s.** If the other side dismisses or does not answer, the banner quietly turns into *"offer expired"* on the accepting side — it never says "they declined", so a dismiss is invisible by construction. Pair cooldown applies either way.
 
 ### 6.4 Compass (full-screen overlay)
 
@@ -82,44 +83,52 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 - **Countdown**: 10:00 session TTL, always visible.
 - **Vanish**: always-visible red control; kills the session for both, instantly.
 - States: `waiting` (partner accepted but no position yet), `active`, `expired` (TTL), `vanished`.
+- **Post-meet screen (M0, cheap, on-category):** when the bucket hits `burning` and either taps **"we met"** (or the TTL ends in `burning`), show *"you walked 480 m to meet"* — distance integrated client-side from own positions during the session, plus a lifetime total ("2.3 km walked to meetings"). No backend, no persistence beyond the device; it is the one screen that makes the Sport & Healthcare framing literal.
 - Post-meet (future): optional one-tap "how did it go?" to tune matching.
 
 ## 7. Matching system
 
 **Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket.
 
-**Compatibility model (primary).** A small model, custom-trained by the team, served by the Elysia backend: preference/intent/interest data → pairwise match score. Trained during the event; the transparent function below stays as the explainable baseline and cold-start fallback (and as the sanity check in Q&A).
-
-**Explainable baseline:**
+**Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
 ```
 compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
-match  ⇔ both searching ∧ same zone ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
+match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
 ```
 
 - **Intents gate, interests score.** The shared intent is the *context* of the match ("this is a beer match"), interests set the percentage.
-- **Pair cooldown: 5 min** after any match/dismiss/vanish — no re-pinging the same person, no notification spam.
+- **Distance, not zone, is the match gate.** The server holds exact positions anyway; zones are a *display* abstraction (see §8). Matching on "same geohash cell" would (a) pair people up to 1.35 km apart — more than the ~830 m a person walks in the 10-minute window at 5 km/h — and (b) never pair two people 50 m apart on either side of a cell boundary. `R_MATCH = 400 m` ≈ 5 min on foot, leaving half the window for finding each other.
+- **Offer TTL 45 s**, then the offer expires silently for both (see §6.3).
+- **Pair cooldown: 5 min** after any match/dismiss/expiry/vanish — no re-pinging the same person, no notification spam.
 - **One active session per user.**
+- **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Attraction vector (the no-faces trick).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned.
+**Learned compatibility model (stretch, after Sat 19:00 only).** A small model trained by the team on interaction data → pairwise score, served behind the same `/compat` interface so it is a drop-in replacement for the function above. Honesty note for the pitch: a model trained only on *synthetic* data derived from the baseline learns the baseline — so if the model ships in M0 it is presented as "the training pipeline is real, the data is synthetic", and the explainable function remains the headline. We do not say "AI matching" about something that is not learned from real signal.
+
+**Attraction vector (the no-faces trick — production path, one sentence on stage).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned. **Legal caveat (do not improvise on stage):** anything derived from a face is biometric data under GDPR Art. 9 (special category) even in derived form, so the production design needs a DPIA and likely explicit consent on *both* sides before any similarity is computed. On stage it stays a one-liner labelled "production path"; the demo never claims it runs.
 
 **Vibe cards.** Two-line personality summaries shown at the match moment — the icebreaker that replaces "hey". Demo: canned vibe pairs, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated.
 
 ## 8. Zones & location architecture
 
-- **Zone = geohash precision 6** (~1.2 km × 0.6 km at Kraków's latitude): big enough for anonymity, small enough for "walkable now".
+- **Zone = geohash precision 6** (~1.2 km × 0.6 km at Kraków's latitude) — the *display* unit: big enough for anonymity (a glow never points at one person). Zones are not the match unit; matching is by distance (`R_MATCH`, §7), so cell boundaries never split two nearby people.
 - **Glow semantics:** count of *search-mode* users in the cell, rendered as size/brightness. Zones with fewer than **K=3** searching users stay dark (k-anonymity in production; demo shows all) — you can't follow a glow to *the only* person in it.
 - **Data flow:** client sends position every ~2 s (while searching) → server keeps it in-memory keyed by socket → computes zone → matches → relays position *only* between mutually-accepted partners *only* during the session → everything discarded on disconnect/vanish/TTL. No database. No history. No logs of positions.
-- **Demo mode:** scripted converging positions driven by a dev-build toggle (indoor GPS reality); identical pipeline.
+- **Transport: one WebSocket per client** (Elysia `ws`), message schema in `docs/PROTOCOL.md`. All real-time events — zones, match offer, partner position, expiry — ride this socket. **No remote push in M0:** the app is in the foreground whenever search mode is on (that is the product), so push adds EAS/APNs/FCM setup time and a failure mode without adding anything the jury can see. Remote push is an M1 item (search mode in background).
+- **Demo mode:** scripted converging positions driven by a dev-build toggle (indoor GPS reality); identical pipeline. Scripted coordinates are expressed relative to the stage (A = stage-left end, B = stage-right end, both facing the audience) because the compass arrow uses the *real* magnetometer heading — if the scripted bearing does not match the physical layout, the arrow visibly points off-stage.
 
 ## 9. Match session lifecycle (state machine)
 
 ```
-idle → searching → [match offered ⇉ both phones]
+idle → searching → [match offered ⇉ both phones, offer TTL 45 s]
      → both accept ⇉ compass active (10 min TTL, positions relayed pairwise)
-     → meet | TTL expiry | either vanishes
+     │                → meet | TTL expiry | either vanishes
+     └→ dismiss | offer expiry (either side; the other side sees only "expired")
      → cooldown(5 min per pair) → idle
 ```
+
+Full event-by-event schema (client ↔ server) is in `docs/PROTOCOL.md`; it is the contract mobile and backend build against independently.
 
 ## 10. Safety & privacy by design (threat model)
 
@@ -130,7 +139,8 @@ idle → searching → [match offered ⇉ both phones]
 | Harassment | No chat = no DM channel; exposure is session-scoped; block & report (production) kill future matches pair-wide |
 | Data breach / subpoena | Positions never persisted — in-memory per socket only; nothing to leak |
 | Notification fatigue / ambush pings | Both parties opted in *per occasion* (search toggle); pair cooldown; one active session |
-| Women's safety specifically | She is invisible unless she switches search on; she can dismiss any match invisibly; Vanish is one tap and instant |
+| Women's safety specifically | She is invisible unless she switches search on; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant |
+| Minors | No photos and no identity means no implicit age signal → explicit, blocking **18+ gate** in onboarding (M0); production: age assurance appropriate to a dating product (M1) |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA. Demo runs on test data only.
 
@@ -186,11 +196,11 @@ The 2012 graveyard (Sonar, Highlight) died of empty rooms; just-mate launches wh
 
 | Stage | Scope |
 |---|---|
-| **M0 — HackYeah 2026** (this repo) | Expo app (push, magnetometer compass), Bun/Elysia backend, custom-trained model v0 + explainable baseline, demo mode |
-| **M1 — production MVP** | k-anonymity (K≥3), block/report, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
+| **M0 — HackYeah 2026** (this repo) | Expo dev-client app (WebSocket events, magnetometer compass, haptics, 18+ gate, post-meet distance screen), Bun/Elysia backend (ws, distance-gated matching, offer/session TTLs, ghosts), explainable scoring, demo mode; learned model v0 only if time remains after Sat 19:00 |
+| **M1 — production MVP** | remote push (background search mode), k-anonymity (K≥3), block/report, age assurance, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
 | **v1** | On-device attraction vector (train-on-phone), generated vibe cards (Bielik/LLM), brave streaks |
 | **v2** | Venue/event platform (official zones, analytics), city heat events |
 
 ## 18. Demo scope & honesty
 
-See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match + push, custom-trained model, compass bearing, haptics, vanish. Everything auxiliary is honestly canned: ghost density, vibe-card strings, demo-mode positions; attraction-side training data is synthetic until M1.
+See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match delivered live to both phones over WebSocket, explainable scoring, compass bearing, haptics, vanish. Everything auxiliary is honestly canned: ghost density, vibe-card strings, demo-mode positions; the attraction vector is simulated and the learned model (if shown) is trained on synthetic data. Rule for every sentence in the deck and the description: **it describes what the demo does, or it is labelled "production path".**

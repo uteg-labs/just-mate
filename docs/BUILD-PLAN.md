@@ -8,7 +8,7 @@ Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compati
 
 - **Mobile**: Expo app — map screen, glow zones, compass + haptics, push
 - **Backend + model**: Bun/Elysia — ws, matching, custom model training/serving, ghost seeding, demo paths, session TTL
-- **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter
+- **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter; owns `DESIGN.md` tokens
 
 ## Milestones
 
@@ -21,7 +21,7 @@ Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compati
 | Sat 19:00 (H+8) | **The project is real** | Match + mutual push working on both phones |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |
-| Overnight | Juice | Compass polish, haptics, glow aesthetic, seeded fixtures, demo-mode timing tuned |
+| Overnight | Juice | Pass the `DESIGN.md` quick-reference on every screen: springs/press feedback, sheet momentum, compass haptic escalation, materials, reduce-motion fallbacks; seeded fixtures, demo-mode timing tuned |
 | Sun 07:00 | **FREEZE** | Code locked; backup video ×2; hardcoded demo path verified |
 | Sun 10:30 | **Submit** | 30 min before deadline, always |
 | Sun 11:00–15:00 | Rehearse ×5 | Touch code only for demo-visibility fixes |
@@ -45,7 +45,7 @@ Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compati
 | Idea & Innovation | 30% | Assembled wedge "consented serendipity" + 4-quarter validation story | 8–9 |
 | Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic | 7–8 |
 | Practical Applicability | 20% | 3-screen app, zero-learning-curve core loop | 8 |
-| Design | 20% | Dark map + glow aesthetic; evening investment budgeted | 7–9 |
+| Design | 20% | Dark map + amber glow; Apple-style fluid motion, materials and haptics per `DESIGN.md`; evening investment budgeted | 7–9 |
 | Completeness | 10% | Core loop genuinely works on two phones | 8 |
 
 ## Mentor rounds (Sat 16:00–18:00)

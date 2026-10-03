@@ -50,7 +50,7 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 Expo (React Native) mobile app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native + OpenFreeMap · geohash-6 zones. Run instructions land with the scaffold.
 
 ```
-docs/     product definition, app structure (screens/flows), pitch/demo, build plan, submission pack
+docs/     product definition, app structure (screens/flows), design system (DESIGN.md), pitch/demo, build plan, submission pack
 mobile/   Expo app — profile, zone map, compass, push
 server/   Bun + Elysia — zones, matching, compass relay
 ml/       compatibility-model training

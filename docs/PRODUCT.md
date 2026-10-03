@@ -51,7 +51,7 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 6. Screens & flows
 
-Four surfaces: **Onboarding** (faceless profile), **Home — "Where to?"** (Bolt-style fullscreen map + intent sheet: zones glow as a heatmap of compatible people), the **Match overlay**, and **Compass**. Full screen specs, use cases, sequence flows, and the client↔server message contract live in `STRUCTURE.md` — the source of truth for the mobile app.
+Four surfaces: **Onboarding** (faceless profile), **Home — "Where to?"** (Bolt-style fullscreen map + intent sheet: zones glow as a heatmap of compatible people), the **Match overlay**, and **Compass**. Full screen specs, use cases, sequence flows, and the client↔server message contract live in `STRUCTURE.md` — the source of truth for the mobile app. Visual language, motion, haptics and accessibility live in `DESIGN.md` (Apple fluid-interface principles applied to a dark map with warm glow).
 
 ## 7. Matching system
 

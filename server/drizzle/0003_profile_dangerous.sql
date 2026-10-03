@@ -1,0 +1,1 @@
+ALTER TABLE "profile" ADD COLUMN "dangerous" boolean DEFAULT false NOT NULL;

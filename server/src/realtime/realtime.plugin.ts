@@ -1,7 +1,7 @@
 import { Elysia } from "elysia"
 
 import { userIdForCookie } from "../auth/auth"
-import { loadProfile } from "../profile/profile.plugin"
+import { isDangerousUser, loadProfile } from "../profile/profile.plugin"
 import { type Client, config, connect, disconnect, receive, tick } from "./session"
 
 const sockets = new Map<string, Client>()
@@ -16,7 +16,7 @@ export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
         send: (msg) => ws.send(JSON.stringify(msg)),
         close: (code, reason) => ws.close(code, reason),
       },
-      { userIdForCookie, profileFor: loadProfile },
+      { userIdForCookie, profileFor: loadProfile, isDangerous: isDangerousUser },
       demo === "a" || demo === "b" ? demo : undefined,
     )
     sockets.set(ws.id, client)

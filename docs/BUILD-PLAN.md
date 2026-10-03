@@ -2,7 +2,7 @@
 
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 
-Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per `docs/PROTOCOL.md`) · explainable compatibility scoring (learned model as stretch) · Python + FastAPI ML service (compatibility scoring, M1 roadmap) · PostgreSQL with pgvector (per-user embedding & z-vector cache, M1) · OpenAI `text-embedding-3-small` (M1) · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training, M1) · maplibre-react-native.
+Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per `docs/PROTOCOL.md`) · explainable compatibility scoring (learned model as stretch) · Python + FastAPI ML service (compatibility scoring, M1 roadmap) · PostgreSQL with pgvector (per-user embedding & z-vector cache, M1) · OpenAI `text-embedding-3-small` (M1) · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training, M1) · native maps via `expo-maps` (Apple Maps / Google Maps).
 
 ## Division of labor (4 roles)
 
@@ -16,7 +16,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Time | Milestone | Definition of done | 
 |---|---|---|
 | Sat 11:30 | Demo script written (before core code) | `docs/DEMO.md` read aloud once |
-| Sat 12:00 | **EAS dev-client builds started** (iOS + Android) | Builds queued; `expo-dev-client`, `@maplibre/maplibre-react-native`, `expo-sensors`, `expo-haptics`, `expo-location` in `app.json` plugins. Expo Go is **not** a fallback for this stack (see risks) |
+| Sat 12:00 | **EAS dev-client builds started** (iOS + Android) | Builds queued; `expo-dev-client`, `expo-maps`, `expo-sensors`, `expo-haptics`, `expo-location` in `app.json` plugins. Expo Go is **not** a fallback for this stack (see risks) |
 | Sat 12:30 | Protocol frozen | `docs/PROTOCOL.md` agreed; mobile runs against a mock server replaying it, backend against `wscat` |
 | Sat 14:00 (H+3) | Skeleton | Two devices on dev-client + Elysia ws skeleton + map renders a zone (or the SVG radar fallback) |
 | Sat 15:00 | Backend protocol-complete | `match_offer` → `accept` → `session_start` → `partner_position` → `session_end` all pass the transcript in PROTOCOL.md |
@@ -36,7 +36,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Risk | Sev | Mitigation |
 |---|---|---|
 | Indoor GPS at the arena | HIGH | Demo mode (`?demo=a/b`) by design; pipeline identical; compass heading is magnetometer (works indoors); scripted track calibrated to the physical stage layout |
-| **Expo Go cannot run this stack** | **HIGH** | `maplibre-react-native` is a native module (not in Expo Go); remote push does not work in Expo Go on Android since SDK 53. → EAS dev-client builds queued by 12:00 (15–40 min each, both platforms, both demo phones). Decision point 14:30 — if dev-client builds are not on both phones: **fallback 1 = `react-native-maps`**, which ships inside Expo Go (Apple Maps on iOS with `userInterfaceStyle="dark"`, Google Maps on Android with a dark `customMapStyle`); glow zones become `Circle` overlays (halo + core, amber, low alpha) — same screen, same data, no native build. **Fallback 2 = SVG/Canvas "radar"** (concentric rings + glowing blobs) if even that misbehaves. Compass, haptics, ws are unaffected by either. Keep the map behind one `ZoneMap` component so the swap is one import |
+| **Expo Go cannot run this stack** | **HIGH** | `expo-maps` is a native module (not in Expo Go; Android also needs a `GOOGLE_MAPS_API_KEY`); remote push does not work in Expo Go on Android since SDK 53. → EAS dev-client builds queued by 12:00 (15–40 min each, both platforms, both demo phones). Decision point 14:30 — if dev-client builds are not on both phones: **fallback 1 = `react-native-maps`**, which ships inside Expo Go and draws the same Apple/Google base maps; glow zones stay `Circle` overlays (halo + core, amber, low alpha) — same screen, same data, no native build. **Fallback 2 = SVG/Canvas "radar"** (concentric rings + glowing blobs) if even that misbehaves. Compass, haptics, ws are unaffected by either. Keep the map behind one `ZoneMap` component so the swap is one import |
 | Jury raises stalking | HIGH | Safety-by-design slide at 3:30 — turn the question into the answer |
 | Live demo dies on stage | MED | Backup video recorded twice; never debug on stage |
 | Cold-start question | MED | Density-first launch answer rehearsed (campus/festival/venue partners) |

@@ -1,0 +1,93 @@
+# AGENTS.md
+
+Rules for anyone writing code here — humans and coding agents alike. Product context is in [`README.md`](README.md).
+
+## Map
+
+| Path | What | Source of truth |
+|---|---|---|
+| `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
+| `server/` | Bun + Elysia, one WebSocket per client; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
+| `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens |
+| `ml/` | (stretch) FastAPI `/score`, baseline today | `docs/ML-MATCHING.md` |
+| `shared-infra/` | (stretch) Postgres + pgvector | `docs/ML-MATCHING.md` §6 |
+
+## Commands
+
+```bash
+bun install                  # whole workspace, hoisted (bunfig.toml)
+bun run dev:server           # :3000
+bun run dev:mock             # :3001, scripted transcript
+bun --cwd mobile ios         # dev-client build on simulator / device
+bun run lint                 # biome; `bun run format` to fix
+bun run typecheck            # every TS package
+bun run test                 # server bun:test
+cd ml && uv run pytest && uv run ruff check
+```
+
+Done = lint, typecheck and tests green.
+
+## Hard rules
+
+- **Protocol first.** Change `docs/PROTOCOL.md`, then `packages/protocol`, then code. Never re-declare a message type locally.
+- **No pins.** The client never receives or holds a partner's lat/lng — only `bearing` + `bucket`. `distanceM` is dev-only and never rendered.
+- **Tokens only.** Colors, type, spacing, springs come from `mobile/src/theme`. Missing token → add it to `docs/DESIGN.md` and the theme file first.
+- **One map.** All map code lives in `mobile/src/components/ZoneMap.tsx` (`expo-maps`).
+- **Expo native config** goes in `mobile/app.config.ts` and config plugins; `ios/` and `android/` are generated and ignored.
+- **Git:** no AI or agent attribution anywhere — no `Co-Authored-By` trailers, no "generated with" footers in commits, PRs or comments.
+
+## Code style — sparse
+
+Write the minimum code that still reads. Biome (`biome.json`) enforces format: no semicolons, double quotes, 2 spaces, width 100. ruff does the same for `ml/`. The rest is on you:
+
+### The ladder
+
+Stop at the first rung that holds:
+
+1. Does this need to exist at all? Speculative need → skip it.
+2. Already in this codebase? Reuse it. Look first.
+3. Stdlib does it? Use it.
+4. Native platform covers it? Native first.
+5. Already-installed dep solves it? Use it.
+6. One line? One line.
+7. Only then: the minimum code that works.
+
+### Trust the types
+
+- No `=== true` / `=== false` — write `if (flag)`, `if (!flag)`.
+- No `!== undefined` / `=== null` on values typed non-nullable; use `?.` where it covers it.
+- No `Boolean(x)` on a boolean, no `parseInt` on a `number`.
+- A guard that feels necessary means the type is wrong — fix the type.
+- Runtime checks still earn their keep for what types can't encode: untrusted wire input, enum membership, non-empty, positive.
+
+### Flags
+
+Positive form: `hasX = value === theOneThatWantsIt`. The negative form silently misclassifies when a third value appears.
+
+### Functions
+
+- One concept per function; a name with "and" gets split.
+- Early returns, no nested `if` ladders.
+- `function` for utils and hooks, `const` for components, arrows only for inline one-liners.
+- Named exports (expo-router route files are the exception — they must `export default`).
+- `type` over `interface`.
+
+### Whitespace
+
+A blank line is a section divider, not decoration: between unrelated groups in an object or list, between phases of a function, between sibling branches (switch cases, guards) that handle different cases. Test: delete it — if grouping blurs, keep it.
+
+### Environment
+
+Read `process.env` once at module load. Required vars throw if missing; optional ones get an explicit `?? default` at the read site. No `() => process.env.X ?? ""` accessors.
+
+### Comments
+
+None by default. Keep only what a senior reader can't derive from the code: a non-obvious why, a platform constraint, a footgun. Lowercase, no docblocks, no banners. JSDoc only on the cross-package API in `@justmate/protocol`. Test names may read as full sentences.
+
+### Python (`ml/`)
+
+Same ladder. Type hints are trusted; no docstrings; pydantic models are the validation layer.
+
+### When not to be sparse
+
+The user or a reviewer asks for comments/docs → write them. Public API called from outside the repo → document it.

@@ -62,13 +62,12 @@ export const Step = ({ eyebrow, title, sub, caption, children, footer, cta }: Pr
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
+  scroll: { flex: 1, marginHorizontal: -space.xs },
   content: {
     gap: space.l,
     paddingTop: 20,
     paddingBottom: space.xs,
     paddingHorizontal: space.xs,
-    marginHorizontal: -space.xs,
   },
   footer: { gap: 10, paddingTop: 14 },
   busy: { opacity: 0.4 },

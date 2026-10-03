@@ -30,6 +30,8 @@ Done = lint, typecheck and tests green.
 
 Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them. One local change: `bump-version.yml` checks out and pushes with the `GH_TOKEN` secret (a PAT) instead of `GITHUB_TOKEN`, since tags pushed by `GITHUB_TOKEN` never start `release-on-tag`. Re-apply it after every `update`.
 
+A stable `@justmate/server` tag starts `server-release.yml` (ours, not from the toolkit): it builds `server/Dockerfile` into `ghcr.io/uteg-labs/just-mate-server` and calls the Dokploy deploy webhook (`DOKPLOY_SERVER_WEBHOOK` secret), so Dokploy pulls `:latest`. The container applies Drizzle migrations on start. Env vars live in Dokploy, mirroring `server/.env.example`.
+
 ## Hard rules
 
 - **Protocol first.** Change `docs/PROTOCOL.md`, then `packages/protocol`, then code. Never re-declare a message type locally.

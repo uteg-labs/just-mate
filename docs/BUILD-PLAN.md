@@ -12,7 +12,7 @@ Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compati
 
 ## Milestones
 
-| Time | Milestone | Definition of done |
+| Time | Milestone | Definition of done | 
 |---|---|---|
 | Sat 11:30 | Demo script written (before core code) | `docs/DEMO.md` read aloud once |
 | Sat 13:00 | Dev builds started | Expo dev-client builds cooking on both demo phones (Expo Go fallback) |

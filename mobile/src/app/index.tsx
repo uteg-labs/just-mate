@@ -1,6 +1,19 @@
 import { Redirect } from "expo-router"
+import { useEffect, useState } from "react"
 
-// profile is not persisted yet, so every launch starts at onboarding
+import { authClient } from "@/lib/auth-client"
+import { hasCompletedOnboarding } from "@/lib/onboarding"
+
 export default function Index() {
-  return <Redirect href="/onboarding" />
+  const { data: session } = authClient.useSession()
+  const [destination, setDestination] = useState<"/home" | "/onboarding">()
+
+  useEffect(() => {
+    if (!session) return
+    void hasCompletedOnboarding(session.user.id).then((complete) =>
+      setDestination(complete ? "/home" : "/onboarding"),
+    )
+  }, [session])
+
+  return destination ? <Redirect href={destination} /> : null
 }

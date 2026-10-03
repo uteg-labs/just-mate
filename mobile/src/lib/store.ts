@@ -75,6 +75,13 @@ export function send(msg: ClientMsg) {
   if (msg.t === "vanish") set({ session: undefined })
 }
 
+export function resetStore() {
+  socket?.close()
+  socket = undefined
+  state = { config: DEFAULT_CONFIG, intents: [], zones: [] }
+  for (const listener of listeners) listener()
+}
+
 export function useStore<T>(select: (state: State) => T): T {
   return useSyncExternalStore(
     (listener) => {

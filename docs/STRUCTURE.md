@@ -54,7 +54,7 @@ Solid card + dim scrim over the map, enters from the top like a system notificat
 - `78% · wants: beer` + vibe card in quotes
 - **[ Open compass ]** primary · **[ Dismiss ]** ghost · caption *"unlocks only if they accept too"*
 - Accept → the button morphs in place into *waiting for them…* until mutual → Compass expands from the button. Dismiss → pair cooldown (5 min).
-- Arrival vibration `[200,100,200]` + success haptic on the same frame as the banner (both phones) + native push (backgrounded).
+- Arrival vibration `[200,100,200]` + success haptic on the same frame as the banner (both phones), delivered over the live WebSocket — no remote push in M0 (see `PRODUCT.md` §8).
 
 ### 4. Compass — fullscreen
 

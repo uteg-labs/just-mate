@@ -46,6 +46,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       # an empty body makes dokploy redeploy its configured image (:latest)
-      - run: curl -fsS -X POST -H "Content-Type: application/json" -d '{}' "$WEBHOOK"
+      - run: |
+          curl -fsS -X POST -H "Content-Type: application/json" -d '{}' "$WEBHOOK"
         env:
           WEBHOOK: ${{ secrets.DOKPLOY_SERVER_WEBHOOK }}

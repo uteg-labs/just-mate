@@ -1,5 +1,7 @@
 import type { Intent } from "@justmate/protocol"
 
+import { authClient } from "./auth-client"
+
 const api = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000"
 
 const fence = "```"
@@ -20,6 +22,7 @@ export function profileCard(
   intents: Intent[],
   interests: string[],
   vibe: string,
+  appearance: string,
   taste: string,
 ) {
   const lines = vibe
@@ -44,6 +47,7 @@ ${list(intents)}
 ${list(interests)}
   vibe: |
 ${indent(lines.join("\n"), "    ")}
+  appearance: ${JSON.stringify(appearance)}
   taste: ${JSON.stringify(taste)}
 ${fence}
 
@@ -92,5 +96,23 @@ export async function saveProfileCard(id: string, markdown: string) {
     if (!res.ok) throw new Error(`${res.status}`)
   } catch (error) {
     console.warn("[profile] card not saved:", error)
+  }
+}
+
+export async function saveProfile(profile: {
+  interests: string[]
+  character: string
+  appearance: string | null
+}) {
+  try {
+    const res = await fetch(`${api}/api/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Cookie: await authClient.getCookie() },
+      body: JSON.stringify(profile),
+      credentials: "omit",
+    })
+    if (!res.ok) throw new Error(`${res.status}`)
+  } catch (error) {
+    console.warn("[profile] not saved to the database:", error)
   }
 }

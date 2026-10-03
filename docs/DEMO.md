@@ -8,7 +8,7 @@ Stage format: ~5 min pitch + ~5 min jury Q&A, 10-slide max. **The wow moment mus
 - **0:45 — The rules.** "just-mate has three rules: no faces, no chat, no pins." One-liner: two compatible strangers who want the same thing right now — faceless, mutual, on foot.
 - **1:15 — Why now.** One slide: happn proved proximity (retrospective, photo-first), Breeze proved skipping chat (scheduled), S'More proved faceless (dead), Zenly proved live maps (friends only). "Every quarter of this mechanic is validated. Nobody assembled the walk."
 - **1:45 — LIVE DEMO (the wow).** Two presenters, two phones, opposite ends of the stage.
-  1. A: profile (no photo), intent "beer", toggles search. Map glows.
+  1. A: picks **Beer** on the "Where to?" sheet, taps **Find people**. Zones glow.
   2. Both phones buzz simultaneously. B reads the banner aloud: "Someone compatible — 78%, wants beer, *quietly funny, will out-argue you about pizza*."
   3. Both tap **Open compass**. B walks; the arrow rotates; haptics go hot; the crowd watches the distance bucket shrink.
   4. They meet center-stage. A reads B's card. B taps **we met** → screen: *"you walked 14 m to meet — 2.3 km walked to meetings so far."* Bottles up. ("The interface is the street.")
@@ -18,7 +18,7 @@ Stage format: ~5 min pitch + ~5 min jury Q&A, 10-slide max. **The wow moment mus
 
 ## 60-second submission video cut
 
-Black screen → "Dating apps solved matching. They broke meeting." → phone screen-record: profile, search toggle, glowing map → both phones buzzing (split screen) → compass walk (fast cut) → handshake → logo + "Meet for real." Record twice, edit to ≤60s, English.
+Black screen → "Dating apps solved matching. They broke meeting." → phone screen-record: onboarding → intent pick on "Where to?" → glowing zones → both phones buzzing (split screen) → compass walk (fast cut) → handshake → logo + "Meet for real." Record twice, edit to ≤60s, English.
 
 ## Indoor-GPS reality (Tauron Arena)
 

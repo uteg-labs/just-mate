@@ -22,7 +22,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 2. **Problem** — swiping replaced meeting; 3 stats (loneliness ≈ 15 cigarettes/day; hours swiped per real date; % matches never meet)
 3. **Why now** — happn (proximity, retrospective) · Breeze (skip chat, scheduled) · S'More (faceless, dead) · Zenly (live maps, friends) — "nobody assembled the walk"
 4. **The idea** — three rules + one-liner + app screenshot
-5. **How it works** — the 6-step loop as a diagram (profile → search toggle → zones → mutual ping → compass → meet)
+5. **How it works** — the 6-step loop as a diagram (profile → intent pick → zones → mutual ping → compass → meet)
 6. **Safety by design** — mutual / zones-not-pins / ephemeral / 10-min / Vanish
 7. **Demo** — live, or the 60s video + two phone screenshots
 8. **Tech** — session-scoped WebSocket, geohash-6 zones (display) + 400 m distance gate (matching), bearing-only relay, explainable scoring, Expo app, Bun + Elysia backend; real-vs-canned honesty line
@@ -32,7 +32,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 ## Screenshots to capture (for gallery + deck)
 
 1. Profile screen (chips selected, no photo)
-2. Dark map with glowing zones + search toggle ON
+2. Home — "Where to?" sheet + glowing zones (the Bolt-shot)
 3. Match banner on two phones side by side (the money shot)
 4. Compass full-screen (arrow + distance bucket + countdown)
 5. Vanish button close-up

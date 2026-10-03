@@ -1397,12 +1397,16 @@ name = "just-mate-ml"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy" },
+    { name = "onnxruntime" },
+]
+
+[package.dev-dependencies]
+dev = [
     { name = "ipykernel" },
     { name = "matplotlib" },
     { name = "notebook" },
-    { name = "numpy" },
     { name = "onnx" },
-    { name = "onnxruntime" },
     { name = "openai" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -1415,12 +1419,16 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "numpy", specifier = "==1.26.4" },
+    { name = "onnxruntime", specifier = "==1.19.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "ipykernel", specifier = ">=6.29" },
     { name = "matplotlib", specifier = ">=3.9" },
     { name = "notebook", specifier = ">=7.0" },
-    { name = "numpy", specifier = "==1.26.4" },
     { name = "onnx", specifier = "==1.17.0" },
-    { name = "onnxruntime", specifier = "==1.19.2" },
     { name = "openai", specifier = ">=1.99" },
     { name = "pytest", specifier = "==8.3.3" },
     { name = "pytest-cov", specifier = "==5.0.0" },

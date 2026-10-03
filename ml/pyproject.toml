@@ -3,13 +3,20 @@ name = "just-mate-ml"
 version = "0.1.0"
 description = "JustMate ML — compatibility scoring model training and inference support"
 requires-python = ">=3.11"
+# Runtime deps for the scorer subprocess. Everything else (training,
+# notebooks, ONNX export, tests) lives in the `dev` group below so
+# production deploys don't pull torch/openai/jupyter.
 dependencies = [
+    "numpy==1.26.4",
+    "onnxruntime==1.19.2",
+]
+
+[dependency-groups]
+dev = [
     "ipykernel>=6.29",
     "notebook>=7.0",
-    "numpy==1.26.4",
     "matplotlib>=3.9",
     "onnx==1.17.0",
-    "onnxruntime==1.19.2",
     "openai>=1.99",
     "scikit-learn>=1.5",
     "pytest==8.3.3",

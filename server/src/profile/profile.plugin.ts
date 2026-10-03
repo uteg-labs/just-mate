@@ -5,6 +5,7 @@ import { Elysia } from "elysia"
 import { authPlugin } from "../auth/auth.plugin"
 import { db } from "../db"
 import { account, profile, session, user } from "../db/schema"
+import { isDangerous } from "../onboarding/moderation"
 import { closeUser, updateProfile } from "../realtime/session"
 import { saveProfileCard } from "./card"
 
@@ -14,8 +15,16 @@ const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")
 export async function loadProfile(userId: string): Promise<Profile | undefined> {
   const [row] = await db.select().from(profile).where(eq(profile.userId, userId))
   if (!row) return
-  const { userId: _, createdAt, updatedAt, ...stored } = row
+  const { userId: _, createdAt, updatedAt, dangerous, ...stored } = row
   return stored
+}
+
+export async function isDangerousUser(userId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ dangerous: profile.dangerous })
+    .from(profile)
+    .where(eq(profile.userId, userId))
+  return row?.dangerous ?? false
 }
 
 export const profilePlugin = new Elysia({ name: "profile" })
@@ -32,14 +41,22 @@ export const profilePlugin = new Elysia({ name: "profile" })
       const parsed = parseProfile(body)
       if (!parsed.ok) return status(400, { error: parsed.error })
 
-      await db
+      const flagged = await isDangerous([
+        parsed.value.name,
+        parsed.value.character,
+        parsed.value.partnerCharacter,
+        parsed.value.vibe,
+        ...parsed.value.qa.map(({ a }) => a),
+      ])
+      const [saved] = await db
         .insert(profile)
-        .values({ userId: user.id, ...parsed.value })
+        .values({ userId: user.id, ...parsed.value, dangerous: flagged })
         .onConflictDoUpdate({
           target: profile.userId,
-          set: { ...parsed.value, updatedAt: new Date() },
+          set: { ...parsed.value, updatedAt: new Date(), ...(flagged && { dangerous: true }) },
         })
-      updateProfile(user.id, parsed.value)
+        .returning({ dangerous: profile.dangerous })
+      updateProfile(user.id, parsed.value, saved?.dangerous ?? flagged)
       if (writesCards)
         saveProfileCard(user.id, parsed.value).catch((err) =>
           console.warn("[profile] card not saved:", err),

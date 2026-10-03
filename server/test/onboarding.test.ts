@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 
 import { type Question, SAMPLE_QUESTIONS, SAMPLE_VIBES } from "../src/onboarding/samples"
 
-delete process.env.ANTHROPIC_API_KEY
+delete process.env.OPENAI_API_KEY
 const {
   describeAppearance,
   isQuestion,

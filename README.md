@@ -82,7 +82,7 @@ before starting. Drizzle owns the schema in `server/src/db` and migrations in `s
 use `bun --cwd server db:generate` after schema changes. In local development, auth emails
 (password resets, magic links) are printed in the server terminal when `SMTP_HOST` is empty;
 set the `SMTP_*` variables and `AUTH_EMAIL_FROM` to deliver real email (required in production).
-`ANTHROPIC_API_KEY` is optional: without it, onboarding questions, vibe lines, related interests,
+`OPENAI_API_KEY` is optional: without it, onboarding questions, vibe lines, related interests,
 the character, taste and selfie descriptions use fixed samples.
 
 ```bash

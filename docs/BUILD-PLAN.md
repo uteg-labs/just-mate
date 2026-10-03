@@ -9,7 +9,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 - **Mobile**: Expo dev-client app — onboarding (+18+ gate), map screen, glow zones, match banner, compass + haptics, post-meet distance screen. **This is the critical path**: one person, six screens.
 - **Backend**: Bun/Elysia — ws per `docs/PROTOCOL.md`, distance-gated matching, hard gates (zone / intent / cooldown / session), compass relay, offer/session TTLs, ghost seeding, demo tracks, ML fallback. Target: protocol-complete by Sat 15:00, then **moves to mobile** (second pair of hands on the critical path). Learned model only after Sat 19:00 if the core loop is already demoable.
 - **ML (M1+ stretch, only after Sat 19:00)**: Python + FastAPI — synthetic data generation, Shared Encoder + Match Head, triplet + match-loss training, calibration, pgvector cache integration, `/score` endpoint behind the same `/compat` interface. Architecture documented in `docs/ML-MATCHING.md`; not a critical-path role in M0.
-- **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter
+- **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter; owns `DESIGN.md` tokens
 
 ## Milestones
 
@@ -25,7 +25,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Sat 19:00+ | Stretch only — **Model v0 trained** | Only if everything above is green: synthetic profiles (≥5k) → Shared Encoder + Match Head trained (triplet + match-loss joint) → ONNX/torchscript exported → FastAPI `/score` live behind `/compat` with explainable-baseline fallback; pgvector cache populated for canned profiles. Demo honesty: with synthetic data only, the model learns the baseline — it is presented as "training pipeline is real, data is synthetic", not as "AI matching". See `docs/ML-MATCHING.md`. |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |
-| Overnight | Juice | Compass polish, haptics, glow aesthetic, seeded fixtures, demo-mode timing tuned |
+| Overnight | Juice | Pass the `DESIGN.md` quick-reference on every screen: springs/press feedback, sheet momentum, compass haptic escalation, materials, reduce-motion fallbacks; seeded fixtures, demo-mode timing tuned |
 | Sun 07:00 | **FREEZE** | Code locked; backup video ×2; hardcoded demo path verified |
 | Sun 10:30 | **Submit** | 30 min before deadline, always |
 | Sun 11:00–15:00 | Rehearse ×5 | Touch code only for demo-visibility fixes |
@@ -52,7 +52,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Idea & Innovation | 30% | Assembled wedge "consented serendipity" + 4-quarter validation story | 8–9 |
 | Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic; post-meet "you walked 480 m to meet" screen makes the walking literal | 7–8 |
 | Practical Applicability | 20% | 3-screen app, zero-learning-curve core loop | 8 |
-| Design | 20% | Dark map + glow aesthetic; evening investment budgeted | 7–9 |
+| Design | 20% | Dark map + amber glow; Apple-style fluid motion, materials and haptics per `DESIGN.md`; evening investment budgeted | 7–9 |
 | Completeness | 10% | Core loop genuinely works on two phones | 8 |
 
 ## Mentor rounds (Sat 16:00–18:00)

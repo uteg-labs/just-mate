@@ -46,10 +46,10 @@ Socket close = search off = session vanished (if any). No goodbye frame needed.
 
 | `t` | Payload | Notes |
 |---|---|---|
-| `ready` | `{ userId: string, vibe: string, config: Config }` | Reply to `hello`. `vibe` is the user's own 2-line card (canned, deterministic per `userId` in M0). |
+| `ready` | `{ userId: string, vibe: string, config: Config }` | Reply to `hello`. `vibe` is the user's own profile summary (from `profile.md`). |
 | `error` | `{ code: string, message: string }` | Non-fatal validation errors (e.g. `position_before_search_on`). Fatal ones close the socket with a 4xxx code instead. |
 | `zones` | `{ cells: { h: string, n: number }[] }` | Every ~2 s while searching. `h` = geohash-6, `n` = searching users *compatible with the recipient's active intent* (shared intent ≥ 1), incl. ghosts. Cells with `n < K` are **omitted** in production; in demo mode the server sends all. Client renders only what it receives. |
-| `match_offer` | `{ offerId, matchPct: number, sharedIntent: string, vibe: string, expiresInMs: number }` | Sent to **both** parties within the same tick. `vibe` is the *other* person's card. `matchPct` = round(compat × 100). |
+| `match_offer` | `{ offerId, matchPct: number, sharedIntent: string, vibe: string, expiresInMs: number }` | Sent to **both** parties within the same tick. `vibe` is the card about the *other* person, written by the LLM from both `profile.md` files incl. shared interests (fallback: interest-tag intersection, ML-MATCHING.md §2.4). `matchPct` = round(compat × 100). |
 | `offer_expired` | `{ offerId }` | Offer TTL ran out, or the other side dismissed, or the other side went `search_off` / disconnected. The client shows the same neutral "offer expired" for all three. |
 | `session_start` | `{ sessionId, expiresInMs: number }` | Both accepted. Compass unlocks in state `waiting` until the first `partner_position`. |
 | `partner_position` | `{ sessionId, bearing: number, bucket: "cold"|"warm"|"hot"|"burning", distanceM?: number }` | Every ~1 s during a session. **Server sends bearing + bucket, never the partner's lat/lng** — the "no pins" rule is enforced at the protocol layer, not in the UI. `distanceM` is present only in dev/demo builds for tuning and must not be rendered. |

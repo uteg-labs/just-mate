@@ -109,8 +109,9 @@ bun run lint && bun run typecheck && bun run test
 
 | Real | Canned (labelled) |
 |---|---|
-| Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
-| Zone glow from live positions | Vibe-card strings (until the model generates them) |
+| AI onboarding interview → `profile.md` (LLM) | Ghost users adding zone density (server spawns wandering ghosts) |
+| LLM vibe cards from both profiles (shared interests) | — |
+| Zone glow from live positions | — |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
 | Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
 | Compass (magnetometer bearing), haptics, vanish, post-meet distance | |

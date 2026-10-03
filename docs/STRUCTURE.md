@@ -25,7 +25,7 @@ Purpose: build the faceless profile; teach the three rules before the user ever 
 
 | Step | Content | Rule |
 |---|---|---|
-| 1 · Interests | chips (min 3): beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food | feeds the model |
+| 1 · About you | AI interview: 4–6 LLM-generated questions, each based on the previous answers → `profile.md` (ML-MATCHING.md §2) | feeds the model |
 | 2 · Who catches your eye | explain-only in M0: "your attraction profile trains **on your device** — photos never leave your phone; only a compatibility number does" (real training: M1) | no faces |
 | 3 · Vibe card preview | the 2-liner others will see — *"quietly funny — will out-argue you about pizza"* — with a reroll button; below it the required checkbox **"I'm 18 or older"** (blocking: no photos and no verification, so the age gate is explicit — `PRODUCT.md` §10) | no chat · 18+ |
 
@@ -72,7 +72,7 @@ Solid card + dim scrim over the map, enters from the top like a system notificat
 | UC1 | Onboard | first launch | 3 steps → Enter the map | profile stored; invisible |
 | UC2 | Start a session | on Home, idle | expand sheet → tap **Beer** → **Find people** | `● searching: beer`, zones visible, matchable |
 | UC3 | Read the heat | searching | pan map, tap a zone → aggregate count | nothing revealed beyond counts |
-| UC4 | Get matched | both searching, within 400 m, shared active intent, compat ≥ τ | banner ×2 → both **Open compass** | compass active, positions relayed pairwise |
+| UC4 | Get matched | both searching, ≤ 400 m apart, shared intent, model ≥ τ | banner ×2 → both **Open compass** | compass active, positions relayed pairwise |
 | UC5 | Walk to partner | compass active | follow arrow + buckets; haptics escalate | meet → talk → TTL ends session |
 | UC6 | Vanish | any session state | tap **Vanish** | session destroyed for both instantly; pair cooldown |
 | UC7 | Dismiss a match | banner shown | tap **Dismiss** | banner gone, pair cooldown, still searching |

@@ -8,7 +8,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 |---|---|---|
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
-| `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens |
+| `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
 | `ml/` | (stretch, not created yet) PyTorch → ONNX → C++ `match_scorer` subprocess | `docs/ML-MATCHING.md`, `docs/ml/PLAN.md` |
 
 ## Commands
@@ -30,7 +30,7 @@ Done = lint, typecheck and tests green.
 
 - **Protocol first.** Change `docs/PROTOCOL.md`, then `packages/protocol`, then code. Never re-declare a message type locally.
 - **No pins.** The client never receives or holds a partner's lat/lng — only `bearing` + `bucket`. `distanceM` is dev-only and never rendered.
-- **Tokens only.** Colors, type, spacing, springs come from `mobile/src/theme`. Missing token → add it to `docs/DESIGN.md` and the theme file first.
+- **Tokens only.** Colors, type, spacing, elevation, springs come from `mobile/src/theme` — `*.ts` on native, `web.css` on web; both mirror `docs/DESIGN.md`. Missing token → add it to `docs/DESIGN.md` and both theme sources first.
 - **One map.** All map code lives in `mobile/src/components/ZoneMap.tsx` (`expo-maps`).
 - **Expo native config** goes in `mobile/app.config.ts` and config plugins; `ios/` and `android/` are generated and ignored.
 - **No agent footprints.** Work reads as the team's own. Nowhere — commits, PR titles/bodies, review or issue comments, branch names, code comments, docs — mention that an AI or agent did it:

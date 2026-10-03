@@ -1,11 +1,11 @@
-# just-mate — product definition
+# JustMate — product definition
 
 > **Meet for real.**
-> just-mate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
+> JustMate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
 
 ## 1. Elevator pitch (30 seconds)
 
-Dating apps solved matching and broke meeting. just-mate replaces swiping and chatting with one mechanic: you carry a faceless profile of *what you want to do and who you'd like to do it with*; when a compatible person — also looking, also nearby — enters your zone, both phones ping at the same moment, each showing a two-line vibe card of the other. Both accept, a compass unlocks, and finding each other becomes a ten-minute game that ends with two people talking face to face. No faces. No chat. No pins.
+Dating apps solved matching and broke meeting. JustMate replaces swiping and chatting with one mechanic: you carry a faceless profile of *what you want to do and who you'd like to do it with*; when a compatible person — also looking, also nearby — enters your zone, both phones ping at the same moment, each showing a two-line vibe card of the other. Both accept, a compass unlocks, and finding each other becomes a ten-minute game that ends with two people talking face to face. No faces. No chat. No pins.
 
 ## 2. Problem & vision
 
@@ -168,7 +168,7 @@ Deliberately excluded: points, ads, streak-guilt, leaderboards — gamification 
 
 ## 12. Competitive positioning
 
-| | just-mate | happn | Breeze | Tinder | Meetup |
+| | JustMate | happn | Breeze | Tinder | Meetup |
 |---|---|---|---|---|---|
 | Real-time proximity | ✅ live zones | ⚠ retrospective | ❌ | ❌ | ❌ |
 | Faceless | ✅ core | ❌ | ❌ | ❌ | n/a |
@@ -178,7 +178,7 @@ Deliberately excluded: points, ads, streak-guilt, leaderboards — gamification 
 
 Wedge: **consented serendipity** — the four validated quarters (proximity / skip-chat / faceless / live maps) assembled into one walk.
 
-## 13. Anti-goals (what just-mate will never do)
+## 13. Anti-goals (what JustMate will never do)
 
 Chat. Photo profiles. Browsing/searching people. Followers, likes, feeds. Ads in the meeting flow. Selling attention. The app's success metric *decreases* phone usage — we build for that.
 
@@ -196,7 +196,7 @@ Chat. Photo profiles. Browsing/searching people. Followers, likes, feeds. Ads in
 3. **Venue partnerships:** breweries, cafés, climbing gyms host and promote zones ("first beer" promos) — B2B seeds density and revenue at once.
 4. **Ambassadors:** campus societies, expat communities.
 
-The 2012 graveyard (Sonar, Highlight) died of empty rooms; just-mate launches where rooms are already full — and its zone glow, being aggregate, makes even a small crowd feel alive.
+The 2012 graveyard (Sonar, Highlight) died of empty rooms; JustMate launches where rooms are already full — and its zone glow, being aggregate, makes even a small crowd feel alive.
 
 ## 16. Business model
 

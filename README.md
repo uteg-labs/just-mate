@@ -1,6 +1,6 @@
-# just-mate
+# JustMate
 
-**Meet for real.** just-mate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
+**Meet for real.** JustMate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków).
 
@@ -33,7 +33,7 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 
 ## Why now (the wedge: *consented serendipity*)
 
-Every leg of this mechanic is market-validated; nobody assembled it: happn proved proximity (but retrospective, photo-first), Breeze proved skipping chat (but scheduled dates), S'More proved faceless demand (dead), the Zenly lineage proved people love live maps (but friends only). just-mate is the assembly: real-time, mutual, faceless, on foot.
+Every leg of this mechanic is market-validated; nobody assembled it: happn proved proximity (but retrospective, photo-first), Breeze proved skipping chat (but scheduled dates), S'More proved faceless demand (dead), the Zenly lineage proved people love live maps (but friends only). JustMate is the assembly: real-time, mutual, faceless, on foot.
 
 ## HackYeah 2026 submission plan
 
@@ -41,7 +41,7 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 |---|---|
 | Task (default) | OPEN: Sport & Healthcare — loneliness/mental-wellbeing framing ("a social prescription you walk to") |
 | Task (alt) | OPEN: ImpactHer — if a woman on the team pitches the safety-by-design story |
-| Title (≤5 words, EN) | `just-mate: Meet For Real` |
+| Title (≤5 words, EN) | `JustMate: Meet For Real` |
 | Deck | English, ≤10 slides, PDF — see `docs/SUBMISSION.md` |
 | Deadlines | Sat 20:00 draft upload (mandatory) · Sun 11:00 final · Sun 16:00 pitch |
 

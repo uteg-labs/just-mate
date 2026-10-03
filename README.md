@@ -47,13 +47,13 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` for profile text · custom-trained Siamese model (Shared Encoder + Match Head, triplet + match-loss) · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
+Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay) · **compiled C++ inference binary `match_scorer`** (Match Head loaded via onnxruntime, spawned by the server as a long-lived subprocess, talks over stdin/stdout JSON-lines — **no FastAPI, no HTTP between server and model**) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` for profile text · custom-trained Siamese model (Shared Encoder + Match Head, triplet + match-loss), trained model **compiled to ONNX** at build time · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — onboarding, zone map, match banner, compass, push
 server/          Bun + Elysia — zones, matching, compass relay, hard gates
-ml/              Python + FastAPI — Shared Encoder, Match Head, training, calibration, scoring
+ml/              PyTorch training (Shared Encoder, Match Head, triplet + match-loss, calibration) → ONNX export · `inference/` C++ binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
 shared-infra/    PostgreSQL + pgvector schema, migrations
 ```
 

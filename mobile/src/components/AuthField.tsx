@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { StyleSheet, Text, TextInput, View } from "react-native"
 
 import { colors } from "@/theme/colors"
@@ -22,37 +23,42 @@ export const AuthField = ({
   email,
   autoFocus,
   onSubmitEditing,
-}: Props) => (
-  <View style={styles.group}>
-    <Text style={[type.caption, styles.label]}>{label}</Text>
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={colors.textTertiary}
-      keyboardType={email ? "email-address" : "default"}
-      textContentType={email ? "emailAddress" : "name"}
-      autoCapitalize={email ? "none" : "words"}
-      autoCorrect={!email}
-      autoFocus={autoFocus}
-      returnKeyType="done"
-      onSubmitEditing={onSubmitEditing}
-      style={[type.body, styles.input]}
-    />
-  </View>
-)
+}: Props) => {
+  const [focused, setFocused] = useState(false)
+
+  return (
+    <View style={styles.group}>
+      <Text style={[type.mono, styles.label]}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.fg3}
+        keyboardType={email ? "email-address" : "default"}
+        textContentType={email ? "emailAddress" : "name"}
+        autoCapitalize={email ? "none" : "words"}
+        autoCorrect={!email}
+        autoFocus={autoFocus}
+        returnKeyType="done"
+        onSubmitEditing={onSubmitEditing}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={[type.body, styles.input, focused && styles.focused]}
+      />
+    </View>
+  )
+}
 
 const styles = StyleSheet.create({
   group: { gap: space.s },
-  label: { color: colors.textSecondary, textTransform: "uppercase" },
+  label: { color: colors.fg2, paddingHorizontal: space.l },
   input: {
-    minHeight: 54,
-    paddingHorizontal: space.l,
-    borderRadius: radius.button,
-    borderCurve: "continuous",
-    borderWidth: 1,
-    borderColor: colors.separator,
-    color: colors.textPrimary,
-    backgroundColor: colors.surfaceRaised,
+    minHeight: 52,
+    paddingHorizontal: 20,
+    borderRadius: radius.pill,
+    color: colors.fg1,
+    backgroundColor: colors.surfaceCard,
+    boxShadow: `inset 0 0 0 1px ${colors.separator}`,
   },
+  focused: { outlineWidth: 1, outlineColor: colors.focusRing, outlineOffset: 2 },
 })

@@ -6,7 +6,7 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 
 ## Division of labor (4 roles)
 
-- **Mobile**: Expo dev-client app — onboarding (+18+ gate), Home "Where to?" (map + intent sheet), glow zones, match banner, compass + haptics, post-meet distance screen. **This is the critical path**: one person, six screens.
+- **Mobile**: Expo dev-client app — auth, onboarding (Date / Mate, vibe badge, 18+ gate), map with category bento + heat, match card, compass + haptics, post-meet (names, keep in touch), settings — one morphing surface (`STRUCTURE.md`). **This is the critical path**: one person, eight shapes.
 - **Backend**: Bun/Elysia — ws per `docs/PROTOCOL.md`, distance-gated matching (400 m, not zone), hard gates (active intent / cooldown / session / ghost), bearing-only compass relay, offer/session TTLs, ghost seeding, demo tracks, ML fallback. Target: protocol-complete by Sat 15:00, then **moves to mobile** (second pair of hands on the critical path). Learned model only after Sat 19:00 if the core loop is already demoable.
 - **ML (M1+ stretch, only after Sat 19:00)**: PyTorch training (synthetic data, Shared Encoder + Match Head, triplet + match-loss, calibration) → `export.py` writes `model_v0.onnx` → CMake builds the C++ binary `match_scorer` against `onnxruntime` → Bun spawns it once at server startup, `/compat` calls pipe JSON-lines over stdin/stdout, falls back to the explainable baseline if the subprocess is down / errors / times out. Architecture documented in `docs/ML-MATCHING.md`; not a critical-path role in M0.
 - **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter; owns `DESIGN.md` tokens
@@ -20,8 +20,8 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Sat 12:30 | Protocol frozen | `docs/PROTOCOL.md` agreed; mobile runs against a mock server replaying it, backend against `wscat` |
 | Sat 14:00 (H+3) | Skeleton | Two devices on dev-client + Elysia ws skeleton + map renders a zone (or the SVG radar fallback) |
 | Sat 15:00 | Backend protocol-complete | `match_offer` → `accept` → `session_start` → `partner_position` → `session_end` all pass the transcript in PROTOCOL.md |
-| Sat 16:00 | **Money shot** | Match banner on both phones simultaneously (screenshot for the 20:00 draft) |
-| Sat 19:00 (H+8) | **The project is real** | Full loop on both phones over WebSocket: banner → compass → buckets → vanish/met. No push involved |
+| Sat 16:00 | **Money shot** | Match card with the vibe badge on both phones simultaneously (screenshot for the 20:00 draft) |
+| Sat 19:00 (H+8) | **The project is real** | Full loop on both phones over WebSocket: match card → compass → buckets → vanish/met. No push involved |
 | Sat 19:00+ | Stretch only — **Model v0 trained & compiled into a binary** | Only if everything above is green: synthetic profiles (≥5k) → Shared Encoder + Match Head trained (triplet + match-loss joint) → ONNX exported (`model_v0.onnx`) → `match_scorer` C++ binary built against `onnxruntime` → Bun spawns it once at startup, `/compat` pipes requests/responses as JSON-lines over stdin/stdout, explainable-baseline fallback if the subprocess is down / errors / times out; pgvector cache populated for canned profiles. Demo honesty: with synthetic data only, the model learns the baseline — it is presented as "training pipeline is real, data is synthetic", not as "AI matching". See `docs/ML-MATCHING.md`. |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |
@@ -50,9 +50,9 @@ Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per
 | Criterion | Weight | Our play | Est. |
 |---|---|---|---|
 | Idea & Innovation | 30% | Assembled wedge "consented serendipity" + 4-quarter validation story | 8–9 |
-| Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic; post-meet "you walked 480 m to meet" screen makes the walking literal | 7–8 |
+| Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic; the 10-minute compass walk makes the walking literal | 7–8 |
 | Practical Applicability | 20% | 3-screen app, zero-learning-curve core loop | 8 |
-| Design | 20% | Dark map + amber glow; Apple-style fluid motion, materials and haptics per `DESIGN.md`; evening investment budgeted | 7–9 |
+| Design | 20% | Pale map + amber glow, night compass; Apple-style fluid motion, materials and haptics per `DESIGN.md`; evening investment budgeted | 7–9 |
 | Completeness | 10% | Core loop genuinely works on two phones | 8 |
 
 ## Mentor rounds (Sat 16:00–18:00)

@@ -77,7 +77,7 @@ const TopCard = ({ photo, onSwipe }: CardProps) => {
           <Text style={[type.title, { color: colors.glow }]}>{t("onboarding.yes")}</Text>
         </Animated.View>
         <Animated.View style={[styles.label, styles.no, noLabel]}>
-          <Text style={[type.title, { color: colors.textPrimary }]}>{t("onboarding.no")}</Text>
+          <Text style={[type.title, { color: colors.background }]}>{t("onboarding.no")}</Text>
         </Animated.View>
       </Animated.View>
     </GestureDetector>
@@ -116,10 +116,10 @@ const styles = StyleSheet.create({
     top: space.xl,
     paddingHorizontal: space.m,
     paddingVertical: space.xs,
-    borderRadius: radius.button,
+    borderRadius: radius.container,
     borderWidth: 3,
     backgroundColor: colors.scrim,
   },
   yes: { right: space.xl, borderColor: colors.glow },
-  no: { left: space.xl, borderColor: colors.textPrimary },
+  no: { left: space.xl, borderColor: colors.background },
 })

@@ -33,7 +33,8 @@ function glow(zones: Props["zones"]) {
         id: `${h}-core`,
         center,
         radius: CORE_RADIUS_M,
-        color: withAlpha(colors.glowCore, 0.1 + 0.3 * alpha),
+        // glowCore is for screen blending on dark; on the paper map it washes the centre out
+        color: withAlpha(colors.glow, 0.2 + 0.4 * alpha),
         lineWidth: 0,
       },
     ]
@@ -54,7 +55,7 @@ export const ZoneMap = ({ zones }: Props) => {
       <AppleMaps.View
         style={StyleSheet.absoluteFill}
         cameraPosition={cameraPosition}
-        colorScheme={AppleMaps.MapColorScheme.DARK}
+        colorScheme={AppleMaps.MapColorScheme.LIGHT}
         circles={circles}
         properties={{ isMyLocationEnabled: true, selectionEnabled: false }}
         uiSettings={{ compassEnabled: false, scaleBarEnabled: false, togglePitchEnabled: false }}
@@ -66,7 +67,7 @@ export const ZoneMap = ({ zones }: Props) => {
     <GoogleMaps.View
       style={StyleSheet.absoluteFill}
       cameraPosition={cameraPosition}
-      colorScheme={GoogleMaps.MapColorScheme.DARK}
+      colorScheme={GoogleMaps.MapColorScheme.LIGHT}
       circles={circles}
       properties={{ isMyLocationEnabled: true, selectionEnabled: false }}
       uiSettings={{ compassEnabled: false, mapToolbarEnabled: false, zoomControlsEnabled: false }}

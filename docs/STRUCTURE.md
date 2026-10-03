@@ -1,4 +1,4 @@
-# just-mate — app structure (screens · use cases · flows)
+# JustMate — app structure (screens · use cases · flows)
 
 Source of truth for the mobile app. Product rationale lives in `PRODUCT.md`, pitch copy in `DEMO.md`. The session state machine is `PRODUCT.md` §9.
 

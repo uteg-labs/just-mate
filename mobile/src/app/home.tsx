@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { Button } from "@/components/Button"
 import { Chip } from "@/components/Chip"
 import { MatchBanner } from "@/components/MatchBanner"
-import { ZoneMap } from "@/components/ZoneMap"
+// import { ZoneMap } from "@/components/ZoneMap"
 import { usePositionReports } from "@/lib/location"
 import { send, useStore } from "@/lib/store"
 import { colors } from "@/theme/colors"
@@ -21,7 +21,7 @@ const label = (intent: string) => intent.replace("_", " ")
 export default function Home() {
   const [intent, setIntent] = useState<Intent>("beer")
   const intents = useStore((s) => s.intents)
-  const zones = useStore((s) => s.zones)
+  // const zones = useStore((s) => s.zones)
   const config = useStore((s) => s.config)
   const sessionId = useStore((s) => s.session?.id)
 
@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <View style={styles.screen}>
-      <ZoneMap zones={zones} />
+      {/* <ZoneMap zones={zones} /> */}
 
       <SafeAreaView style={styles.pill} pointerEvents="none">
         <BlurView tint="systemThinMaterialDark" intensity={60} style={styles.pillBody}>

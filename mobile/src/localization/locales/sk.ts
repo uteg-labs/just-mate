@@ -86,6 +86,8 @@ export const sk = {
     },
     who: {
       age: "vek",
+      partner: "jeho charakter",
+      partnerPlaceholder: "pokojný, vtipný, má rád dlhé prechádzky",
       date: {
         title: "Koho hľadáš?",
         sub: "Len na párovanie. Tvoje nastavenia nikto nevidí.",

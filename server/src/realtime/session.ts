@@ -42,6 +42,7 @@ export type Conn = {
 export type Deps = {
   userIdForCookie(cookie: string): Promise<string | undefined>
   profileFor(userId: string): Promise<Profile | undefined>
+  isDangerous?(userId: string): Promise<boolean>
 }
 
 type Pair = [Client, Client]
@@ -62,6 +63,7 @@ export type Client = {
   deps: Deps
   demo?: "a" | "b"
   profile?: Profile
+  dangerous?: boolean
   search?: Search
   autoStop?: Timer
   position?: Position
@@ -113,10 +115,12 @@ export function closeUser(userId: string, code: number, reason: string) {
   }
 }
 
-export function updateProfile(userId: string, profile: Profile) {
+export function updateProfile(userId: string, profile: Profile, dangerous = false) {
   const client = clients.get(userId)
-  if (client?.profile && !client.demo) client.profile = profile
-  rememberProfile(userId, profile)
+  rememberProfile(userId, profile, dangerous)
+  if (!client?.profile || client.demo) return
+  client.profile = profile
+  client.dangerous = dangerous
 }
 
 export async function receive(client: Client, frame: unknown) {
@@ -179,13 +183,14 @@ async function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
   clients.delete(client.id)
   client.id = id
   client.profile = profile
+  client.dangerous = !client.demo && (await client.deps.isDangerous?.(userId))
   clients.set(client.id, client)
   client.conn.send({
     t: "ready",
     userId: id,
     config: client.demo ? { ...config, demo: true } : config,
   })
-  planHello(planLink, id, profile)
+  planHello(planLink, id, profile, !!client.dangerous)
 }
 
 function searchOn(client: Client, profile: Profile, msg: unknown) {
@@ -374,6 +379,7 @@ function isSearching(client: Client): client is Searcher {
 }
 
 function isCompatible(a: Searcher, b: Searcher): boolean {
+  if (a.dangerous || b.dangerous) return false
   return !a.demo === !b.demo && canMatch(a, b) && compat(a, b) >= COMPAT_THRESHOLD
 }
 

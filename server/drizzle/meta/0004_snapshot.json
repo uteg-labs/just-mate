@@ -1,6 +1,6 @@
 {
-  "id": "bc0c6ab2-9b75-4a27-882c-012ac4477064",
-  "prevId": "75c5c011-8efe-4685-a9da-084139cb77ab",
+  "id": "10652b47-ec79-480b-81a4-2c8364c9985a",
+  "prevId": "bc0c6ab2-9b75-4a27-882c-012ac4477064",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,8 +111,12 @@
           "name": "account_userId_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -220,6 +224,13 @@
           "notNull": true,
           "default": "''"
         },
+        "partnerCharacter": {
+          "name": "partnerCharacter",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
         "settings": {
           "name": "settings",
           "type": "jsonb",
@@ -254,8 +265,12 @@
           "name": "profile_userId_user_id_fk",
           "tableFrom": "profile",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -343,8 +358,12 @@
           "name": "session_userId_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": ["userId"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -354,7 +373,9 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": ["token"]
+          "columns": [
+            "token"
+          ]
         }
       },
       "policies": {},
@@ -437,7 +458,9 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ]
         }
       },
       "policies": {},

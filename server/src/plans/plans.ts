@@ -52,6 +52,9 @@ export const anchors = new Map<string, LatLng>()
 
 const profiles = new Map<string, Profile>()
 
+// PROTOCOL.md › Profile moderation: flagged people are never proposed, offered or offered to
+const dangerous = new Set<string>()
+
 // pair key → no new proposal for the pair before then
 const passedPairs = new Map<string, number>()
 
@@ -63,6 +66,7 @@ let proposedAt = 0
 export async function loadPlans(
   repo: PlanRepo,
   profileFor: (userId: string) => Promise<Profile | undefined>,
+  isDangerous: (userId: string) => Promise<boolean>,
 ) {
   planStore.repo = repo
   const saved = await repo.load()
@@ -73,7 +77,7 @@ export async function loadPlans(
   await Promise.all(
     [...ids].map(async (id) => {
       const profile = id && (await profileFor(id))
-      if (profile) profiles.set(id, profile)
+      if (profile) rememberProfile(id, profile, await isDangerous(id))
     }),
   )
 }
@@ -82,18 +86,21 @@ export function resetPlans() {
   plans.clear()
   anchors.clear()
   profiles.clear()
+  dangerous.clear()
   passedPairs.clear()
   going.clear()
   proposedAt = 0
   planStore.repo = memoryRepo()
 }
 
-export function rememberProfile(userId: string, profile: Profile) {
+// moderation is sticky, so a flag is only ever added
+export function rememberProfile(userId: string, profile: Profile, isDangerous = false) {
   profiles.set(userId, profile)
+  if (isDangerous) dangerous.add(userId)
 }
 
-export function planHello(link: PlanLink, userId: string, profile: Profile) {
-  profiles.set(userId, profile)
+export function planHello(link: PlanLink, userId: string, profile: Profile, isDangerous = false) {
+  rememberProfile(userId, profile, isDangerous)
   if (isDemo(userId)) anchors.set(userId, STAGE_A)
   snapshot(link, userId)
 }
@@ -315,7 +322,7 @@ function offerNext(link: PlanLink, row: PlanRow) {
   if (!times.length) return drop(link, row, { [row.ownerId]: "expired" })
 
   const owner = profiles.get(row.ownerId)
-  if (!owner) return
+  if (!owner || dangerous.has(row.ownerId)) return
 
   const search: Search = {
     mode: row.mode,
@@ -330,6 +337,7 @@ function offerNext(link: PlanLink, row: PlanRow) {
 
   const best = [...anchors.keys()]
     .filter((id) => id !== row.ownerId && !row.passed.includes(id) && !busy.has(id))
+    .filter((id) => !dangerous.has(id))
     .filter((id) => isDemo(id) === isDemo(row.ownerId))
     .flatMap((id) => {
       const profile = profiles.get(id)
@@ -356,7 +364,9 @@ function propose(link: PlanLink, only?: string) {
       r.kind === "proposal" && r.state === "proposed" ? [r.ownerId, r.guestId] : [],
     ),
   )
-  const people = [...anchors.keys()].filter((id) => profiles.has(id) && !busy.has(id))
+  const people = [...anchors.keys()].filter(
+    (id) => profiles.has(id) && !busy.has(id) && !dangerous.has(id),
+  )
 
   const picks = people
     .flatMap((a, i) => people.slice(i + 1).map((b) => [a, b] as const))

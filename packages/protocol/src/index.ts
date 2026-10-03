@@ -200,6 +200,7 @@ export type QA = { q: string; a: string }
 export const APPEARANCE_MAX = 300
 export const TASTE_MAX = 300
 export const CHARACTER_MAX = 1000
+export const PARTNER_CHARACTER_MAX = 300
 
 /** Sample-photo groups of `GET /taste`: generated faces for taste training, never real users. */
 export const TASTE_GROUPS = ["man", "women"] as const
@@ -250,6 +251,8 @@ export type Profile = {
   taste: string
   /** Five "Trait — concrete detail" lines written from the answers; `""` until written. Never sent to a match. */
   character: string
+  /** Free text typed on the "who" step: the character of the person they look for; `""` when empty. Never sent to a match. */
+  partnerCharacter: string
   settings: Settings
 }
 
@@ -277,6 +280,7 @@ export const DEFAULT_PROFILE: Profile = {
   appearance: "",
   taste: "",
   character: "",
+  partnerCharacter: "",
   settings: {
     startMode: null,
     walkMin: 10,
@@ -379,7 +383,7 @@ function parseSettings(v: unknown): Settings | undefined {
 export function parseProfile(input: unknown): Parsed<Profile> {
   if (!isObject(input)) return fail("profile")
   const { mode, name, gender, age, interests, qa, vibe, adult, verified } = input
-  const { appearance, taste, character } = input
+  const { appearance, taste, character, partnerCharacter } = input
 
   if (!isOneOf(MODES, mode)) return fail("mode")
   if (!isText(name, 40)) return fail("name")
@@ -402,6 +406,7 @@ export function parseProfile(input: unknown): Parsed<Profile> {
   if (!isText(appearance, APPEARANCE_MAX, 0)) return fail("appearance")
   if (!isText(taste, TASTE_MAX, 0)) return fail("taste")
   if (!isText(character, CHARACTER_MAX, 0)) return fail("character")
+  if (!isText(partnerCharacter, PARTNER_CHARACTER_MAX, 0)) return fail("partnerCharacter")
 
   return {
     ok: true,
@@ -420,6 +425,7 @@ export function parseProfile(input: unknown): Parsed<Profile> {
       appearance,
       taste,
       character,
+      partnerCharacter,
       settings,
     },
   }

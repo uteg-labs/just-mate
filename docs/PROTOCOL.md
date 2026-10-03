@@ -43,6 +43,7 @@ Profile = {
   appearance: string                            // ≤ 300 chars, visible hair and face features from the selfie (`/api/onboarding/appearance`); "" when skipped; never shown to anyone
   taste: string                                 // ≤ 300 chars, traits the liked sample photos share (`/api/onboarding/taste`); "" when none; never a photo
   character: string                             // ≤ 1000 chars, five "Trait — concrete detail" lines from the answers (`/api/onboarding/character`); "" until written; never sent to a match
+  partnerCharacter: string                      // ≤ 300 chars, free text typed on the "who" step: the character of the person they look for; "" when left empty; never sent to a match
   settings: { startMode: "date" | "mate" | null, walkMin: 5 | 10 | 15, autoStop: boolean,
               haptics: boolean, sounds: boolean, reduceMotion: boolean }
 }
@@ -201,6 +202,7 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
    - Mate: `who: "same gender"` requires equal genders (checked both ways), and each side's age is inside the other's `mate` range.
 3. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)`, threshold `0.45`. If the stretch model is enabled it is called behind the same function, returns the same shape, and uses its own calibrated threshold (`ML-MATCHING.md` §8); on any ML error the server falls back to the formula. The score is never sent.
 4. **Ghosts** add to `zones.n` only. They never appear in `match_offer`.
+   **Moderation:** `PUT /api/profile` runs the free-text parts of the profile (answers, `character`, `partnerCharacter`, `vibe`, `name`) through the OpenAI moderation model. A hit on harassment, hate, violence or sexual content involving minors sets the server-only `dangerous` flag on the stored profile. It is never part of the wire `Profile`, never returned by `GET /api/profile`, and sticky: a later clean save does not clear it. A `dangerous` user is silently excluded from the match gate, from other users' `zones`, from `match_offer`, and from plans: they are never proposed, never offered an invitation, and their own invitations are never offered to anyone. They still connect, search and plan, and simply never see anyone. Without `OPENAI_API_KEY`, or when the moderation call fails, nothing is flagged.
 5. **Offer TTL** 45 s. Any of: TTL, `dismiss`, `search_off`, a replacing `search_on`, disconnect, auto-stop → `offer_expired` to the *other* side (and to the dismissing side too, for symmetry of client code). Pair enters cooldown (`pairCooldownMs`, 5 min).
 6. **Session TTL** 10 min from `session_start`. Server emits `session_end{expired}` to both. Every session end puts the pair in cooldown too.
 7. **Position relay** happens *only* inside an active session, *only* as bearing + bucket, *only* to the two members. The server keeps the last position per socket in memory and nothing else; on `session_end`/close it is dropped.

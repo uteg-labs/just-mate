@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk"
 import {
   APPEARANCE_MAX,
   type AppearanceReply,
@@ -20,7 +19,7 @@ import {
 
 import { type Question, SAMPLE_QUESTIONS, SAMPLE_RELATED, SAMPLE_VIBES } from "./samples"
 
-const MODEL = "claude-haiku-4-5"
+const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini"
 
 const QUESTION_TIMEOUT_MS = 12_000
 const VIBE_TIMEOUT_MS = 10_000
@@ -29,8 +28,9 @@ const CHARACTER_TIMEOUT_MS = 10_000
 const TASTE_TIMEOUT_MS = 8_000
 const APPEARANCE_TIMEOUT_MS = 12_000
 
-const apiKey = process.env.ANTHROPIC_API_KEY
-const client = apiKey ? new Anthropic({ apiKey, maxRetries: 0 }) : undefined
+const apiKey = process.env.OPENAI_API_KEY
+
+type Part = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }
 
 const EMOJI = /\p{Extended_Pictographic}/u
 const QUOTES = /["“”«»]/
@@ -126,24 +126,32 @@ const RELATED_SCHEMA = {
 
 async function ask(
   system: string,
-  prompt: Anthropic.MessageParam["content"],
+  prompt: string | Part[],
   schema: Record<string, unknown>,
   timeout: number,
 ): Promise<unknown> {
-  if (!client) return
+  if (!apiKey) return
 
   try {
-    const response = await client.messages.create(
-      {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
         model: MODEL,
-        max_tokens: 400,
-        system,
-        messages: [{ role: "user", content: prompt }],
-        output_config: { format: { type: "json_schema", schema } },
-      },
-      { timeout },
-    )
-    const text = response.content.find((block) => block.type === "text")?.text
+        max_completion_tokens: 400,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: prompt },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: { name: "reply", strict: true, schema },
+        },
+      }),
+      signal: AbortSignal.timeout(timeout),
+    })
+    if (!response.ok) throw new Error(`${response.status} ${await response.text()}`)
+    const text = (await response.json()).choices?.[0]?.message?.content
     return text ? JSON.parse(text) : undefined
   } catch (err) {
     console.warn(`[onboarding] ${MODEL} failed, using the sample:`, err)
@@ -284,8 +292,8 @@ export async function writeTaste(req: TasteRequest): Promise<TasteReply> {
 
 // the photo goes to the model once and is never stored or logged
 export async function describeAppearance(req: AppearanceRequest): Promise<AppearanceReply> {
-  const content: Anthropic.MessageParam["content"] = [
-    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: req.photo } },
+  const content: Part[] = [
+    { type: "image_url", image_url: { url: `data:image/jpeg;base64,${req.photo}` } },
     { type: "text", text: "Describe the visible features." },
   ]
   const live = textOf(

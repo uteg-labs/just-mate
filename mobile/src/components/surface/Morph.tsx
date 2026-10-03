@@ -93,8 +93,8 @@ const MorphLayer = ({
 }: LayerProps) => {
   const { kind, tone } = SHAPES[name]
   const isAuto = kind !== "full"
-  const opacity = useSharedValue(0)
-  const scale = useSharedValue(reduceMotion ? 1 : SCALE_FROM)
+  const opacity = useSharedValue(active ? 1 : 0)
+  const scale = useSharedValue(reduceMotion || active ? 1 : SCALE_FROM)
 
   useEffect(() => {
     if (active) {

@@ -37,7 +37,7 @@ One finding from Timeleft we build on: its co-founder saw that "the more informa
 
 ## 3. The three rules (product constitution)
 
-1. **No faces.** No profile photos anywhere. Attraction is a private, on-device compatibility vector, never a picture to be judged. Kills the appearance economy and the mirror-anxiety of profile curation.
+1. **No faces.** No profile photos anywhere. Attraction is a private compatibility signal, never a picture to be judged; the only faces in the app are generated sample photos in the taste swipe, never a user. Kills the appearance economy and the mirror-anxiety of profile curation.
 2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*. Plans coordinate with fixed status chips ("on my way", "5 min late", "I'm here · by the window"), never free text. Names unlock only after you've met; keeping in touch is a mutual save, not a chat.
 3. **No people pins.** A person's location is never a point — only zones (geohash cells) with anonymous density glow. Nobody can be found, followed, or looked up. Ever. Places can be pinned: a plan's venue is a public place. People never are.
 
@@ -55,7 +55,7 @@ JustMate is built for loneliness, which overlaps with low mood and depression. I
 
 ## 4. Who it's for: target group, characters, use cases
 
-**Primary: the quietly lonely in a city, 18–35.** Newcomers who moved for work or study, remote workers, people after a breakup or a move, students who haven't found their people. They are on their phones anyway, they can walk, and cities give the density the product needs. Loneliness peaks among young people (WHO 2025), and JustMate is 18+ only.
+**Primary: the quietly lonely in a city, 18–35.** Newcomers who moved for work or study, remote workers, people after a breakup or a move, students who haven't found their people. They are on their phones anyway, they can walk, and cities give the density the product needs. Loneliness peaks among young people (WHO 2025). Date is 18+; Mate admits 16–17-year-olds, who are only ever matched or grouped with each other (§10).
 
 **Secondary:** solo travellers and tourists (the Now loop in an unfamiliar city), singles tired of swiping (Date mode), festival and conference crowds (launch markets, §15).
 
@@ -105,7 +105,7 @@ How do you get a lonely, maybe low person to actually go? That is the product's 
 
 Step 1 (the profile) is shared by both loops; steps 7–8 are how both loops end.
 
-1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a sample-photo swipe that trains your taste on the phone (date) or when you're usually around (mate). Last, a one-selfie liveness check (production path). No photo of you is ever shown to anyone.
+1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a swipe over generated sample photos that trains your taste (date) or when you're usually around (mate). Last, one selfie: described once (hair, face shape) for matching, then dropped; the liveness check is the production path. No photo of you is ever stored or shown to anyone.
 2. **Pick what you're up for and search, deliberately, per occasion.** Default is invisible. On the map you choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick one or more things inside it, and tap **Find people for {picks}**. Battery, privacy and intent in one action; what you picked is the session's context, not a profile attribute. This is the anti-Highlight: session-scoped, never ambient. (`STRUCTURE.md` §2–3.)
 3. **Watch the map warm up.** A soft heat field shows where compatible people are searching for the same thing. No list, no search field, no browsing. Scarcity of information is the feature.
 4. **The ping (the product's heartbeat).** Two compatible people, both searching, picks aligned, within walking range (400 m, see §7) → both phones ping at the same moment. Each sees the other's badge: "her vibe · wants: wine" and their vibe line, with a 45-second countdown.
@@ -138,7 +138,7 @@ Step 1 (the profile) is shared by both loops; steps 7–8 are how both loops end
 - **Four live questions** replace a long form: each is written from the previous answers, with fixed sample questions as the fallback. They feed the vibe line and the matching profile (`ML-MATCHING.md` §2).
 - **Your badge**: "Designed from your picks. All a match sees." Reroll the line until it fits, then **Keep this vibe**.
 - **Who you're after**: date asks who you're interested in, an age range and what you're looking for ("something real / see where it goes / something light"). Mate asks who (anyone / same gender), group size, energy and age. "Used for matching only. Nobody sees your settings."
-- **Who catches your eye** (date): swipe six *sample* photos, never real users. "Your taste trains on this phone and never leaves it." This is the attraction-vector story (§7) made tangible. In M0 the taste stays on the phone and the server never sees it.
+- **Who catches your eye** (date): swipe six *sample* photos, never real users. This is the attraction-vector story (§7) made tangible. The samples are generated faces kept on the server only for this training, which is why they don't break "no faces": nobody's own photo is ever shown. In M0 only words leave the phone: the server reduces the descriptions of the samples you were into to the traits they share, and stores that line, never a photo.
 - **When are you around** (mate): time slots and hangout length to time matches.
 - **Verify**: "One selfie, checked once, then deleted. Nobody ever sees it." Date adds the required **"I'm 18 or older"** check ("Required for dating. Checked against your selfie."). The selfie check is labelled "production path · simulated in this build".
 
@@ -184,7 +184,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.7 Settings
 
-Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), plans (invite me to plans, M1 with push), feel (haptics, sounds, reduce motion), privacy and safety (taste and photos stay on this phone, blocked people, download my data; M1: verified-only, meeting point first, women-only plans, trusted contact, my reports), help ("Need to talk to someone?" with local support lines, §3.1), account (email, log out, delete account).
+Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), plans (invite me to plans, M1 with push), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, blocked people, download my data; M1: verified-only, meeting point first, women-only plans, trusted contact, my reports), help ("Need to talk to someone?" with local support lines, §3.1), account (email, log out, delete account).
 
 ### 6.8 Plans (Mate, M0)
 
@@ -199,7 +199,7 @@ Screens and exact copy go into `STRUCTURE.md` (a new `plans` shape) and the wire
 
 ## 7. Matching system
 
-**Data model.** `user = { id, mode, name, interests[], answers[], vibe, prefs (date: seek, age, looking · mate: who, group, energy, age, when, length), verified, adult, attractionVector (private, on-device), session: { mode, category, intents[], state } }` — in M0 nothing is persisted server-side beyond the live socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
+**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, appearance (selfie features, never shown), taste (traits of the liked samples), character (five trait lines from the answers), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
@@ -215,18 +215,24 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · `dist ≤ R_MATCH` (400 m) · shared active intent ≥ 1 · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
+**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (400 m, or the shorter of both "walk up to" settings: 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
 
-**Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese model with a Match Head, custom-trained by the team. Profile text (intents + interests + vibe card) is embedded via OpenAI `text-embedding-3-small` (frozen), passed through a learned **Shared Encoder** that projects to 128-d compatibility vectors `z_a`, `z_b`, then through a **Match Head** that consumes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility score in `[0, 1]`. Trained with **triplet loss + binary match loss** jointly (one triplet yields two training examples for the head).
+**Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese text-embedding model with a Match Head, custom-trained by the team. The pipeline:
 
-- **Serving.** The trained Match Head is **exported to ONNX** and loaded by a **compiled C++ binary** (`match_scorer`, linked against `onnxruntime`) that the Bun/Elysia server **spawns once at startup as a long-lived subprocess**. The server and the binary live on the same machine and exchange requests/responses as **newline-delimited JSON over stdin/stdout** — no FastAPI, no HTTP, no socket plumbing between them. Vectors (`e` and `z`) are cached per user in **PostgreSQL with pgvector**; the binary only receives the pre-computed `z` pairs and runs the head. Match Head weights are loaded once when the binary boots; per-pair inference does NOT re-encode — it reads cached `z` from pgvector and runs only the head. If the subprocess is down or returns malformed/timeout JSON, the server transparently falls back to the explainable baseline (the demo never breaks).
+1. **Photo description (LLM).** At onboarding, the user's photo + (intents, interests) is sent to a vision LLM (e.g. `gpt-4o-mini`) which returns a 2–3 sentence plain-prose text covering how they look, their personality vibe, and who they want to meet. This text is cached in `profile["description"]`. No face data is shared between users — only the text description.
+2. **Text embedding.** Each profile's text — `Intent: … Interests: … Description: …` — is sent to OpenAI `text-embedding-3-small` (1536-d, frozen).
+3. **Shared Encoder.** A learned MLP `1536 → 512 → 256 → 128` (LayerNorm + ReLU between layers) projects to 128-d compatibility vectors `z_a`, `z_b`, L2-normalized.
+4. **Match Head.** Takes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility logit. Sigmoid → score ∈ [0, 1].
+5. **Joint training.** Triplet loss (margin=1.0, p=2) + binary match loss (BCE for logit_ab→1 and logit_ac→0) trained jointly on synthetic profiles for M0 / on real outcomes for M1.
+
+- **Serving (M0 stretch).** The trained Siamese model is loaded in-process inside the Bun/Elysia server — no separate inference binary, no compiled C++ runtime, no subprocess protocol. PyTorch + ONNX Runtime both work; we pick whichever starts fastest on the demo machine. The demo always has the explainable baseline as a fallback if the model is unavailable.
 - **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
 - **Honesty on stage.** In M0, with synthetic data only, a learned model just learns the baseline. We do not say "AI matching" about something that is not learned from real signal — the explainable function stays the headline; the model card + `docs/ML-MATCHING.md` describe the *real* M1 pipeline.
-- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md`.
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `docs/ml/PLAN.md`.
 
-**Attraction vector (the no-faces trick — production path, one sentence on stage).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned. **Legal caveat (do not improvise on stage):** anything derived from a face is biometric data under GDPR Art. 9 (special category) even in derived form, so the production design needs a DPIA and likely explicit consent on *both* sides before any similarity is computed. On stage it stays a one-liner labelled "production path"; the demo never claims it runs.
+**Description generation (LLM, M0 stretch).** — Today's version of the attraction vector. The user's photo is uploaded once at onboarding; an LLM produces a 2–3 sentence plain-prose description (`Appearance + personality + what they're looking for`) which becomes part of the profile. The matching model never sees the photo, only the text. In M0 we use a canned pool of descriptions for synthetic profiles; in M1 a real LLM call produces them per-user. **Privacy note:** photos go to the LLM API. Production needs a DPIA + explicit consent per §10; the demo uses test data only.
 
 **Vibe lines and badges.** One wry line in two lowercase clauses (*"quietly funny — will out-argue you about pizza"*), written from your onboarding answers, rerolled until you keep it. It hangs on a badge whose colours, pattern and icon are designed deterministically from your interests and answers (`DESIGN.md` §13.5). At the match moment you see *their* badge; after you've met, an opener written for the pair replaces "hey". Demo: canned lines and openers, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated.
 
@@ -244,6 +250,7 @@ venue     = among seeded venues tagged with the intent and open in the slot,
 - **Venues.** M0 uses a seeded list of ~15 hand-tagged public venues in Kraków (intents, opening hours); partner venues add their own slots in M1 (§16).
 - **Filling.** A plan is proposed to up to 2× its size; the first to tap I'm in fill it. Minimum to go ahead: 2 for a pair, size − 1 for a group.
 - **Pairs who met once** (M1). Two people who met and didn't both tap Keep in touch or Same again are not put in the same plan or match again for 30 days; a block makes it permanent (§10.2).
+- **Age.** The mate age rule from §10 applies to plans too: a non-adult is only ever grouped with non-adults.
 - **Ghosts** never join real plans; demo mode may show canned attendee badges, labelled as canned (§18).
 
 ## 8. Zones & location architecture
@@ -298,7 +305,7 @@ Safety is the architecture, but for women in particular architecture alone is no
 | Notification fatigue / ambush pings | Both parties opted in *per occasion* (category + intent pick + Find people, or I'm in on a plan); pair cooldown; one active session; M1: at most one plan invite a day |
 | Being stood up | A plan goes ahead only above its minimum; still-in check; cancellations reach everyone before they leave (§5.3) |
 | Women's safety specifically | She is invisible unless she starts a search or joins a plan; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant; her name is only shown after she has met someone in person; M1: verified-only, meeting point first, women-only plans, trusted contact |
-| Minors | No photos and no identity means no implicit age signal → explicit, blocking **"I'm 18 or older"** check on the date verify step, "checked against your selfie" (selfie check is production path in M0); the server still requires `adult: true` on every connection, for Mate too (open decision in `STRUCTURE.md` › Protocol gaps); production: age assurance appropriate to a dating product (M1) |
+| Minors | No photos and no identity means no implicit age signal → every profile states an age (16+), and the blocking **"I'm 18 or older"** check on the date verify step is "checked against your selfie" (selfie check is production path in M0). The 18+ gate is per mode, enforced server-side: date mode requires an adult; mate mode allows 16–17, but **a non-adult is only ever matched with another non-adult, in mate mode, and an adult is never offered a non-adult** (`PROTOCOL.md` › Server-side rules). Production: age assurance appropriate to a dating product (M1) |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA (data protection impact assessment). No mood or health data is collected (§3.1). Demo runs on test data only.
 
@@ -306,7 +313,7 @@ GDPR/RODO posture: location is personal data → processed solely inside explici
 
 | Level | Check | Cost to us (est.) | Stage | Unlocks |
 |---|---|---|---|---|
-| 1 · Account | Email magic link | ~€0 | M0 (real) | Mate, plans |
+| 1 · Account | Email + password, or a magic link | ~€0 | M0 (real) | Mate, plans |
 | 2 · Phone | SMS code, one account per number | ~€0.05–0.10 a check | M1 | Plans in production |
 | 3 · Liveness | One selfie, deleted after the check | per provider | M0 simulated → M1 | "verified" tag, Date mode |
 | 4 · ID | Document + selfie via an ID provider (Veriff self-serve: $0.80–1.89 a check, $49–209 monthly minimum) | ~€0.70 a check | M1, optional | "ID verified" tag; hosting plans; counts as verified for verified-only filters |
@@ -436,6 +443,6 @@ Readout: ~21 partner venues cover a city's running costs on their own (820 ÷ 39
 
 ## 18. Demo scope & honesty
 
-See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match delivered live to both phones over WebSocket, explainable scoring, compass bearing, haptics, vanish, and plans: proposed from real profiles, I'm in, the attendee row and the go-ahead on both phones. Everything auxiliary is honestly canned: ghost density, canned attendee badges on plans (if used), the seeded venue list, fallback vibe lines and questions, demo-mode positions; the attraction vector is simulated and the learned model (if shown) is trained on synthetic data. Safety features marked M1 in §10 (block, report, verification beyond the simulated selfie, meeting point, women-only plans) are production path and are said so on stage. On mental health we say "loneliness" and "social connection", never "treats depression" (§3.1).
+See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match delivered live to both phones over WebSocket, explainable scoring, compass bearing, haptics, vanish, and plans: proposed from real profiles, I'm in, the attendee row and the go-ahead on both phones. Everything auxiliary is honestly canned: ghost density, canned attendee badges on plans (if used), the seeded venue list, fallback vibe lines and questions, profile descriptions (canned pool for synthetic profiles in M0; live `gpt-4o-mini` calls in M1), demo-mode positions; the learned model (if shown) is trained on synthetic data. Safety features marked M1 in §10 (block, report, verification beyond the simulated selfie, meeting point, women-only plans) are production path and are said so on stage. On mental health we say "loneliness" and "social connection", never "treats depression" (§3.1).
 
 Rule for every sentence in the deck and the description: **it describes what the demo does, or it is labelled "production path".**

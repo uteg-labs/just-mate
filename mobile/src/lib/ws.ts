@@ -1,13 +1,19 @@
 import { type ClientMsg, parseServerMsg, type ServerMsg } from "@justmate/protocol"
 
-const url = process.env.EXPO_PUBLIC_WS_URL ?? "ws://localhost:3001"
+import { apiURL } from "./auth-client"
+
+const url = process.env.EXPO_PUBLIC_WS_URL ?? `${apiURL.replace(/^http/, "ws")}/ws`
+
+export type Demo = "a" | "b"
 
 export type Socket = {
   send(msg: ClientMsg): void
   close(): void
 }
 
-export function openSocket(onMessage: (msg: ServerMsg) => void, demo?: "a" | "b"): Socket {
+type Handlers = { onMessage: (msg: ServerMsg) => void; onClose: (code: number) => void }
+
+export function openSocket({ onMessage, onClose }: Handlers, demo?: Demo): Socket {
   const ws = new WebSocket(demo ? `${url}?demo=${demo}` : url)
   const pending: string[] = []
 
@@ -20,12 +26,14 @@ export function openSocket(onMessage: (msg: ServerMsg) => void, demo?: "a" | "b"
     if (msg) onMessage(msg)
   }
 
+  ws.onclose = (event) => onClose(event.code)
+
   return {
     send(msg) {
       const frame = JSON.stringify(msg)
       if (ws.readyState === WebSocket.OPEN) ws.send(frame)
-      else pending.push(frame)
+      else if (ws.readyState === WebSocket.CONNECTING) pending.push(frame)
     },
-    close: () => ws.close(),
+    close: () => ws.close(1000),
   }
 }

@@ -16,12 +16,12 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 
 ## How it works
 
-1. Build a faceless profile once: pick **Date** or **Mate**, your interests and four short questions. Your answers become a one-line vibe on a badge designed from your picks. No photo of you is ever shown.
-2. On the map, choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick what you want *right now* (wine, padel, board games…) and tap **Find people** — only when you actually want to meet (default invisible: battery + privacy + intent in one action).
-3. The map warms up where compatible people are searching. Search/browse doesn't exist.
-4. When two compatible people, both searching, with a shared pick come within ~400 m of each other — **both** phones ping at the same moment, each showing the other's vibe badge. 45 seconds to decide.
-5. Both open the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
-6. Walk. Meet. Talk. First names unlock only once you've met; keep in touch only if you both tap it.
+1. Build a faceless profile once: interests + a 2-line vibe card. No photo.
+2. On the map, pick what you want *right now* (a beer, coffee, friends, a soul mate…) and tap **Find people** — only when you actually want to meet (default invisible: battery + privacy + intent in one action).
+3. See zones glow where compatible people might be. Search/browse doesn't exist.
+4. When two compatible people, both searching, with aligned intents come within ~400 m of each other — **both** get notified at the same moment, with a 2-line personality card of the other person.
+5. Either opens the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
+6. Walk. Meet. Talk. A real conversation in the real world — and a note of how far you walked to get there.
 
 ## Safety by design
 
@@ -47,19 +47,19 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · passwordless Better Auth sessions in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No location persistence, no push.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · Better Auth (email + password) sessions and the onboarding profile in PostgreSQL · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, a 400–1200 m walking-distance gate for matching. No location persistence, no push.
 
-**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
+**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** a **Siamese text-embedding model** — OpenAI `text-embedding-3-small` for profile text (intents + interests + LLM-generated description) → custom **Shared Encoder** (1536→128) → **Match Head** (concat `|·|, ⊙, cos` → 257→1). Trained jointly with triplet + BCE loss on synthetic profiles in Python (PyTorch). At inference, the model runs in the Bun server's process (PyTorch or ONNX Runtime — whichever starts faster on the demo box); rule-based baseline as transparent fallback. **Photo handling:** at onboarding, the user's photo + (intents, interests) is sent to `gpt-4o-mini` (vision) which returns a 2–3 sentence plain-prose description (appearance + personality + what they want); the description becomes part of the profile and feeds the Siamese model — the photo is never shared between users. PostgreSQL + pgvector as production embedding cache (M1). See `docs/ML-MATCHING.md` and `docs/ml/PLAN.md`. Run instructions land with the scaffold.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — auth, onboarding (Date / Mate), map with category picks, match card, compass, post-meet, settings
-server/          Bun + Elysia + Drizzle — auth schema/migrations, zones, matching, compass relay
+server/          Bun + Elysia + Drizzle — auth, profile, live onboarding text, zones, matching, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
-ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
+ml/              PyTorch Siamese matching model (synthetic profiles → embeddings → triplets → train → calibrate/eval) exported to ONNX; the server spawns `ml/scripts/match_scorer.py` as a long-lived subprocess (NDJSON over stdin/stdout) — see `ml/README.md`
 ```
 
-ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
+ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md), [`docs/ml/PLAN.md`](docs/ml/PLAN.md) and [`ml/README.md`](ml/README.md).
 
 ## Run
 
@@ -79,9 +79,11 @@ bun run dev:server
 
 Set `DATABASE_URL` to your local PostgreSQL database and `BETTER_AUTH_SECRET` to a random value
 before starting. Drizzle owns the schema in `server/src/db` and migrations in `server/drizzle`;
-use `bun --cwd server db:generate` after schema changes. In local development, magic links are
-printed in the server terminal when `RESEND_API_KEY` is empty; configure Resend and
-`AUTH_EMAIL_FROM` to deliver real email.
+use `bun --cwd server db:generate` after schema changes. In local development, auth emails
+(password resets, magic links) are printed in the server terminal when `SMTP_HOST` is empty;
+set the `SMTP_*` variables and `AUTH_EMAIL_FROM` to deliver real email (required in production).
+`ANTHROPIC_API_KEY` is optional: without it, onboarding questions, vibe lines, related interests,
+the character, taste and selfie descriptions use fixed samples.
 
 ```bash
 bun run dev:mock
@@ -109,12 +111,11 @@ bun run lint && bun run typecheck && bun run test
 
 | Real | Canned (labelled) |
 |---|---|
-| AI onboarding interview → `profile.md` (LLM) | Ghost users adding zone density (server spawns wandering ghosts) |
-| LLM questions and vibe lines from your answers; openers for each matched pair | — |
-| Map heat from live positions | — |
-| Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
-| Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
-| Compass (magnetometer bearing), haptics, vanish, post-meet (names, keep in touch) | Selfie verification (production path, simulated) |
-| *If the stretch ships:* Shared Encoder + Match Head training loop and the compiled `match_scorer` binary scoring `z` pairs over stdin/stdout | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
+| Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
+| Zone glow from live positions | Demo-mode scripted positions (indoor GPS) |
+| Mutual match delivered live to both phones (WebSocket, in-app buzz) | Description text (canned pool of 20 deterministic strings per user; real LLM call replaces for M1) |
+| Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | |
+| Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
+| *If the stretch ships:* Siamese Shared Encoder + Match Head training loop and inference on pair-level "good match / bad match" labels | *If the stretch ships:* training labels are rule-based synthetic ground truth, descriptions are from a canned pool — "real pipeline, canned data", never "AI matching" |
 
-Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search). PostgreSQL stores accounts and sessions only; positions remain in memory per socket and are never persisted. The pgvector cache belongs to the ML stretch.
+Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search) and any database (positions live in memory per socket; the pgvector cache belongs to the ML stretch).

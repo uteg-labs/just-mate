@@ -30,6 +30,9 @@ export const shadowLight = {
   8: lightLevel(8),
   glow: "0 0 0 1px rgba(255,178,63,0.45), 0 8px 24px -8px rgba(255,160,40,0.55)",
   sheet: "0 0 0 1px rgba(0,0,0,0.05), 0 -12px 40px -12px rgba(0,0,0,0.14)",
+  thumb: "0 1px 2px rgba(0,0,0,0.25)",
+  badge: "0 34px 50px -22px rgba(0,0,0,0.38), 0 10px 20px -10px rgba(0,0,0,0.2)",
+  clip: "0 6px 10px -4px rgba(0,0,0,0.4)",
 } as const
 
 export const shadowDark = {
@@ -47,6 +50,9 @@ export const shadowDark = {
   8: darkLevel(8, 0.06, 0.06),
   glow: "0 0 0 1px rgba(255,178,63,0.35), 0 8px 32px -8px rgba(255,178,63,0.55)",
   sheet: "0 -1px 0 0 rgba(255,255,255,0.12), 0 -24px 48px -12px rgba(0,0,0,0.5)",
+  thumb: "0 1px 2px rgba(0,0,0,0.25)",
+  badge: "0 34px 50px -22px rgba(0,0,0,0.38), 0 10px 20px -10px rgba(0,0,0,0.2)",
+  clip: "0 6px 10px -4px rgba(0,0,0,0.4)",
 } as const
 
 export const shadow = shadowLight

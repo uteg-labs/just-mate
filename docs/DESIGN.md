@@ -1,4 +1,4 @@
-# just-mate — design system (visual · motion · interaction)
+# JustMate — design system (visual · motion · interaction)
 
 Source of truth for how the app **looks, moves, and feels**. Screens and flows live in `STRUCTURE.md`; this doc says how to build them.
 
@@ -31,14 +31,14 @@ The three product rules are also visual rules:
 
 ## 2. Color
 
-Dark-only for M0 (the map is the brand). Colors are tokens in `mobile/theme/colors.ts`.
+Dark-only for M0 (the map is the brand). Colors are tokens in `mobile/src/theme/colors.ts`.
 
 ### Base
 
 | Token | Value | Use |
 |---|---|---|
 | `bg` | `#0A0A0D` | app background, compass background |
-| `mapBase` | dark OpenFreeMap style, desaturated, labels at 60% | map |
+| `mapBase` | native dark map — Apple Maps / Google Maps with `colorScheme` `DARK` (`expo-maps`) | map |
 | `surface` | `#16161B` | solid cards (vibe card, reduced-transparency fallback) |
 | `surfaceRaised` | `#202027` | chips, secondary buttons on sheets |
 | `separator` | `rgba(255,255,255,0.08)` | only where a scroll-edge fade can't be used |
@@ -130,7 +130,7 @@ Apple's two designer-facing parameters map directly onto Reanimated's `withSprin
 - **dampingRatio** — `1` = no overshoot. `< 1` = bounce.
 - **duration ≈ Apple "response"** — how fast it gets there (ms). Not a fixed end time.
 
-Tokens (`mobile/theme/motion.ts`):
+Tokens (`mobile/src/theme/motion.ts`):
 
 | Token | dampingRatio | duration | Use |
 |---|---|---|---|
@@ -142,7 +142,7 @@ Tokens (`mobile/theme/motion.ts`):
 Rule: **bounce only when the user's gesture carried momentum.** A sheet you flicked may overshoot; a banner that arrived on its own may not. The compass arrow uses `dampingRatio 1` — sensor noise + overshoot reads as wobble.
 
 ```ts
-// mobile/theme/motion.ts
+// mobile/src/theme/motion.ts
 export const spring = {
   default:  { dampingRatio: 1,   duration: 400 },
   snappy:   { dampingRatio: 1,   duration: 300 },

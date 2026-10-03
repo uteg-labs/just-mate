@@ -11,7 +11,7 @@
 ## What we lock in here
 
 - **Canonical vocab** (from STRUCTURE.md, also PRODUCT.md §6.1):
-  - Intents (7): `soul_mate`, `coffee`, `beer`, `attractions`, `friends`, `sports`, `music`
+  - Intents (7): `soul_mate`, `coffee`, `beer`, `date`, `friends`, `sports`, `music`
   - Interests (14): `beer`, `coffee`, `boardgames`, `rock`, `techno`, `hiking`, `cinema`, `books`, `travel`, `tech`, `dogs`, `climbing`, `photography`, `food`
 - **Reproducibility:** seed-based RNG; same seed → same profiles forever.
 - **Per-id determinism:** profile is keyed by string `id` (e.g. `u_<n>`). All random draws are derived from `id`.
@@ -51,7 +51,7 @@ INTENT_VOCAB: tuple[str, ...] = (
     "soul_mate",
     "coffee",
     "beer",
-    "attractions",
+    "date",
     "friends",
     "sports",
     "music",

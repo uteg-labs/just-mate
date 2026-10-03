@@ -1,0 +1,21 @@
+{
+  "name": "justmate",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:server": "bun --cwd server dev",
+    "dev:mock": "bun --cwd server mock",
+    "dev:mobile": "bun --cwd mobile start",
+    "test": "bun --cwd server test",
+    "typecheck": "bun --filter '*' typecheck",
+    "lint": "biome check .",
+    "format": "biome check --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2"
+  }
+}

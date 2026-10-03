@@ -43,6 +43,13 @@
       "when": 1791067677656,
       "tag": "0005_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791071071144,
+      "tag": "0006_venues",
+      "breakpoints": true
     }
   ]
 }

@@ -297,7 +297,7 @@ Plans are 1:1, in both modes. The app proposes them, or you put an invitation ou
   - **invitation row**: intent icon disc (solid once taken) · headline ("+{n}" when it has more times) · footnote venue · badge `open` (gray) or `someone's in` (glow).
   - Empty: "No plans yet. We'll propose some when a strong match is free when you are."
   - "See all {n} plans" when there are more than 3. Secondary **Plan for later** (`calendar-plus`).
-- **places for you** (right: "from your interests"): a horizontal strip of venue cards (a small map framing you and the venue · name · "you like {interest}" or the venue's own line · "{n} min"). Tapping one starts plan mode with that venue picked.
+- **places for you** (right: "from your interests"): a horizontal strip of venue cards (the venue's icon on the map colour, so the strip stays light · name · "you like {interest}" or the venue's own line · "{n} min"). Tapping one starts plan mode with that venue picked.
 
 **Plan mode** (step 1 of 4). The sheet grows over the map; the plans and places sections hide, and the head becomes mono "plan for later · step 1 of 4" · large title "What's the plan?" · `x` (Leave plan mode) · a Date / Mate `Segmented`. The bento stays; the footer is **Plan {picks}, then when** (disabled "Pick what you'd do").
 

@@ -1,27 +1,29 @@
-"""Score a pair of profiles by id via the standalone match_scorer subprocess.
+"""Score a pair of profiles (raw JSON) via the match_scorer subprocess.
 
 Usage:
-    python scripts/score_pair.py u_000042 u_000123
-    python scripts/score_pair.py u_000042 u_000123 --json
-    python scripts/score_pair.py --batch < pairs.txt
-    python scripts/score_pair.py --ids u_000042,u_000123,u_000777 u_000042,u_000777,u_000042
+    python scripts/score_pair.py '<json_a>' '<json_b>'
 
-Default: prints the symmetric pair score (target_A → self_B + target_B → self_A)
-which is what the product uses. Pass --directional to also see the two
-individual direction scores.
+Each JSON is a profile with 5 fields:
+  interests       list[str]
+  my_character    str   (self personality)
+  my_appearance   str   (self physical)
+  you_character   str   (desired partner personality)
+  you_appearance  str   (desired partner physical)
 
-Modes:
-  1. Two CLI args                : one score for that pair
-  2. --ids "a,b,c a,b,d"         : score N pairs in one batch (space-separated columns)
-  3. --batch                     : read "id_a id_b" lines from stdin
+Pipeline:
+  1. self text   = "Interests: ...\n[Self] Character: ...\n[Self] Appearance: ..."
+  2. target text = "[Target] Character: ...\n[Target] Appearance: ..."
+  3. both texts embedded via OpenAI text-embedding-3-small (1536-d)
+  4. match_scorer.py: score_ab = match(target_A, self_B); score_ba = match(target_B, self_A)
+  5. pair_score = score_ab + score_ba   ∈ [0, 2]; product signal is pair_score ≥ threshold
 
-Output JSON (with --json or in --batch mode):
-  {
-    "a": "u_000042", "b": "u_000123",
-    "score_ab": 0.62, "score_ba": 0.71,         # directional scores
-    "pair_score": 1.33,                          # symmetric (the product signal)
-    "would_match": true,                         # pair_score >= 0.85 (calibrated threshold)
-  }
+Output (JSON):
+  {"a": <profile_a>, "b": <profile_b>,
+   "score_ab": 0.62, "score_ba": 0.71,
+   "pair_score": 1.33,
+   "would_match": false}
+
+Required env: OPENAI_API_KEY.
 """
 from __future__ import annotations
 
@@ -33,38 +35,62 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from openai import OpenAI
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from just_mate_ml.data.embed import build_self_text, build_target_text  # noqa: E402
 
 ML_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = ML_DIR / "data"
 SCORER = ML_DIR / "scripts" / "match_scorer.py"
-MATCH_THRESHOLD = 0.78  # override with --threshold
+DEFAULT_MODEL = "checkpoints/model_v0.onnx"
+MATCH_THRESHOLD = 0.78
+EMBEDDING_MODEL = "text-embedding-3-small"
+
+REQUIRED_FIELDS = ("interests", "my_character", "my_appearance", "you_character", "you_appearance")
 
 
-def load_profile_ids() -> list[str]:
-    return json.loads((DATA_DIR / "profile_ids.json").read_text())
+def validate_profile(raw: object, who: str) -> dict:
+    if not isinstance(raw, dict):
+        raise ValueError(f"profile {who} must be a JSON object, got {type(raw).__name__}")
+    missing = [f for f in REQUIRED_FIELDS if f not in raw]
+    if missing:
+        raise ValueError(f"profile {who} missing fields: {missing}")
+    if not isinstance(raw["interests"], list) or not all(isinstance(x, str) for x in raw["interests"]):
+        raise ValueError(f"profile {who}.interests must be a list[str]")
+    for f in REQUIRED_FIELDS:
+        if f == "interests":
+            continue
+        if not isinstance(raw[f], str):
+            raise ValueError(f"profile {who}.{f} must be a string")
+    return raw
 
 
-def load_embeddings() -> tuple[np.ndarray, np.ndarray, dict[str, int]]:
-    self_emb = np.load(DATA_DIR / "profile_embeddings_self.npy")
-    target_emb = np.load(DATA_DIR / "profile_embeddings_target.npy")
-    ids = load_profile_ids()
-    return self_emb, target_emb, {pid: i for i, pid in enumerate(ids)}
+def embed_pair(client: OpenAI, profile: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Returns (self_emb, target_emb), each shape (1536,)."""
+    resp = client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=[build_self_text(profile), build_target_text(profile)],
+    )
+    return (
+        np.asarray(resp.data[0].embedding, dtype=np.float32),
+        np.asarray(resp.data[1].embedding, dtype=np.float32),
+    )
 
 
 class ScorerClient:
     """Persistent subprocess wrapper around match_scorer.py."""
 
-    def __init__(self) -> None:
-        # Use sys.executable so we don't depend on uv for runtime.
+    def __init__(self, model_path: Path) -> None:
         self.proc = subprocess.Popen(
-            [sys.executable, str(SCORER)],
+            [sys.executable, str(SCORER), str(model_path)],
             cwd=str(ML_DIR),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, bufsize=1,
         )
         self._next_id = 0
 
-    def score_directional(self, target_emb, self_emb) -> float:
+    def score_directional(self, target_emb: np.ndarray, self_emb: np.ndarray) -> float:
         self._next_id += 1
         req_id = f"req_{self._next_id}"
         self.proc.stdin.write(json.dumps({
@@ -73,37 +99,16 @@ class ScorerClient:
             "self_emb": self_emb.tolist(),
         }) + "\n")
         self.proc.stdin.flush()
-        # Read until we get our id back (in case other responses queued up)
         while True:
             line = self.proc.stdout.readline()
             if not line:
-                raise RuntimeError(f"scorer subprocess closed: {self.proc.stderr.read()}")
+                err = self.proc.stderr.read()
+                raise RuntimeError(f"scorer subprocess closed: {err}")
             resp = json.loads(line)
             if resp.get("id") == req_id:
                 if "error" in resp:
                     raise RuntimeError(f"scorer error: {resp['error']}")
                 return float(resp["score"])
-
-    def score_pair(self, a_id: str, b_id: str, self_emb, target_emb, pid_to_idx, threshold: float = MATCH_THRESHOLD) -> dict:
-        ia = pid_to_idx[a_id]
-        ib = pid_to_idx[b_id]
-        target_a = target_emb[ia]
-        target_b = target_emb[ib]
-        self_a = self_emb[ia]
-        self_b = self_emb[ib]
-
-        score_ab = self.score_directional(target_a, self_b)  # A wants B?
-        score_ba = self.score_directional(target_b, self_a)  # B wants A?
-        pair_score = score_ab + score_ba
-
-        return {
-            "a": a_id,
-            "b": b_id,
-            "score_ab": round(score_ab, 4),
-            "score_ba": round(score_ba, 4),
-            "pair_score": round(pair_score, 4),
-            "would_match": pair_score >= threshold,
-        }
 
     def close(self) -> None:
         try:
@@ -117,89 +122,67 @@ class ScorerClient:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Score profile pairs via match_scorer subprocess.")
-    parser.add_argument("a", nargs="?", help="profile id A (target)")
-    parser.add_argument("b", nargs="?", help="profile id B (self)")
-    parser.add_argument("--ids", help='comma-separated list of "id_a,id_b" pairs, space-separated')
-    parser.add_argument("--batch", action="store_true",
-                        help="read 'id_a id_b' lines from stdin (one per line)")
-    parser.add_argument("--json", action="store_true", help="emit JSON output instead of plain text")
-    parser.add_argument("--show-ids", action="store_true",
-                        help="print all available profile ids (first 20) and exit")
+    parser = argparse.ArgumentParser(
+        description="Score a pair of profiles (raw JSON) via the match_scorer subprocess.",
+    )
+    parser.add_argument("a", help="JSON string for profile A")
+    parser.add_argument("b", help="JSON string for profile B")
     parser.add_argument("--threshold", type=float, default=MATCH_THRESHOLD,
                         help=f"pair_score threshold for would_match (default {MATCH_THRESHOLD})")
+    parser.add_argument("--model", default=DEFAULT_MODEL,
+                        help=f"path to ONNX model (default {DEFAULT_MODEL}, resolved relative to ml/)")
     args = parser.parse_args()
 
-    if args.show_ids:
-        ids = load_profile_ids()
-        print(f"{len(ids)} profiles. first 20:")
-        for pid in ids[:20]:
-            print(f"  {pid}")
-        return 0
-
-    # Resolve which pairs to score
-    pairs: list[tuple[str, str]] = []
-    if args.batch:
-        for line in sys.stdin:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            parts = line.split()
-            if len(parts) != 2:
-                print(f"skipping bad line: {line!r}", file=sys.stderr)
-                continue
-            pairs.append((parts[0], parts[1]))
-    elif args.ids:
-        for col in args.ids.split():
-            ab = col.split(",")
-            if len(ab) != 2:
-                print(f"skipping bad column: {col!r}", file=sys.stderr)
-                continue
-            pairs.append((ab[0], ab[1]))
-    elif args.a and args.b:
-        pairs.append((args.a, args.b))
-    else:
-        parser.print_help()
-        return 1
-
-    if not pairs:
-        print("no pairs to score", file=sys.stderr)
-        return 1
-
-    # Load embeddings + build id index
-    self_emb, target_emb, pid_to_idx = load_embeddings()
-
-    # Validate IDs up front (fail fast)
-    for a, b in pairs:
-        if a not in pid_to_idx:
-            print(f"unknown profile id: {a}", file=sys.stderr)
-            return 1
-        if b not in pid_to_idx:
-            print(f"unknown profile id: {b}", file=sys.stderr)
-            return 1
-
-    # Single subprocess for all pairs (fast — model is loaded once)
-    client = ScorerClient()
     try:
-        results = []
-        for a, b in pairs:
-            r = client.score_pair(a, b, self_emb, target_emb, pid_to_idx,
-                                   threshold=args.threshold)
-            results.append(r)
+        profile_a = validate_profile(json.loads(args.a), "A")
+    except json.JSONDecodeError as e:
+        print(f"profile A: invalid JSON: {e}", file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print(f"profile A: {e}", file=sys.stderr)
+        return 1
 
-        if args.json:
-            print(json.dumps(results if len(results) > 1 else results[0], indent=2))
-        else:
-            threshold = args.threshold
-            for r in results:
-                would = r["pair_score"] >= threshold
-                tag = "✓ MATCH" if would else "✗ no"
-                print(f"{r['a']} ↔ {r['b']}  "
-                      f"A→B={r['score_ab']:.2f}  B→A={r['score_ba']:.2f}  "
-                      f"pair={r['pair_score']:.2f}  {tag}  (thr {threshold:.2f})")
+    try:
+        profile_b = validate_profile(json.loads(args.b), "B")
+    except json.JSONDecodeError as e:
+        print(f"profile B: invalid JSON: {e}", file=sys.stderr)
+        return 1
+    except ValueError as e:
+        print(f"profile B: {e}", file=sys.stderr)
+        return 1
+
+    if not os.environ.get("OPENAI_API_KEY"):
+        print("OPENAI_API_KEY not set in env", file=sys.stderr)
+        return 1
+
+    model_path = Path(args.model)
+    if not model_path.is_absolute():
+        model_path = ML_DIR / args.model
+    if not model_path.exists():
+        print(f"model not found: {model_path}", file=sys.stderr)
+        return 1
+
+    client = OpenAI()
+    self_a, target_a = embed_pair(client, profile_a)
+    self_b, target_b = embed_pair(client, profile_b)
+
+    scorer = ScorerClient(model_path)
+    try:
+        score_ab = scorer.score_directional(target_a, self_b)
+        score_ba = scorer.score_directional(target_b, self_a)
     finally:
-        client.close()
+        scorer.close()
 
+    pair_score = score_ab + score_ba
+    out = {
+        "a": profile_a,
+        "b": profile_b,
+        "score_ab": round(score_ab, 4),
+        "score_ba": round(score_ba, 4),
+        "pair_score": round(pair_score, 4),
+        "would_match": pair_score >= args.threshold,
+    }
+    print(json.dumps(out, indent=2, ensure_ascii=False))
     return 0
 
 

@@ -27,7 +27,7 @@ Socket close = search off = session vanished (if any). No goodbye frame needed.
 | `t` | Payload | Notes |
 |---|---|---|
 | `hello` | `{ interests: string[], nickname?: string, adult: true }` | First frame. `adult: true` is required (18+ gate); server closes the socket with code `4001` otherwise. ≥3 interests, else `4002`. Intents are **not** part of the profile — they are chosen per session (`search_on`). |
-| `search_on` | `{ intents: string[] }` | Enter search mode under 1–2 intents from the shared vocabulary (`soul_mate · beer · coffee · attractions · friends · sports · music`); else `error{invalid_intents}`. Sending `search_on` while already searching **replaces** the intents (UC8 "switch intent"). Matchable from the first `position`. |
+| `search_on` | `{ intents: string[] }` | Enter search mode under 1–2 intents from the shared vocabulary (`soul_mate · date · beer · coffee · friends · sports · music`); else `error{invalid_intents}`. Sending `search_on` while already searching **replaces** the intents (UC8 "switch intent"). Matchable from the first `position`. |
 | `search_off` | `{}` | Leave search mode. Expires an open offer and ends an active session as `vanished`. |
 | `position` | `{ lat, lng, acc, heading?: number }` | Every ~2 s while searching, and every ~1 s while in an active session. `heading` (0–360, magnetometer) is optional and only informational. |
 | `accept` | `{ offerId: string }` | Accept a match offer. Idempotent. |

@@ -55,7 +55,7 @@ Visual language, motion, haptics and accessibility for every screen below live i
 
 ### 6.1 Onboarding (3 screens — `STRUCTURE.md` §1 is the source of truth for the app)
 
-Intents are **not** chosen here: they are picked per session on Home (§6.2). Intent vocabulary (shared by Home chips, protocol and scoring): `soul mate · beer · coffee · attractions · friends · sports · music`.
+Intents are **not** chosen here: they are picked per session on Home (§6.2). Intent vocabulary (shared by Home chips, protocol and scoring): `soul mate · date · beer · coffee · friends · sports · music`.
 
 1. **"What are you into?"** — interest chips, ≥3 required: `beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food`.
 2. **"Who catches your eye"** — explain-only in M0: *"your attraction profile trains on your device — photos never leave your phone; only a compatibility number does"* (real training: M1, see §7).

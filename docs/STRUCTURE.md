@@ -40,7 +40,7 @@ Map fullscreen; everything else is state layered on it.
 - **Map**: dark desaturated base (`mapBase`), amber **zone glow** (`glow` → `glowCore` for dense zones; heatmap circles, size/brightness = density of *compatible* searchers for the active intent). Glow grows/shrinks from its centre once per update — no idle breathing. No pins, ever. Zone tap → aggregate only: *"~4 compatible around here"*.
 - **Top pill** (status, thin translucent material): `invisible` (default) · `● searching: beer`. Own avatar (monogram, no photo) top-right → edit profile.
 - **Bottom sheet** (thick translucent material, map scrolls under; chips/buttons on it are solid; 1:1 drag, momentum-projected snap, rubber-band past the top — `DESIGN.md` §6.4).
-- **Bottom sheet — collapsed (idle)**: prompt **"Where to?"** + horizontally scrolling intent chips: **Soul mate · Beer · Coffee · Attractions · Friends · Sports · Music**. Single intent per session (max 2).
+- **Bottom sheet — collapsed (idle)**: prompt **"Where to?"** + horizontally scrolling intent chips: **Soul mate · Date · Beer · Coffee · Friends · Sports · Music** ("Date" = a casual first meet; "Soul mate" = looking for a relationship — never "Attractions", which reads as sightseeing). Single intent per session (max 2).
 - **Bottom sheet — expanded**: intent grid, one-line compat teaser, primary CTA **Find people**.
 - **Active (searching)**: sheet collapses to a status card — intent, elapsed time, ghost button **Stop searching**. Zones animate in.
 

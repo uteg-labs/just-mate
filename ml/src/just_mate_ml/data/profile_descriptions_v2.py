@@ -29,9 +29,26 @@ from pathlib import Path
 # --- Vocabularies ---------------------------------------------------------
 
 INTEREST_POOL: tuple[str, ...] = (
+    # core (v1)
     "beer", "coffee", "boardgames", "rock", "techno", "hiking",
     "cinema", "books", "travel", "tech", "dogs", "climbing",
     "photography", "food",
+    # hierarchical parents (so generators can use broad or narrow terms)
+    "music", "outdoors", "fitness", "literature", "art", "social",
+    # music subgenres (already some in user-added profiles)
+    "jazz", "classical_music", "indie_folk", "electronic", "hip_hop",
+    # food subcategories
+    "cooking", "baking", "street_food", "vegan_cooking", "fine_dining",
+    # outdoor activities
+    "camping", "running", "cycling", "climbing", "backpacking", "swimming",
+    # cultural
+    "museums", "theater", "concerts", "festivals", "cinema",
+    # lifestyle
+    "meditation", "minimalism", "gardening", "pets", "cats", "dogs",
+    # intellectual
+    "science", "philosophy", "history", "languages",
+    # games
+    "video_games", "boardgames", "chess",
 )
 
 GENDERS: tuple[str, ...] = (

@@ -279,7 +279,7 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
           <Row
             icon="eye"
             label={t("settings.taste")}
-            value={t("settings.onPhone")}
+            value={t("settings.neverShown")}
             onPress={() => onEdit("swipe")}
           />
         ) : (

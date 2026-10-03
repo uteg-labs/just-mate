@@ -25,7 +25,7 @@ Dating apps solved matching and broke meeting. JustMate replaces swiping and cha
 
 ## 3. The three rules (product constitution)
 
-1. **No faces.** No profile photos anywhere. Attraction is a private, on-device compatibility vector, never a picture to be judged. Kills the appearance economy and the mirror-anxiety of profile curation.
+1. **No faces.** No profile photos anywhere. Attraction is a private compatibility signal, never a picture to be judged; the only faces in the app are generated sample photos in the taste swipe, never a user. Kills the appearance economy and the mirror-anxiety of profile curation.
 2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*. Names unlock only after you've met; keeping in touch is a mutual save, not a chat.
 3. **No pins.** Location is never a point — only zones (geohash cells) with anonymous density glow. Nobody can be found, followed, or looked up. Ever.
 
@@ -40,7 +40,7 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 5. The core loop
 
-1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a sample-photo swipe that trains your taste on the phone (date) or when you're usually around (mate). Last, a one-selfie liveness check (production path). No photo of you is ever shown to anyone.
+1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a swipe over generated sample photos that trains your taste (date) or when you're usually around (mate). Last, one selfie: described once (hair, face shape) for matching, then dropped; the liveness check is the production path. No photo of you is ever stored or shown to anyone.
 2. **Pick what you're up for and search, deliberately, per occasion.** Default is invisible. On the map you choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick one or more things inside it, and tap **Find people for {picks}**. Battery, privacy and intent in one action; what you picked is the session's context, not a profile attribute. This is the anti-Highlight: session-scoped, never ambient. (`STRUCTURE.md` §2–3.)
 3. **Watch the map warm up.** A soft heat field shows where compatible people are searching for the same thing. No list, no search field, no browsing. Scarcity of information is the feature.
 4. **The ping (the product's heartbeat).** Two compatible people, both searching, picks aligned, within walking range (400 m, see §7) → both phones ping at the same moment. Each sees the other's badge: "her vibe · wants: wine" and their vibe line, with a 45-second countdown.
@@ -61,7 +61,7 @@ Every feature decision is tested against these three rules; anything that violat
 - **Four live questions** replace a long form: each is written from the previous answers, with fixed sample questions as the fallback. They feed the vibe line and the matching profile (`ML-MATCHING.md` §2).
 - **Your badge**: "Designed from your picks. All a match sees." Reroll the line until it fits, then **Keep this vibe**.
 - **Who you're after**: date asks who you're interested in, an age range and what you're looking for ("something real / see where it goes / something light"). Mate asks who (anyone / same gender), group size, energy and age. "Used for matching only. Nobody sees your settings."
-- **Who catches your eye** (date): swipe six *sample* photos, never real users. "Your taste trains on this phone and never leaves it." This is the attraction-vector story (§7) made tangible. In M0 the taste stays on the phone and the server never sees it.
+- **Who catches your eye** (date): swipe six *sample* photos, never real users. This is the attraction-vector story (§7) made tangible. The samples are generated faces kept on the server only for this training, which is why they don't break "no faces": nobody's own photo is ever shown. In M0 only words leave the phone: the server reduces the descriptions of the samples you were into to the traits they share, and stores that line, never a photo.
 - **When are you around** (mate): time slots and hangout length to time matches.
 - **Verify**: "One selfie, checked once, then deleted. Nobody ever sees it." Date adds the required **"I'm 18 or older"** check ("Required for dating. Checked against your selfie."). The selfie check is labelled "production path · simulated in this build".
 
@@ -107,11 +107,11 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.7 Settings
 
-Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), feel (haptics, sounds, reduce motion), privacy and safety (taste and photos stay on this phone, blocked people, download my data), account (email, log out, delete account).
+Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, blocked people, download my data), account (email, log out, delete account).
 
 ## 7. Matching system
 
-**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, taste (a number), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
+**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, appearance (selfie features, never shown), taste (traits of the liked samples), character (five trait lines from the answers), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 

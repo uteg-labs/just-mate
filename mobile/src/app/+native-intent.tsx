@@ -1,5 +1,5 @@
-// the reset link is read by the surface itself (Linking.useURL), so the router stays on the map
+// reset and magic links are read by the surface itself (Linking.useURL), so the router stays on the map
 export function redirectSystemPath({ path, initial }: { path: string; initial: boolean }) {
-  if (!path.includes("reset-password")) return path
+  if (!path.includes("reset-password") && !path.includes("cookie=")) return path
   return initial ? "/" : null
 }

@@ -23,12 +23,12 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
   const [own, setOwn] = useState("")
   const [shown, setShown] = useState<string[]>(profile.vibe ? [profile.vibe] : [])
   const [hasFailed, setHasFailed] = useState(false)
-  const { mode, name, interests, qa, vibe } = profile
+  const { mode, name, interests, qa, vibe, character } = profile
   const isBadge = qa.length >= TOTAL
 
   // editing restarts the questions; the old answers would only steer the new ones
   useEffect(() => {
-    if (isEditing) set({ qa: [], vibe: "" })
+    if (isEditing) set({ qa: [], vibe: "", character: "" })
   }, [isEditing, set])
 
   useEffect(() => {
@@ -58,6 +58,19 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
       isLive = false
     }
   }, [isBadge, vibe, hasFailed, mode, interests, qa, shown, set])
+
+  // never shown: what matching reads, written once per set of answers
+  useEffect(() => {
+    if (!isBadge || character) return
+    let isLive = true
+    api
+      .character({ mode, interests, qa })
+      .then((reply) => isLive && set({ character: reply.character }))
+      .catch(() => isLive && set({ character: qa.map((x) => x.a).join("\n") }))
+    return () => {
+      isLive = false
+    }
+  }, [isBadge, character, mode, interests, qa, set])
 
   const pick = (option: string) => {
     setAnswer(option)
@@ -107,7 +120,12 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
           hasFailed ? (
             retryButton
           ) : (
-            <Button title={t("onboarding.badge.keep")} fullWidth disabled={!vibe} onPress={next} />
+            <Button
+              title={t("onboarding.badge.keep")}
+              fullWidth
+              disabled={!vibe || !character}
+              onPress={next}
+            />
           )
         }
       >

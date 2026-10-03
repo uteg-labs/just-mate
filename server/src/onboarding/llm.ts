@@ -1,12 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk"
-import type {
-  QA,
-  QuestionReply,
-  QuestionRequest,
-  RelatedReply,
-  RelatedRequest,
-  VibeReply,
-  VibeRequest,
+import {
+  APPEARANCE_MAX,
+  type AppearanceReply,
+  type AppearanceRequest,
+  CHARACTER_MAX,
+  type CharacterReply,
+  type CharacterRequest,
+  type QA,
+  type QuestionReply,
+  type QuestionRequest,
+  type RelatedReply,
+  type RelatedRequest,
+  TASTE_MAX,
+  type TasteReply,
+  type TasteRequest,
+  type VibeReply,
+  type VibeRequest,
 } from "@justmate/protocol"
 
 import { type Question, SAMPLE_QUESTIONS, SAMPLE_RELATED, SAMPLE_VIBES } from "./samples"
@@ -16,6 +25,9 @@ const MODEL = "claude-haiku-4-5"
 const QUESTION_TIMEOUT_MS = 12_000
 const VIBE_TIMEOUT_MS = 10_000
 const RELATED_TIMEOUT_MS = 8_000
+const CHARACTER_TIMEOUT_MS = 10_000
+const TASTE_TIMEOUT_MS = 8_000
+const APPEARANCE_TIMEOUT_MS = 12_000
 
 const apiKey = process.env.ANTHROPIC_API_KEY
 const client = apiKey ? new Anthropic({ apiKey, maxRetries: 0 }) : undefined
@@ -55,6 +67,39 @@ Rules:
 - none of the interests the person already sees
 - English only`
 
+const CHARACTER_SYSTEM = `You write the character of a faceless JustMate profile: what matching reads about a person, never shown to a match.
+
+Rules:
+- exactly 5 lines, one sentence each, shaped "Trait — concrete detail." (for example "Quietly funny — the kind of joke that lands three seconds late.")
+- third person, warm, concrete, drawn from the answers and interests
+- never invent facts, never mention looks, age, names or locations
+- no heading, bullets or Markdown
+- English only`
+
+const TASTE_SYSTEM = `You summarize a JustMate user's taste in people from descriptions of the sample photos they liked.
+
+Rules:
+- find the traits that repeat across the picks (hair, build, style, mood and whatever else the descriptions share)
+- use only what is written in the descriptions, never invent
+- one line of comma-separated traits, at most 20 words, no heading or Markdown
+- English only`
+
+const APPEARANCE_SYSTEM = `You describe only the visible facial and hair features of the person in a photo, for a matching profile nobody else sees.
+
+Rules:
+- cover hair (color, length, style), face shape, cheekbones, eyes, eyebrows, facial hair and glasses
+- one line of comma-separated traits, at most 25 words, no heading or Markdown
+- never state or guess age, ethnicity, nationality, gender, weight, emotion or name, and never identify the person
+- if no face is visible, answer with an empty string
+- English only`
+
+const textSchema = (key: string) => ({
+  type: "object",
+  properties: { [key]: { type: "string" } },
+  required: [key],
+  additionalProperties: false,
+})
+
 const QUESTION_SCHEMA = {
   type: "object",
   properties: {
@@ -81,7 +126,7 @@ const RELATED_SCHEMA = {
 
 async function ask(
   system: string,
-  prompt: string,
+  prompt: Anthropic.MessageParam["content"],
   schema: Record<string, unknown>,
   timeout: number,
 ): Promise<unknown> {
@@ -203,4 +248,51 @@ function relatedItems(candidates: unknown[], have: Set<string>): string[] {
       !have.has(c),
   )
   return [...new Set(valid)].slice(0, 3)
+}
+
+function textOf(value: unknown, key: string): string | undefined {
+  const text = (value as Record<string, unknown> | undefined)?.[key]
+  return typeof text === "string" ? text.trim() : undefined
+}
+
+export async function writeCharacter(req: CharacterRequest): Promise<CharacterReply> {
+  const prompt = `They want to ${MODE_PITCH[req.mode]}.
+Interests: ${req.interests.join(", ")}
+Answers:
+${transcript(req.qa)}
+
+Write their character.`
+
+  const live = textOf(
+    await ask(CHARACTER_SYSTEM, prompt, textSchema("character"), CHARACTER_TIMEOUT_MS),
+    "character",
+  )
+  if (live && live.length <= CHARACTER_MAX) return { character: live, source: "live" }
+  return { character: req.qa.map(({ a }) => a).join("\n"), source: "sample" }
+}
+
+export async function writeTaste(req: TasteRequest): Promise<TasteReply> {
+  if (!req.picks.length) return { taste: "", source: "sample" }
+
+  const live = textOf(
+    await ask(TASTE_SYSTEM, req.picks.join("\n"), textSchema("taste"), TASTE_TIMEOUT_MS),
+    "taste",
+  )
+  if (live && live.length <= TASTE_MAX) return { taste: live, source: "live" }
+  return { taste: req.picks.join("; ").slice(0, TASTE_MAX), source: "sample" }
+}
+
+// the photo goes to the model once and is never stored or logged
+export async function describeAppearance(req: AppearanceRequest): Promise<AppearanceReply> {
+  const content: Anthropic.MessageParam["content"] = [
+    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: req.photo } },
+    { type: "text", text: "Describe the visible features." },
+  ]
+  const live = textOf(
+    await ask(APPEARANCE_SYSTEM, content, textSchema("appearance"), APPEARANCE_TIMEOUT_MS),
+    "appearance",
+  )
+  if (live !== undefined && live.length <= APPEARANCE_MAX)
+    return { appearance: live, source: "live" }
+  return { appearance: "", source: "sample" }
 }

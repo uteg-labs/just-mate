@@ -3,6 +3,9 @@ import type { ExpoConfig } from "expo/config"
 const LOCATION_COPY =
   "JustMate uses your location only while you search, to light up zones and point the compass."
 
+const CAMERA_COPY =
+  "JustMate uses the front camera once for the selfie check. The photo is described once to match you, then dropped: never stored or shown."
+
 const INTER = [
   { family: "Inter-Regular", file: "400Regular/Inter_400Regular", weight: 400 },
   { family: "Inter-Medium", file: "500Medium/Inter_500Medium", weight: 500 },
@@ -65,6 +68,7 @@ export default (): ExpoConfig => ({
     ],
     ["expo-maps", { requestLocationPermission: true, locationPermission: LOCATION_COPY }],
     ["expo-location", { locationWhenInUsePermission: LOCATION_COPY }],
+    ["expo-image-picker", { cameraPermission: CAMERA_COPY }],
   ],
   web: {
     name: "just-mate · Meet for real.",

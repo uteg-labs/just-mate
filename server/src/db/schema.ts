@@ -1,15 +1,6 @@
 import type { DatePrefs, Gender, MatePrefs, Mode, QA, Settings } from "@justmate/protocol"
 import { relations } from "drizzle-orm"
-import {
-  boolean,
-  doublePrecision,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core"
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -17,6 +8,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").default(false).notNull(),
   image: text("image"),
+  // written by the first onboarding prototype (0001_user_profile); superseded by `profile`, kept so its data survives
+  interests: text("interests").array().default([]).notNull(),
+  character: text("character"),
+  appearance: text("appearance"),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
@@ -88,7 +83,9 @@ export const profile = pgTable("profile", {
   mate: jsonb("mate").$type<MatePrefs>().notNull(),
   adult: boolean("adult").notNull(),
   verified: boolean("verified").notNull(),
-  taste: doublePrecision("taste").notNull(),
+  appearance: text("appearance").default("").notNull(),
+  taste: text("taste").default("").notNull(),
+  character: text("character").default("").notNull(),
   settings: jsonb("settings").$type<Settings>().notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),

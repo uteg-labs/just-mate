@@ -1,3 +1,4 @@
+import * as ImagePicker from "expo-image-picker"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
@@ -12,6 +13,7 @@ import Svg, { Circle, Ellipse } from "react-native-svg"
 import { scheduleOnRN } from "react-native-worklets"
 
 import { Button, CheckRow, Icon, Scope, useScheme } from "@/components/ui"
+import { api } from "@/lib/api"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
@@ -29,7 +31,33 @@ type Phase = "idle" | "scanning" | "done"
 
 const STATUS = { idle: "center", scanning: "hold", done: "done" } as const
 
-// the selfie check is simulated in this build: a timed scan that marks the profile verified
+// one front-camera photo, kept in memory only; undefined = cancelled, null = no camera or no access
+async function takeSelfie(): Promise<string | null | undefined> {
+  try {
+    const { granted } = await ImagePicker.requestCameraPermissionsAsync()
+    if (!granted) return null
+    const shot = await ImagePicker.launchCameraAsync({
+      cameraType: ImagePicker.CameraType.front,
+      base64: true,
+      quality: 0.4,
+    })
+    if (shot.canceled) return
+    return shot.assets[0]?.base64 ?? null
+  } catch {
+    return null
+  }
+}
+
+async function describe(photo: string | null) {
+  if (!photo) return ""
+  return api
+    .appearance({ photo })
+    .then((reply) => reply.appearance)
+    .catch(() => "")
+}
+
+// the liveness check is simulated in this build: the photo is only described (hair, face shape),
+// and a phone without a camera still passes with the timed scan
 const Scanner = ({ phase, progress }: { phase: Phase; progress: SharedValue<number> }) => {
   const { t } = useTranslation()
   const { c } = useScheme()
@@ -98,18 +126,23 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
   const isDate = profile.mode === "date"
   const isDone = phase === "done"
 
-  const finishScan = () => {
-    set({ verified: true })
-    setPhase("done")
-  }
-
-  const scan = () => {
-    setPhase("scanning")
-    progress.set(
-      withTiming(1, { duration: SCAN_MS, easing: Easing.inOut(Easing.quad) }, (finished) => {
-        if (finished) scheduleOnRN(finishScan)
-      }),
+  const sweep = () =>
+    new Promise<void>((resolve) =>
+      progress.set(
+        withTiming(1, { duration: SCAN_MS, easing: Easing.inOut(Easing.quad) }, (finished) => {
+          if (finished) scheduleOnRN(resolve)
+        }),
+      ),
     )
+
+  const scan = async () => {
+    setPhase("scanning")
+    const photo = await takeSelfie()
+    if (photo === undefined) return setPhase("idle")
+
+    const [appearance] = await Promise.all([describe(photo), sweep()])
+    set({ verified: true, appearance })
+    setPhase("done")
   }
 
   return (
@@ -137,7 +170,7 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
             leadingIcon="camera"
             fullWidth
             loading={phase === "scanning"}
-            onPress={scan}
+            onPress={() => void scan()}
           />
         )
       }

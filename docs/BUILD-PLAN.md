@@ -2,13 +2,13 @@
 
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 
-Stack: Expo (React Native) app · Bun + Elysia backend (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training) · maplibre-react-native.
+Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per `docs/PROTOCOL.md`) · explainable compatibility scoring (learned model as stretch) · Python + FastAPI ML service (compatibility scoring, M1 roadmap) · PostgreSQL with pgvector (per-user embedding & z-vector cache, M1) · OpenAI `text-embedding-3-small` (M1) · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training, M1) · maplibre-react-native.
 
 ## Division of labor (4 roles)
 
-- **Mobile**: Expo app — map screen, glow zones, compass + haptics, push
-- **Backend**: Bun/Elysia — ws, hard gates (zone / intent / cooldown / session), compass relay, ghost seeding, demo paths, session TTL, ML fallback
-- **ML**: Python + FastAPI — synthetic data generation, Shared Encoder + Match Head, triplet + match-loss training, calibration, pgvector cache integration, /score endpoint
+- **Mobile**: Expo dev-client app — onboarding (+18+ gate), map screen, glow zones, match banner, compass + haptics, post-meet distance screen. **This is the critical path**: one person, six screens.
+- **Backend**: Bun/Elysia — ws per `docs/PROTOCOL.md`, distance-gated matching, hard gates (zone / intent / cooldown / session), compass relay, offer/session TTLs, ghost seeding, demo tracks, ML fallback. Target: protocol-complete by Sat 15:00, then **moves to mobile** (second pair of hands on the critical path). Learned model only after Sat 19:00 if the core loop is already demoable.
+- **ML (M1+ stretch, only after Sat 19:00)**: Python + FastAPI — synthetic data generation, Shared Encoder + Match Head, triplet + match-loss training, calibration, pgvector cache integration, `/score` endpoint behind the same `/compat` interface. Architecture documented in `docs/ML-MATCHING.md`; not a critical-path role in M0.
 - **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter
 
 ## Milestones
@@ -16,10 +16,13 @@ Stack: Expo (React Native) app · Bun + Elysia backend (zones, matching, compass
 | Time | Milestone | Definition of done | 
 |---|---|---|
 | Sat 11:30 | Demo script written (before core code) | `docs/DEMO.md` read aloud once |
-| Sat 13:00 | Dev builds started | Expo dev-client builds cooking on both demo phones (Expo Go fallback) |
-| Sat 14:00 (H+3) | Skeleton | Two devices + Elysia ws skeleton + map renders a zone |
-| Sat 16:00 | **Model v0 trained** | Synthetic profiles (≥5k) → Shared Encoder + Match Head trained (triplet + match-loss joint) → ONNX/torchscript exported → FastAPI `/score` live → Elysia wired to it with baseline fallback; pgvector cache populated for canned profiles |
-| Sat 19:00 (H+8) | **The project is real** | Match + mutual push working on both phones |
+| Sat 12:00 | **EAS dev-client builds started** (iOS + Android) | Builds queued; `expo-dev-client`, `@maplibre/maplibre-react-native`, `expo-sensors`, `expo-haptics`, `expo-location` in `app.json` plugins. Expo Go is **not** a fallback for this stack (see risks) |
+| Sat 12:30 | Protocol frozen | `docs/PROTOCOL.md` agreed; mobile runs against a mock server replaying it, backend against `wscat` |
+| Sat 14:00 (H+3) | Skeleton | Two devices on dev-client + Elysia ws skeleton + map renders a zone (or the SVG radar fallback) |
+| Sat 15:00 | Backend protocol-complete | `match_offer` → `accept` → `session_start` → `partner_position` → `session_end` all pass the transcript in PROTOCOL.md |
+| Sat 16:00 | **Money shot** | Match banner on both phones simultaneously (screenshot for the 20:00 draft) |
+| Sat 19:00 (H+8) | **The project is real** | Full loop on both phones over WebSocket: banner → compass → buckets → vanish/met. No push involved |
+| Sat 19:00+ | Stretch only — **Model v0 trained** | Only if everything above is green: synthetic profiles (≥5k) → Shared Encoder + Match Head trained (triplet + match-loss joint) → ONNX/torchscript exported → FastAPI `/score` live behind `/compat` with explainable-baseline fallback; pgvector cache populated for canned profiles. Demo honesty: with synthetic data only, the model learns the baseline — it is presented as "training pipeline is real, data is synthetic", not as "AI matching". See `docs/ML-MATCHING.md`. |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |
 | Overnight | Juice | Compass polish, haptics, glow aesthetic, seeded fixtures, demo-mode timing tuned |
@@ -32,19 +35,22 @@ Stack: Expo (React Native) app · Bun + Elysia backend (zones, matching, compass
 
 | Risk | Sev | Mitigation |
 |---|---|---|
-| Indoor GPS at the arena | HIGH | Demo mode (`?demo=a/b`) by design; pipeline identical; compass heading is magnetometer (works indoors) |
+| Indoor GPS at the arena | HIGH | Demo mode (`?demo=a/b`) by design; pipeline identical; compass heading is magnetometer (works indoors); scripted track calibrated to the physical stage layout |
+| **Expo Go cannot run this stack** | **HIGH** | `maplibre-react-native` is a native module (not in Expo Go); remote push does not work in Expo Go on Android since SDK 53. → EAS dev-client builds queued by 12:00 (15–40 min each, both platforms, both demo phones). If builds are not on phones by 14:30: **fallback = SVG/Canvas "radar"** (concentric rings + glowing blobs on dark background) instead of a real map, which runs in Expo Go; compass, haptics, ws all still work there |
 | Jury raises stalking | HIGH | Safety-by-design slide at 3:30 — turn the question into the answer |
 | Live demo dies on stage | MED | Backup video recorded twice; never debug on stage |
 | Cold-start question | MED | Density-first launch answer rehearsed (campus/festival/venue partners) |
-| Scope creep (real ML rabbit holes, chat, push infra) | MED | Model training timeboxed to 2h with baseline fallback; no new scope after Sat 20:00 |
-| Expo dev-client build lead time | MED | Start builds by Sat 13:00; Expo Go as demo fallback |
+| Scope creep (real ML rabbit holes, chat, push infra) | MED | **Remote push is out of M0** (app is foreground while searching; ws delivers the buzz). Learned model only after 19:00 behind the same interface. No new scope after Sat 20:00 |
+| Demo phone matched with a ghost instead of the other phone | MED | Ghosts are never match candidates; demo sockets pair only with each other (PROTOCOL.md) |
+| Compass arrow points off-stage | MED | Scripted `STAGE_A/STAGE_B` set after seeing the stage; one rehearsal walk with the real heading |
+| Overclaim caught by a judge reading the repo | MED | Every deck/description sentence describes the demo or is labelled "production path" (PRODUCT.md §18) |
 
 ## Rubric math (open-task rubric)
 
 | Criterion | Weight | Our play | Est. |
 |---|---|---|---|
 | Idea & Innovation | 30% | Assembled wedge "consented serendipity" + 4-quarter validation story | 8–9 |
-| Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic | 7–8 |
+| Relation to Category | 20% | Open with the loneliness/health frame, not the mechanic; post-meet "you walked 480 m to meet" screen makes the walking literal | 7–8 |
 | Practical Applicability | 20% | 3-screen app, zero-learning-curve core loop | 8 |
 | Design | 20% | Dark map + glow aesthetic; evening investment budgeted | 7–9 |
 | Completeness | 10% | Core loop genuinely works on two phones | 8 |

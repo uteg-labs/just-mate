@@ -1,6 +1,26 @@
-import type { DatePrefs, Gender, MatePrefs, Mode, QA, Settings } from "@justmate/protocol"
+import type {
+  DatePrefs,
+  Gender,
+  Intent,
+  MatePrefs,
+  Mode,
+  PlanKind,
+  PlanState,
+  PlanUntil,
+  QA,
+  Settings,
+} from "@justmate/protocol"
 import { relations } from "drizzle-orm"
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  doublePrecision,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -90,6 +110,49 @@ export const profile = pgTable("profile", {
   settings: jsonb("settings").$type<Settings>().notNull(),
   dangerous: boolean("dangerous").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+// PROTOCOL.md › Plans: kept until 24 h after the start, then deleted by the plan loop
+export const plan = pgTable(
+  "plan",
+  {
+    id: text("id").primaryKey(),
+    kind: text("kind").$type<PlanKind>().notNull(),
+    mode: text("mode").$type<Mode>().notNull(),
+    category: text("category").notNull(),
+    intents: jsonb("intents").$type<Intent[]>().notNull(),
+    venueId: text("venueId").notNull(),
+    alts: jsonb("alts").$type<string[]>().notNull(),
+    slots: jsonb("slots").$type<number[]>().notNull(),
+    startsAt: timestamp("startsAt", { withTimezone: true }).notNull(),
+    flex: boolean("flex").notNull(),
+    until: text("until").$type<PlanUntil>().notNull(),
+    state: text("state").$type<PlanState>().notNull(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    guestId: text("guestId").references(() => user.id, { onDelete: "cascade" }),
+    accepted: jsonb("accepted").$type<string[]>().notNull(),
+    passed: jsonb("passed").$type<string[]>().notNull(),
+    suggestedBy: text("suggestedBy"),
+    expiresAt: timestamp("expiresAt", { withTimezone: true }),
+    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("plan_ownerId_idx").on(table.ownerId),
+    index("plan_guestId_idx").on(table.guestId),
+  ],
+)
+
+// a geohash-6 cell centre per person, for picking venues halfway; never a raw position
+export const planAnchor = pgTable("plan_anchor", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
 

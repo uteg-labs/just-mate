@@ -6,6 +6,7 @@ import {
   type Intent,
   type MatchPartner,
   type Mode,
+  type Plan,
   type SearchStopReason,
   type ServerMsg,
   type SessionEndReason,
@@ -27,6 +28,9 @@ export type Note = Exclude<SessionEndReason, "met"> | SearchStopReason
 
 export type Link = "idle" | "open" | "lost"
 
+// relative times turned absolute on arrival, so countdowns survive re-renders
+export type LivePlan = Plan & { startsAtMs: number; expiresAt?: number }
+
 export type Live = {
   link: Link
   config: Config
@@ -38,6 +42,11 @@ export type Live = {
   met: boolean
   note?: Note
   closedWith?: number
+  plans: LivePlan[]
+  /** the plan whose compass you opened, until both have */
+  going?: string
+  /** the plan the running session came from */
+  planId?: string
 }
 
 const raw = process.env.EXPO_PUBLIC_DEMO
@@ -46,7 +55,7 @@ const demo: Demo | undefined = raw === "a" || raw === "b" ? raw : undefined
 const OFFER_EXPIRED_MS = 2400
 const RETRY_MS = 2000
 
-const IDLE: Live = { link: "idle", config: DEFAULT_CONFIG, zones: [], met: false }
+const IDLE: Live = { link: "idle", config: DEFAULT_CONFIG, zones: [], met: false, plans: [] }
 
 const ENDED = {
   search: undefined,
@@ -54,6 +63,8 @@ const ENDED = {
   offer: undefined,
   match: undefined,
   session: undefined,
+  going: undefined,
+  planId: undefined,
 } satisfies Partial<Live>
 
 let state = IDLE
@@ -70,6 +81,24 @@ function clearExpired(offerId: string) {
   setTimeout(() => {
     if (state.offer?.offerId === offerId) set({ offer: undefined, match: undefined })
   }, OFFER_EXPIRED_MS)
+}
+
+function arrived(plan: Plan): LivePlan {
+  const now = Date.now()
+  const expiresAt = plan.expiresInMs === undefined ? undefined : now + plan.expiresInMs
+  return { ...plan, startsAtMs: now + plan.startsInMs, expiresAt }
+}
+
+function upsertPlan(plan: Plan) {
+  return [...state.plans.filter((p) => p.id !== plan.id), arrived(plan)]
+}
+
+// a plan's compass needs the same match the live compass and post-meet read
+function matchOf(planId: string): Match | undefined {
+  const plan = state.plans.find((p) => p.id === planId)
+  const intent = plan?.intents[0]
+  if (!plan?.partner || !intent) return
+  return { mode: plan.mode, sharedIntent: intent, partner: plan.partner }
 }
 
 function reduce(msg: ServerMsg) {
@@ -101,6 +130,9 @@ function reduce(msg: ServerMsg) {
         offer: undefined,
         zones: [],
         session: { id: msg.sessionId, endsAt: Date.now() + msg.expiresInMs },
+        going: undefined,
+        planId: msg.planId,
+        ...(msg.planId && { match: matchOf(msg.planId), search: undefined }),
       })
 
     case "partner_position":
@@ -112,7 +144,17 @@ function reduce(msg: ServerMsg) {
       if (msg.reason === "met") return set({ ...ENDED, match: state.match, met: true })
       return set({ ...ENDED, note: msg.reason })
 
+    case "plans":
+      return set({ plans: msg.plans.map(arrived) })
+
+    case "plan_update":
+      return set({ plans: upsertPlan(msg.plan) })
+
+    case "plan_removed":
+      return set({ plans: state.plans.filter((p) => p.id !== msg.planId) })
+
     case "error":
+      if (msg.code === "plan_not_yet") set({ going: undefined })
       console.warn(`[ws] ${msg.code}: ${msg.message}`)
   }
 }
@@ -120,7 +162,7 @@ function reduce(msg: ServerMsg) {
 function closed(from: Socket, code: number) {
   if (socket !== from) return
   socket = undefined
-  set({ ...ENDED, link: "lost", closedWith: code })
+  set({ ...ENDED, link: "lost", closedWith: code, plans: [] })
 
   const isFinal = code === 1000 || code >= 4000
   if (isWanted && !isFinal) setTimeout(() => isWanted && !socket && connect(), RETRY_MS)
@@ -180,7 +222,19 @@ export function send(msg: ClientMsg) {
 
     case "met":
       return set({ ...ENDED, match: state.match, met: true })
+
+    case "plan_go":
+      return set({ going: msg.planId })
+
+    case "plan_pass":
+    case "plan_cancel":
+      return set({ plans: state.plans.filter((p) => p.id !== msg.planId || isOwnTaken(p, msg)) })
   }
+}
+
+// passing on someone who took your invitation keeps the invitation itself
+function isOwnTaken(plan: LivePlan, msg: ClientMsg) {
+  return msg.t === "plan_pass" && plan.mine && plan.state === "taken"
 }
 
 export function leavePostMeet() {

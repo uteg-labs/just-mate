@@ -18,6 +18,7 @@ import {
   useReduceMotion,
   useScheme,
 } from "@/components/ui"
+import { toggle } from "@/lib/list"
 import { radius, space } from "@/theme/layout"
 import { duration, spring } from "@/theme/motion"
 import { font, type } from "@/theme/type"
@@ -64,10 +65,6 @@ function placeOf(index: number, selected: number, width: number): Place {
   const pill = (width - 4 * GAP) / 5
   const slot = index < selected ? index : index - 1
   return { ...tile, x: slot * (pill + GAP), y: width + GAP, w: pill, h: PILL, mode: "pill" }
-}
-
-function toggle(list: string[], item: string) {
-  return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
 }
 
 function settle(value: number, isStill: boolean) {

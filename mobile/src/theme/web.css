@@ -1,0 +1,418 @@
+/* web tokens — mirror of docs/DESIGN.md. light is the default (:root); `.dark` pins the night palette on any subtree, `.light` re-pins paper inside a dark one. */
+
+@font-face {
+  font-family: "Inter";
+  src: url("../../assets/fonts/InterVariable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root,
+.light {
+  color-scheme: light;
+  --jm-ink: #0a0a0d;
+  --surface-1: #fafafa;
+  --surface-2: #fcfcfc;
+  --surface-3: #ffffff;
+  --surface-4: #ffffff;
+  --surface-5: #ffffff;
+  --surface-6: #ffffff;
+  --surface-7: #ffffff;
+  --surface-8: #ffffff;
+  --fg-1: #171717;
+  --fg-2: #737373;
+  --fg-3: #a3a3a3;
+  --fg-muted: #737373;
+  --glow: #ffb23f;
+  --glow-core: #ffd9a0;
+  --on-glow: #1a1205;
+  --glow-hover: color-mix(in oklab, #ffb23f 90%, #ffffff);
+  --glow-press: color-mix(in oklab, #ffb23f 86%, #000000);
+  --glow-blend: multiply;
+  --link: #b86e00;
+  --self: #14b8a6;
+  --danger: #ff3b30;
+  --danger-press: #ce2e25;
+  --on-danger: #ffffff;
+  --primary-press: #3d3d3d;
+  --success: #28c840;
+  --focus-ring: #6b97ff;
+  --temp-cold: #3b8fdb;
+  --temp-warm: #f5a524;
+  --temp-hot: #ff7a1a;
+  --temp-burning: #ffe2b8;
+  --overlay: 0 0 0;
+  --hover: rgb(0 0 0 / 0.04);
+  --active: rgb(0 0 0 / 0.07);
+  --tint: rgb(0 0 0 / 0.06);
+  --tint-hover: rgb(0 0 0 / 0.05);
+  --track-off: #e5e5e5;
+  --separator: rgba(0, 0, 0, 0.06);
+  --hairline-top: rgba(255, 255, 255, 0.9);
+  --scrim: rgba(0, 0, 0, 0.28);
+  --material-thick: rgba(250, 250, 250, 0.78);
+  --material-thin: rgba(255, 255, 255, 0.68);
+  --blur-thick: saturate(180%) blur(30px);
+  --blur-thin: saturate(160%) blur(18px);
+  --map-bg: #ececee;
+  --map-line: rgba(0, 0, 0, 0.035);
+  --map-street: rgba(255, 255, 255, 0.9);
+  --background: #fafafa;
+  --foreground: var(--fg-1);
+  --text-body: var(--fg-1);
+  --text-secondary: var(--fg-2);
+  --text-tertiary: var(--fg-3);
+  --surface-card: #ffffff;
+  --surface-raised: #f4f4f5;
+  --surface-chip: #ededef;
+  --border: color-mix(in oklab, var(--fg-1) 12%, transparent);
+  --cta-bg: var(--glow);
+  --cta-fg: var(--on-glow);
+  --muted: #f4f4f5;
+  --muted-foreground: var(--fg-muted);
+
+  --sc: rgb(0 0 0 / 0.06);
+  --shadow-1: 0 0 0 1px var(--sc);
+  --shadow-2: 0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc);
+  --shadow-3: 0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc);
+  --shadow-4:
+    0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc),
+    0 6px 6px -3px var(--sc);
+  --shadow-5:
+    0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc),
+    0 6px 6px -3px var(--sc), 0 12px 12px -6px var(--sc);
+  --shadow-6:
+    0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc), 0 6px 6px -3px var(
+      --sc
+    ), 0 12px 12px -6px var(--sc), 0 24px 24px -12px var(--sc);
+  --shadow-7:
+    0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc), 0 6px 6px -3px var(
+      --sc
+    ), 0 12px 12px -6px var(--sc), 0 24px 24px -12px var(--sc), 0 48px 48px -24px var(--sc);
+  --shadow-8:
+    0 0 0 1px var(--sc), 0 1px 1px -0.5px var(--sc), 0 3px 3px -1.5px var(--sc), 0 6px 6px -3px var(
+      --sc
+    ), 0 12px 12px -6px var(--sc), 0 24px 24px -12px var(--sc), 0 48px 48px -24px var(--sc), 0 96px 96px -48px var(
+      --sc
+    );
+  --shadow-glow: 0 0 0 1px rgba(255, 178, 63, 0.45), 0 8px 24px -8px rgba(255, 160, 40, 0.55);
+  --shadow-sheet: 0 0 0 1px rgb(0 0 0 / 0.05), 0 -12px 40px -12px rgba(0, 0, 0, 0.14);
+}
+
+.dark {
+  color-scheme: dark;
+  --surface-1: #171717;
+  --surface-2: #1e1e1e;
+  --surface-3: #252525;
+  --surface-4: #2c2c2c;
+  --surface-5: #333333;
+  --surface-6: #3a3a3a;
+  --surface-7: #414141;
+  --surface-8: #484848;
+  --fg-1: #f5f5f7;
+  --fg-2: rgba(235, 235, 245, 0.62);
+  --fg-3: rgba(235, 235, 245, 0.32);
+  --fg-muted: #a3a3a3;
+  --glow-blend: screen;
+  --link: #ffb23f;
+  --self: #5eead4;
+  --danger: #ff453a;
+  --danger-press: #ce362d;
+  --primary-press: #bfbfc2;
+  --success: #30d158;
+  --temp-cold: #64b5f6;
+  --temp-warm: #ffb23f;
+  --temp-hot: #ff7a1a;
+  --temp-burning: #fff1dc;
+  --overlay: 255 255 255;
+  --hover: rgb(255 255 255 / 0.06);
+  --active: rgb(255 255 255 / 0.1);
+  --tint: rgb(255 255 255 / 0.12);
+  --tint-hover: rgb(255 255 255 / 0.16);
+  --track-off: #333333;
+  --separator: rgba(255, 255, 255, 0.08);
+  --hairline-top: rgba(255, 255, 255, 0.12);
+  --scrim: rgba(0, 0, 0, 0.45);
+  --material-thick: rgba(28, 28, 30, 0.72);
+  --material-thin: rgba(44, 44, 46, 0.55);
+  --map-bg: #0e0e11;
+  --map-line: rgba(255, 255, 255, 0.03);
+  --map-street: rgba(255, 255, 255, 0.05);
+  --background: #0a0a0d;
+  --surface-card: #171717;
+  --surface-raised: #252525;
+  --surface-chip: #252525;
+  --muted: #1e1e1e;
+
+  --dm-hi-mid: rgba(255, 255, 255, 0.02);
+  --dm-hi-high: rgba(255, 255, 255, 0.04);
+  --dm-hi-peak: rgba(255, 255, 255, 0.06);
+  --dm-ring-base: rgba(255, 255, 255, 0.02);
+  --dm-ring-mid: rgba(255, 255, 255, 0.04);
+  --dm-ring-high: rgba(255, 255, 255, 0.06);
+  --dm-drop: rgba(0, 0, 0, 0.18);
+  --shadow-1: inset 0 0 0 1px var(--dm-ring-base);
+  --shadow-2:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.01), inset 0 0 0 1px var(--dm-ring-base),
+    0 1px 1px -0.5px var(--dm-drop);
+  --shadow-3:
+    inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-base), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.12
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop);
+  --shadow-4:
+    inset 0 1px 0 0 var(--dm-hi-mid), inset 0 0 0 1px var(--dm-ring-mid), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.14
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(
+      --dm-drop
+    );
+  --shadow-5:
+    inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-mid), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.16
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(
+      --dm-drop
+    ), 0 12px 12px -6px var(--dm-drop);
+  --shadow-6:
+    inset 0 1px 0 0 var(--dm-hi-high), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.18
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(
+      --dm-drop
+    ), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop);
+  --shadow-7:
+    inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.2
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(
+      --dm-drop
+    ), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(
+      --dm-drop
+    );
+  --shadow-8:
+    inset 0 1px 0 0 var(--dm-hi-peak), inset 0 0 0 1px var(--dm-ring-high), 0 0 0 1px rgba(
+      0,
+      0,
+      0,
+      0.22
+    ), 0 1px 1px -0.5px var(--dm-drop), 0 3px 3px -1.5px var(--dm-drop), 0 6px 6px -3px var(
+      --dm-drop
+    ), 0 12px 12px -6px var(--dm-drop), 0 24px 24px -12px var(--dm-drop), 0 48px 48px -24px var(
+      --dm-drop
+    ), 0 96px 96px -48px var(--dm-drop);
+  --shadow-glow: 0 0 0 1px rgba(255, 178, 63, 0.35), 0 8px 32px -8px rgba(255, 178, 63, 0.55);
+  --shadow-sheet: 0 -1px 0 0 var(--hairline-top), 0 -24px 48px -12px rgba(0, 0, 0, 0.5);
+}
+
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  --fw-normal: "wght" 400, "opsz" 14;
+  --fw-medium: "wght" 450, "opsz" 15;
+  --fw-semibold: "wght" 550, "opsz" 18;
+  --fw-bold: "wght" 700, "opsz" 25;
+
+  --fs-display: 64px;
+  --lh-display: 64px;
+  --ls-display: -1.6px;
+  --fw-display: 700;
+  --fs-large-title: 34px;
+  --lh-large-title: 38px;
+  --ls-large-title: -0.7px;
+  --fw-large-title: 700;
+  --fs-title: 22px;
+  --lh-title: 26px;
+  --ls-title: -0.3px;
+  --fw-title: 600;
+  --fs-vibe: 20px;
+  --lh-vibe: 27px;
+  --ls-vibe: -0.2px;
+  --fw-vibe: 500;
+  --fs-headline: 17px;
+  --lh-headline: 22px;
+  --ls-headline: -0.1px;
+  --fw-headline: 600;
+  --fs-body: 17px;
+  --lh-body: 24px;
+  --ls-body: 0px;
+  --fw-body: 400;
+  --fs-footnote: 13px;
+  --lh-footnote: 18px;
+  --ls-footnote: 0.1px;
+  --fw-footnote: 400;
+  --fs-caption: 11px;
+  --lh-caption: 14px;
+  --ls-caption: 0.4px;
+  --fw-caption: 600;
+
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m: 12px;
+  --space-l: 16px;
+  --space-xl: 24px;
+  --space-xxl: 32px;
+  --space-xxxl: 48px;
+  --gutter: 16px;
+  --sheet-padding: 24px;
+  --hit-min: 44px;
+  --radius-chip: 9999px;
+  --radius-button: 9999px;
+  --radius-card: 24px;
+  --radius-sheet: 32px;
+  --radius-match: 32px;
+  --radius-row: 20px;
+  --radius-inner: 8px;
+  --radius-container: 12px;
+  --radius-full: 9999px;
+
+  --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-momentum: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --dur-press: 100ms;
+  --dur-fast: 80ms;
+  --dur-moderate: 160ms;
+  --dur-fade: 200ms;
+  --dur-sensor: 250ms;
+  --dur-snappy: 300ms;
+  --dur-default: 400ms;
+  --dur-bento: 440ms;
+  --dur-morph: 520ms;
+  --press-scale: 0.97;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-snappy: 200ms;
+    --dur-default: 200ms;
+    --dur-morph: 220ms;
+    --ease-momentum: var(--ease-out-quad);
+  }
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
+}
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--fg-1);
+}
+:focus-visible {
+  outline: 1px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.t-display {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+  font-weight: 700;
+  font-variation-settings: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+.t-large-title {
+  font-size: var(--fs-large-title);
+  line-height: var(--lh-large-title);
+  letter-spacing: var(--ls-large-title);
+  font-weight: 700;
+  font-variation-settings: var(--fw-bold);
+}
+.t-title {
+  font-size: var(--fs-title);
+  line-height: var(--lh-title);
+  letter-spacing: var(--ls-title);
+  font-weight: 600;
+  font-variation-settings: var(--fw-semibold);
+}
+.t-vibe {
+  font-size: var(--fs-vibe);
+  line-height: var(--lh-vibe);
+  letter-spacing: var(--ls-vibe);
+  font-weight: 500;
+  font-style: italic;
+  font-variation-settings: var(--fw-medium);
+}
+.t-headline {
+  font-size: var(--fs-headline);
+  line-height: var(--lh-headline);
+  letter-spacing: var(--ls-headline);
+  font-weight: 600;
+  font-variation-settings: var(--fw-semibold);
+}
+.t-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--ls-body);
+}
+.t-footnote {
+  font-size: var(--fs-footnote);
+  line-height: var(--lh-footnote);
+  letter-spacing: var(--ls-footnote);
+  color: var(--text-secondary);
+}
+.t-caption {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-caption);
+  letter-spacing: var(--ls-caption);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+@keyframes jm-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}
+@keyframes jm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    /* biome-ignore lint/complexity/noImportantStyles: reduce motion must beat inline animations */
+    animation-duration: 0s !important;
+  }
+}

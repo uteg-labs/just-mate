@@ -10,17 +10,16 @@ export default (): ExpoConfig => ({
   version: "0.1.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
-  userInterfaceStyle: "dark",
-  backgroundColor: "#0A0A0D",
+  userInterfaceStyle: "light",
+  backgroundColor: "#FAFAFA",
   ios: {
-    icon: "./assets/expo.icon",
     bundleIdentifier: "sk.uteg.justmate",
     config: { usesNonExemptEncryption: false },
   },
   android: {
     package: "sk.uteg.justmate",
     adaptiveIcon: {
-      backgroundColor: "#0A0A0D",
+      backgroundColor: "#EDEDEF",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -34,13 +33,23 @@ export default (): ExpoConfig => ({
     "expo-dev-client",
     "expo-localization",
     "expo-secure-store",
+    ["expo-font", { fonts: ["./assets/fonts/InterVariable.ttf"] }],
     [
       "expo-splash-screen",
-      { backgroundColor: "#0A0A0D", image: "./assets/images/splash-icon.png", imageWidth: 76 },
+      { backgroundColor: "#FAFAFA", image: "./assets/images/splash-icon.png", imageWidth: 76 },
     ],
     ["expo-maps", { requestLocationPermission: true, locationPermission: LOCATION_COPY }],
     ["expo-location", { locationWhenInUsePermission: LOCATION_COPY }],
   ],
+  web: {
+    name: "just-mate · Meet for real.",
+    shortName: "just-mate",
+    description:
+      "Pick what you're up for. When someone nearby wants the same thing, both phones ping. Accept, and a compass walks you to each other.",
+    themeColor: "#FAFAFA",
+    backgroundColor: "#FAFAFA",
+    favicon: "./assets/brand/favicon.svg",
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,

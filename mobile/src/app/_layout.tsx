@@ -1,5 +1,5 @@
 import { useLocales } from "expo-localization"
-import { DarkTheme, Stack, ThemeProvider } from "expo-router"
+import { DefaultTheme, Stack, ThemeProvider } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { useEffect } from "react"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
@@ -8,8 +8,16 @@ import i18n, { resolveLanguage } from "@/localization/i18n"
 import { colors } from "@/theme/colors"
 
 const theme = {
-  ...DarkTheme,
-  colors: { ...DarkTheme.colors, background: colors.bg, primary: colors.glow },
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.fg1,
+    background: colors.background,
+    card: colors.surfaceCard,
+    text: colors.fg1,
+    border: colors.separator,
+    notification: colors.glow,
+  },
 }
 
 export default function RootLayout() {
@@ -20,13 +28,19 @@ export default function RootLayout() {
     void i18n.changeLanguage(resolveLanguage(languageCode))
   }, [languageCode])
 
-  if (isPending) return <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg }} />
+  if (isPending)
+    return <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }} />
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={theme}>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+        <StatusBar style="dark" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
           <Stack.Protected guard={!session}>
             <Stack.Screen name="sign-in" />
             <Stack.Screen name="register" />

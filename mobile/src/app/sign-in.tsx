@@ -64,14 +64,18 @@ export default function SignIn() {
         </>
       )}
       {sent && (
-        <Button title={t("signIn.anotherEmail")} variant="ghost" onPress={() => setSent(false)} />
+        <Button
+          title={t("signIn.anotherEmail")}
+          variant="tertiary"
+          onPress={() => setSent(false)}
+        />
       )}
     </AuthScreen>
   )
 }
 
 const styles = StyleSheet.create({
-  error: { color: colors.danger },
-  footer: { color: colors.textSecondary, textAlign: "center" },
-  link: { color: colors.glow, fontWeight: "600" },
+  error: { color: colors.fg1 },
+  footer: { color: colors.fg2, textAlign: "center" },
+  link: { color: colors.link, fontWeight: "600" },
 })

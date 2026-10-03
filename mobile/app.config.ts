@@ -3,6 +3,19 @@ import type { ExpoConfig } from "expo/config"
 const LOCATION_COPY =
   "JustMate uses your location only while you search, to light up zones and point the compass."
 
+const INTER = [
+  { family: "Inter-Regular", file: "400Regular/Inter_400Regular", weight: 400 },
+  { family: "Inter-Medium", file: "500Medium/Inter_500Medium", weight: 500 },
+  { family: "Inter-SemiBold", file: "600SemiBold/Inter_600SemiBold", weight: 600 },
+  { family: "Inter-Bold", file: "700Bold/Inter_700Bold", weight: 700 },
+  {
+    family: "Inter-MediumItalic",
+    file: "500Medium_Italic/Inter_500Medium_Italic",
+    weight: 500,
+    style: "italic",
+  },
+].map(({ file, ...rest }) => ({ ...rest, path: `@expo-google-fonts/inter/${file}.ttf` }))
+
 export default (): ExpoConfig => ({
   name: "JustMate",
   slug: "justmate",
@@ -33,7 +46,19 @@ export default (): ExpoConfig => ({
     "expo-dev-client",
     "expo-localization",
     "expo-secure-store",
-    ["expo-font", { fonts: ["./assets/fonts/InterVariable.ttf"] }],
+    [
+      "expo-font",
+      {
+        ios: { fonts: INTER.map((f) => f.path) },
+        // android names each family after the ios postscript name, so theme/type.ts stays platform-free
+        android: {
+          fonts: INTER.map(({ family, ...definition }) => ({
+            fontFamily: family,
+            fontDefinitions: [definition],
+          })),
+        },
+      },
+    ],
     [
       "expo-splash-screen",
       { backgroundColor: "#FAFAFA", image: "./assets/images/splash-icon.png", imageWidth: 76 },

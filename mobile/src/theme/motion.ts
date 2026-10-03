@@ -12,6 +12,14 @@ export const duration = {
   bento: 440,
   morph: 520,
   morphReduced: 220,
+  stagger: 55,
+  follow: 120,
+  word: 360,
+  lift: 420,
+  settle: 700,
+  swing: 1100,
+  drop: 1300,
+  headline: 3200,
 } as const
 
 // DESIGN.md §8.3
@@ -26,6 +34,14 @@ export const spring = {
   sensor: { dampingRatio: 1, duration: duration.sensor },
   bento: { dampingRatio: 1, duration: duration.bento },
   morph: { dampingRatio: 1, duration: duration.morph },
+  settle: { dampingRatio: 1, duration: duration.settle },
+  swing: { dampingRatio: 0.8, duration: duration.swing },
+} as const
+
+// DESIGN.md §13.4 — css `ease-out` for the badge drop keyframes, `--ease-lift` for the lift away
+export const easing = {
+  out: Easing.bezier(0, 0, 0.58, 1),
+  lift: Easing.bezier(0.5, 0, 0.75, 0),
 } as const
 
 export const fade = { duration: duration.fade, easing: Easing.out(Easing.quad) } as const

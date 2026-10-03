@@ -63,33 +63,42 @@ The scorer needs Python ≥ 3.11 plus a small set of libraries. **Install the de
 
 ### 2.1 Required packages
 
+The scorer is intentionally tiny — two runtime packages:
+
 | Package | Version | Why |
 |---|---|---|
 | `python` | ≥ 3.11 | Required by `pyproject.toml` |
 | `numpy` | `==1.26.4` | Embedding tensors (locked for ONNX ABI) |
 | `onnxruntime` | `==1.19.2` | Runs the exported `.onnx` model |
-| `onnx` | `==1.17.0` | Optional, used for model introspection |
 
-That's it — no torch, no openai, no fastapi. The scorer subprocess is intentionally tiny.
+No torch, no openai, no fastapi, no jupyter. Training and notebook work happen on developer machines; the production scorer carries nothing else.
 
 ### 2.2 Install with `uv` (recommended)
 
-`uv` is the package manager used elsewhere in this monorepo. The scorer reuses the venv already created for training:
+`uv` is the package manager used elsewhere in this monorepo. `pyproject.toml` uses PEP 735 `[dependency-groups]` to separate runtime from dev deps:
+
+- **`[project.dependencies]`** — runtime only (`numpy`, `onnxruntime`). Used in production.
+- **`[dependency-groups].dev`** — torch, openai, jupyter, matplotlib, scikit-learn, onnx (for export), pytest, tqdm. Used by people training or exploring the data.
 
 ```bash
 cd ml/
-uv sync                       # creates .venv/ and all deps from pyproject.toml
-ls .venv/bin/python           # absolute path to the Python the scorer should use
+
+# Production / scorer-only install (~10 packages, ~50 MB)
+uv sync --no-group dev
+ls .venv/bin/python
 # /opt/justmate/ml/.venv/bin/python
+
+# Dev install — adds training, notebooks, tests (~700 MB more)
+uv sync
 ```
 
-Bun then spawns that exact interpreter:
+Bun points at `.venv/bin/python` regardless of which mode was used to create it:
 
 ```typescript
 spawn("/opt/justmate/ml/.venv/bin/python", [...], { cwd: "/opt/justmate/ml" })
 ```
 
-**Why this Python and not system `python3`**: it already has `numpy==1.26.4` and `onnxruntime==1.19.2` installed and pinned; using a different interpreter can introduce ABI mismatches and "DLL load failed" at runtime.
+**Why this Python and not system `python3`**: it has `numpy==1.26.4` and `onnxruntime==1.19.2` pinned to versions tested against the model; using a different interpreter can introduce ABI mismatches and "DLL load failed" at runtime.
 
 ### 2.3 Alternative: `pip` + `venv`
 

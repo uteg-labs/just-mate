@@ -1,4 +1,4 @@
-# just-mate — ML matching process
+# JustMate — ML matching process
 
 > Source of truth for the compatibility scoring pipeline. Read `PRODUCT.md` §7 first for the high-level framing; this doc specifies the model, training loop, data flow, and decisions we locked in.
 
@@ -181,7 +181,7 @@ For every position update from a searching user (every ~2s):
                    stdin:  {"id":"req_42","z_a":[...],"z_b":[...]}\n
                    stdout: {"id":"req_42","score":0.78}\n
    (one JSON-line request per candidate pair; per-pair Match Head inference)
-5. server:         apply hard gates (zone, intent, cooldown, K-anon)
+5. server:         apply hard gates (distance ≤ 400 m, active intent, cooldown, K-anon)
                    for each surviving candidate:
                        if score_i >= threshold_calibrated:
                            offer mutual match
@@ -223,7 +223,7 @@ The server treats any error / malformed JSON / per-request latency >50ms as a su
 | Shared encoder z | PostgreSQL `users.z` (pgvector) | `user_id` | `vector(128)` | encoder retrain / profile change |
 | Match Head | in-process (inside the compiled binary) | — | weights | binary restart with new `.onnx` |
 
-`pgvector` lets us do approximate nearest-neighbour over `z` for fast candidate selection (production: HNSW index, M=16, ef_construction=64). For hackathon: brute-force cosine over all searching users in zone (fine at small scale).
+`pgvector` lets us do approximate nearest-neighbour over `z` for fast candidate selection (production: HNSW index, M=16, ef_construction=64). For hackathon: brute-force cosine over all searching users within `R_MATCH` (fine at small scale).
 
 ## 7. Hard gates (server-side, NOT in model)
 
@@ -232,17 +232,17 @@ The model only scores pairs that already passed these:
 | Gate | Where | Rule |
 |---|---|---|
 | Both in search mode | server | `session.state == "searching"` for both |
-| Same zone | server | `geohash6(self) == geohash6(candidate)` |
-| Shared intent | server | `len(intents ∩ intents) >= 1` |
-| K-anonymity | server | `count_searching_in_zone >= K` (M0: K=1 demo, M1: K=3) |
-| Pair cooldown | server | `now − last_match_or_vanish(candidate) >= 5 min` |
-| One active session | server | `user.active_session is None` |
-| Not self | server | `user_id != candidate_id` |
+| Within walking range | server | `haversine(self, candidate) <= R_MATCH` (400 m) — **not** same geohash cell: a geohash-6 cell is ~1.2 km wide and its boundaries split neighbours (`PRODUCT.md` §7) |
+| Shared active intent | server | `len(session.intents ∩ candidate.session.intents) >= 1` (intents are per session, not per profile) |
+| K-anonymity | server | `count_searching_in_zone >= K` (M0: K=1 demo, M1: K=3) — zone = geohash-6, display/anonymity unit only |
+| Pair cooldown | server | `now − last_offer_or_vanish(candidate) >= 5 min` |
+| One active offer/session | server | `user.active_session is None and user.open_offer is None` |
+| Not self, not ghost | server | `user_id != candidate_id and not candidate.ghost` |
 
 Match Head is called only when ALL gates pass. This is important:
 - The model never has to learn "do they share intent" (rule-gated)
 - The model focuses purely on "given shared intent X, how compatible are they on it"
-- Negative sampling simplifies (everyone in zone is a candidate for negatives)
+- Negative sampling simplifies (everyone within range is a candidate for negatives)
 
 ## 8. Calibration & threshold
 

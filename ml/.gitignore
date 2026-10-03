@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# ML artifacts
+checkpoints/*.pt
+checkpoints/*.onnx
+data/*.npy
+data/*.npz
+data/profiles_descriptions.txt
+data/triplets_ids.json
+data/profile_ids.json
+
+# Build artifacts
+dist/
+*.egg-info/
+
+# Local secrets
+.env

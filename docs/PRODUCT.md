@@ -5,7 +5,7 @@
 
 ## 1. Elevator pitch (30 seconds)
 
-Dating apps solved matching and broke meeting. JustMate replaces swiping and chatting with one mechanic: you carry a faceless profile of *what you want to do and who you'd like to do it with*; when a compatible person — also looking for the same thing, also within walking range — is near you, both phones ping at the same moment, each showing the other's vibe badge: a one-line vibe and what they want. Both accept, a compass unlocks, and finding each other becomes a ten-minute game that ends with two people talking face to face. No faces. No chat. No pins.
+Dating apps solved matching and broke meeting. JustMate replaces swiping and chatting with one mechanic: you carry a faceless profile of *what you want to do and who you'd like to do it with*; when a compatible person — also looking for the same thing, also within walking range — is near you, both phones ping at the same moment, each showing a two-line vibe card of the other. Both accept, a compass unlocks, and finding each other becomes a ten-minute game that ends with two people talking face to face. No faces. No chat. No pins.
 
 ## 2. Problem & vision
 
@@ -51,9 +51,9 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 6. Screen specification
 
-`STRUCTURE.md` is the source of truth for screens, flows and exact copy. Visual language, motion, haptics and accessibility live in `DESIGN.md`: a pale map with warm glow, light by default, an ink match card and a night compass. Colours named here are its tokens. This section keeps the product reasoning per screen.
+Visual language, motion, haptics and accessibility for every screen below live in `DESIGN.md` (Apple fluid-interface principles applied to a dark map with warm glow); colors named here are its tokens.
 
-### 6.1 Account and onboarding
+### 6.1 Onboarding (3 screens — `STRUCTURE.md` §1 is the source of truth for the app)
 
 - **Auth**: one sheet over the map. Log in goes straight to the map; Create account grows into onboarding ("Next: a faceless profile. Two minutes, no photos of you shown to anyone.").
 - **Mode first.** "What are you here for?" Date ("Someone to fall for, a few streets away.") or Mate ("People to grab a beer or a game with, right now."). You can switch on the map any time; the mode picks which questions, interests and categories you see.
@@ -67,42 +67,31 @@ Every feature decision is tested against these three rules; anything that violat
 
 Design intent: the whole funnel communicates "this is not a profile-picture app" before the user ever sees the map.
 
-### 6.2 Select: "What are you up for?"
+### 6.2 Home — "Where to?" (the one screen; layout detail in `STRUCTURE.md` §2)
 
-- Pale greyscale native base map (`expo-maps`: Apple Maps on iOS, Google Maps on Android). Own position is the small mint dot; no other dots, ever.
-- Date / Mate switch on the map. A sheet with a rotating headline, a footnote and a **category bento**: six categories per mode, each opening into a card of concrete intents plus "other". Pick any number, then **Find people for {picks}**. Until then: "You're invisible until you pick something."
-- Date categories: Food and drink · Nightlife · Outdoors · Culture · Music · Attractions. Mate: Food and drink · Sports · Games · Outdoors · Music · Culture. Full lists in `STRUCTURE.md` §2.
+- Dark base map (maplibre-react-native + OpenFreeMap), **zones** rendered as amber glow circles sized by the density of compatible searchers for the active intent (halo + core layers, additive-feel).
+- Own position: small mint dot. No other dots, ever.
+- **Bottom sheet** with the prompt **"Where to?"** and intent chips; primary CTA **Find people**. While searching the sheet collapses to a status card (`● searching: beer`, elapsed time, **Stop searching**).
+- Zone tap → aggregate only ("~4 compatible around here"). No identities, no profiles, no history.
+- States: `idle` (map dimmed, zones hidden — you're invisible too), `searching` (glow visible, you're matchable under the chosen intent).
 
-### 6.3 Search
+### 6.3 Match banner (arrives on both phones simultaneously)
 
-- The heat field appears: an aggregate warmth where compatible searchers are, never per-person marks. Zone tap → aggregate only ("~4 compatible around here"). No identities, no profiles, no history.
-- The sheet says what you're looking for, lets you adjust picks, and shows "You're visible nearby · Both phones ping at once when it's mutual." with a running clock. **Stop searching** goes back to invisible; searching also stops by itself after 30 minutes (Settings).
+- `78% match · wants: beer`
+- Vibe card in quotes: *"quietly funny — will out-argue you about pizza"*
+- **[ open compass ]** — primary; **[ dismiss ]** — ghost button
+- Caption: *"unlocks only if they accept too"* — consent made visible.
+- Vibration `[200,100,200]` on arrival (expo-haptics; delivered over the live WebSocket while the app is open — no remote push in M0, see §8).
+- **Offer TTL: 45 s.** If the other side dismisses or does not answer, the banner quietly turns into *"offer expired"* on the accepting side — it never says "they declined", so a dismiss is invisible by construction. Pair cooldown applies either way.
 
-### 6.4 Match (arrives on both phones simultaneously)
+### 6.4 Compass (full-screen overlay)
 
-- An ink card from the top with their **vibe badge**: "her vibe · wants: wine", their line (*"reads the menu twice — orders the first thing"*), tag "verified · 18+" (date) or "verified" (mate).
-- "match · nearby · on foot" and a countdown from **0:45**.
-- **[ Open compass ]**: amber `glow` button; **[ Dismiss ]**: ghost button.
-- Caption: *"unlocks only if they accept too"*. Consent made visible.
-- Vibration `[200,100,200]` on arrival (expo-haptics; delivered over the live WebSocket while the app is open; no remote push in M0, see §8).
-- **Offer TTL: 45 s.** If the other side dismisses or doesn't answer, the card quietly turns into *"offer expired"* and *"you're still searching"*. It never says "they declined", so a dismiss is invisible by construction. Pair cooldown applies either way.
-- No match percentage on screen: the badge and the shared intent carry the moment.
-
-### 6.5 Compass (full screen, night)
-
-- **Arrow**: large, rotation = bearing(me→partner) − device heading. It points the way; the partner's position is *never* drawn on the map.
-- **Distance as bucket** (gamified, deliberately imprecise): `cold` (over 200 m, blue `tempCold`) → `warm` (under 200 m, amber `tempWarm`) → `hot` (under 80 m, orange `tempHot`) → `burning` (under 30 m, white-hot `tempBurning`). Colour + label + haptic escalation. Red is reserved for Vanish.
-- **Countdown**: "10:00 left · {intent}", always visible.
-- Their vibe line stays pinned ("you're looking for").
+- **Arrow**: large, rotation = bearing(me→partner) − device heading. Points the way; the partner's position is *never* drawn on the map.
+- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue `tempCold`) → `warm` (<200 m, amber `tempWarm`) → `hot` (<80 m, orange `tempHot`) → `burning` (<30 m, white-hot `tempBurning`) — color + label + haptic escalation. Red is reserved for Vanish.
+- **Countdown**: 10:00 session TTL, always visible.
 - **Vanish**: always-visible red control; kills the session for both, instantly.
-- **We met**: enabled only in `burning`.
-- States: `waiting` (partner accepted but no position yet: "finding signal…"), `active`, `expired` (TTL), `vanished`.
-
-### 6.6 Post-meet
-
-- **Names unlock, nothing else does.** Both badges, now with first names; "Say hi to {name}."
-- An opener for the pair if the conversation needs a push (*"pineapple. defend your position."*).
-- **Keep in touch** is mutual: it only completes if both tap it ("{name} tapped it too. Saved on this phone."). Still no chat: it saves the other person on your phone, nothing more.
+- States: `waiting` (partner accepted but no position yet), `active`, `expired` (TTL), `vanished`.
+- **Post-meet screen (M0, cheap, on-category):** when the bucket hits `burning` and either taps **"we met"** (or the TTL ends in `burning`), show *"you walked 480 m to meet"* — distance integrated client-side from own positions during the session, plus a lifetime total ("2.3 km walked to meetings"). No backend, no persistence beyond the device; it is the one screen that makes the Sport & Healthcare framing literal.
 - Post-meet (future): optional one-tap "how did it go?" to tune matching.
 
 ### 6.7 Settings
@@ -120,27 +109,33 @@ compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
 match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
 ```
 
-- **Mode and intents gate, interests score.** Both people must be searching in the same mode, and their picks must share at least one intent; that shared intent is the *context* of the match ("this is a beer match"). Interests and answers set the compatibility score. The score gates the match but isn't shown on screen.
+- **Intents gate, interests score.** The shared *active* intent (chosen per session on Home) is the *context* of the match ("this is a beer match"), interests set the percentage.
 - **Distance, not zone, is the match gate.** The server holds exact positions anyway; zones are a *display* abstraction (see §8). Matching on "same geohash cell" would (a) pair people up to 1.35 km apart — more than the ~830 m a person walks in the 10-minute window at 5 km/h — and (b) never pair two people 50 m apart on either side of a cell boundary. `R_MATCH = 400 m` ≈ 5 min on foot, leaving half the window for finding each other.
-- **Offer TTL 45 s**, then the offer expires silently for both (see §6.4).
+- **Offer TTL 45 s**, then the offer expires silently for both (see §6.3).
 - **Pair cooldown: 5 min** after any match/dismiss/expiry/vanish — no re-pinging the same person, no notification spam.
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
 **Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (400 m, or the shorter of both "walk up to" settings: 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
 
-**Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese model with a Match Head, custom-trained by the team. Profile text (intents + interests + vibe card) is embedded via OpenAI `text-embedding-3-small` (frozen), passed through a learned **Shared Encoder** that projects to 128-d compatibility vectors `z_a`, `z_b`, then through a **Match Head** that consumes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility score in `[0, 1]`. Trained with **triplet loss + binary match loss** jointly (one triplet yields two training examples for the head).
+**Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese text-embedding model with a Match Head, custom-trained by the team. The pipeline:
 
-- **Serving.** The trained Match Head is **exported to ONNX** and loaded by a **compiled C++ binary** (`match_scorer`, linked against `onnxruntime`) that the Bun/Elysia server **spawns once at startup as a long-lived subprocess**. The server and the binary live on the same machine and exchange requests/responses as **newline-delimited JSON over stdin/stdout** — no FastAPI, no HTTP, no socket plumbing between them. Vectors (`e` and `z`) are cached per user in **PostgreSQL with pgvector**; the binary only receives the pre-computed `z` pairs and runs the head. Match Head weights are loaded once when the binary boots; per-pair inference does NOT re-encode — it reads cached `z` from pgvector and runs only the head. If the subprocess is down or returns malformed/timeout JSON, the server transparently falls back to the explainable baseline (the demo never breaks).
+1. **Photo description (LLM).** At onboarding, the user's photo + (intents, interests) is sent to a vision LLM (e.g. `gpt-4o-mini`) which returns a 2–3 sentence plain-prose text covering how they look, their personality vibe, and who they want to meet. This text is cached in `profile["description"]`. No face data is shared between users — only the text description.
+2. **Text embedding.** Each profile's text — `Intent: … Interests: … Description: …` — is sent to OpenAI `text-embedding-3-small` (1536-d, frozen).
+3. **Shared Encoder.** A learned MLP `1536 → 512 → 256 → 128` (LayerNorm + ReLU between layers) projects to 128-d compatibility vectors `z_a`, `z_b`, L2-normalized.
+4. **Match Head.** Takes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility logit. Sigmoid → score ∈ [0, 1].
+5. **Joint training.** Triplet loss (margin=1.0, p=2) + binary match loss (BCE for logit_ab→1 and logit_ac→0) trained jointly on synthetic profiles for M0 / on real outcomes for M1.
+
+- **Serving (M0 stretch).** The trained Siamese model is loaded in-process inside the Bun/Elysia server — no separate inference binary, no compiled C++ runtime, no subprocess protocol. PyTorch + ONNX Runtime both work; we pick whichever starts fastest on the demo machine. The demo always has the explainable baseline as a fallback if the model is unavailable.
 - **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
 - **Honesty on stage.** In M0, with synthetic data only, a learned model just learns the baseline. We do not say "AI matching" about something that is not learned from real signal — the explainable function stays the headline; the model card + `docs/ML-MATCHING.md` describe the *real* M1 pipeline.
-- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md`.
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `docs/ml/PLAN.md`.
 
-**Attraction vector (the no-faces trick — production path, one sentence on stage).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned. **Legal caveat (do not improvise on stage):** anything derived from a face is biometric data under GDPR Art. 9 (special category) even in derived form, so the production design needs a DPIA and likely explicit consent on *both* sides before any similarity is computed. On stage it stays a one-liner labelled "production path"; the demo never claims it runs.
+**Description generation (LLM, M0 stretch).** — Today's version of the attraction vector. The user's photo is uploaded once at onboarding; an LLM produces a 2–3 sentence plain-prose description (`Appearance + personality + what they're looking for`) which becomes part of the profile. The matching model never sees the photo, only the text. In M0 we use a canned pool of descriptions for synthetic profiles; in M1 a real LLM call produces them per-user. **Privacy note:** photos go to the LLM API. Production needs a DPIA + explicit consent per §10; the demo uses test data only.
 
-**Vibe lines and badges.** One wry line in two lowercase clauses (*"quietly funny — will out-argue you about pizza"*), written from your onboarding answers, rerolled until you keep it. It hangs on a badge whose colours, pattern and icon are designed deterministically from your interests and answers (`DESIGN.md` §13.5). At the match moment you see *their* badge; after you've met, an opener written for the pair replaces "hey". Demo: canned lines and openers, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated.
+**Vibe cards.** Two-line personality summaries shown at the match moment — the icebreaker that replaces "hey". In the M0 stretch these are the **LLM-generated descriptions** above (one description serves as both profile signal and icebreaker). Pure-text, no image data exchanged between users.
 
 ## 8. Zones & location architecture
 
@@ -153,13 +148,11 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 ## 9. Match session lifecycle (state machine)
 
 ```
-idle (invisible) → searching → [match offered ⇉ both phones, offer TTL 45 s]
+idle → searching → [match offered ⇉ both phones, offer TTL 45 s]
      → both accept ⇉ compass active (10 min TTL, positions relayed pairwise)
-     │                → we met → post-meet (names unlock · keep in touch if both tap) → idle
-     │                → TTL expiry | either vanishes → idle
+     │                → meet | TTL expiry | either vanishes
      └→ dismiss | offer expiry (either side; the other side sees only "expired")
-          → cooldown (5 min per pair) → still searching
-searching → stop searching | 30 min auto-stop → idle
+     → cooldown(5 min per pair) → idle
 ```
 
 Full event-by-event schema (client ↔ server) is in `docs/PROTOCOL.md`; it is the contract mobile and backend build against independently.
@@ -181,7 +174,7 @@ GDPR/RODO posture: location is personal data → processed solely inside explici
 
 ## 11. Gamification layer
 
-**Core (hackathon):** the compass walk itself — hot/cold buckets, haptic escalation, the 10-minute window creating urgency, the vibe badge as loot (designed from your picks, no two alike, dropping in on a lanyard), and the reveal at the end: a first name and an opener.
+**Core (hackathon):** the compass walk itself — hot/cold buckets, haptic escalation, the 10-minute window creating urgency, and the vibe card as loot ("you found: *quietly funny, will out-argue you about pizza*").
 
 **Planned (post-hackathon, in priority order):**
 - **Brave streak**: consecutive weeks with ≥1 real meeting; gentle decay, no leaderboards (anti-attention-economy).
@@ -231,11 +224,11 @@ The 2012 graveyard (Sonar, Highlight) died of empty rooms; JustMate launches whe
 
 | Stage | Scope |
 |---|---|
-| **M0 — HackYeah 2026** (this repo) | Expo dev-client app (Date / Mate modes, category picks, vibe badge, WebSocket events, magnetometer compass, haptics, 18+ gate, post-meet with names and keep in touch), Bun/Elysia backend (ws, distance-gated matching, offer/session TTLs, ghosts), explainable scoring, demo mode; learned model v0 only if time remains after Sat 19:00 |
+| **M0 — HackYeah 2026** (this repo) | Expo dev-client app (WebSocket events, magnetometer compass, haptics, 18+ gate, post-meet distance screen), Bun/Elysia backend (ws, distance-gated matching, offer/session TTLs, ghosts), explainable scoring, demo mode; learned model v0 only if time remains after Sat 19:00 |
 | **M1 — production MVP** | remote push (background search mode), k-anonymity (K≥3), block/report, age assurance, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
-| **v1** | On-device attraction vector (train-on-phone), generated vibe lines and openers (Bielik/LLM), brave streaks |
+| **v1** | On-device attraction vector (train-on-phone), generated vibe cards (Bielik/LLM), brave streaks |
 | **v2** | Venue/event platform (official zones, analytics), city heat events |
 
 ## 18. Demo scope & honesty
 
-See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match delivered live to both phones over WebSocket, explainable scoring, compass bearing, haptics, vanish. Everything auxiliary is honestly canned: ghost density, vibe-card strings, demo-mode positions; the attraction vector is simulated and the learned model (if shown) is trained on synthetic data. Rule for every sentence in the deck and the description: **it describes what the demo does, or it is labelled "production path".**
+See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match delivered live to both phones over WebSocket, explainable scoring, compass bearing, haptics, vanish. Everything auxiliary is honestly canned: ghost density, profile descriptions (canned pool for synthetic profiles in M0; live `gpt-4o-mini` calls in M1), demo-mode positions; the learned model (if shown) is trained on synthetic data. Rule for every sentence in the deck and the description: **it describes what the demo does, or it is labelled "production path".**

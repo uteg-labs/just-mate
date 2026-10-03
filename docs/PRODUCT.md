@@ -51,6 +51,8 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 6. Screen specification
 
+Visual language, motion, haptics and accessibility for every screen below live in `DESIGN.md` (Apple fluid-interface principles applied to a dark map with warm glow); colors named here are its tokens.
+
 ### 6.1 Onboarding (3 screens)
 
 1. **"What are you looking for?"** — intent chips, multi-select, ≥1 required: `date · friends · beer · coffee · walking · sports · music`.
@@ -79,7 +81,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 ### 6.4 Compass (full-screen overlay)
 
 - **Arrow**: large, rotation = bearing(me→partner) − device heading. Points the way; the partner's position is *never* drawn on the map.
-- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue) → `warm` (<200 m, sand) → `hot` (<80 m, orange) → `burning` (<30 m, red) — color + haptic escalation.
+- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue `tempCold`) → `warm` (<200 m, amber `tempWarm`) → `hot` (<80 m, orange `tempHot`) → `burning` (<30 m, white-hot `tempBurning`) — color + label + haptic escalation. Red is reserved for Vanish.
 - **Countdown**: 10:00 session TTL, always visible.
 - **Vanish**: always-visible red control; kills the session for both, instantly.
 - States: `waiting` (partner accepted but no position yet), `active`, `expired` (TTL), `vanished`.

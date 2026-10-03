@@ -72,9 +72,9 @@ The trained checkpoint is published as a GitHub Release asset (not in the repo �
 
 | Release tag | Assets |
 |---|---|
-| `@just-mate@model_attachments@0.0.1` | `model_v0.pt`, `model_v0.onnx` |
+| `@just-mate@model_attachments@0.0.1` | `model_v0.pt`, `model_v0.onnx` (v2 pipeline, 2-input ONNX) |
 
-Download both into `ml/checkpoints/`:
+The active default in this repo is the **v3-best** model (`model_v3_best.{pt,onnx}`, 3-input ONNX with `soft_jacc`). When that's published, download the same way and rename/symlink to match the release asset name, or pass `--model` explicitly:
 
 ```bash
 mkdir -p checkpoints
@@ -83,18 +83,24 @@ BASE="https://github.com/uteg-labs/just-mate/releases/download/%40just-mate%40mo
 curl -fL "$BASE/model_v0.pt"  -o checkpoints/model_v0.pt
 curl -fL "$BASE/model_v0.onnx" -o checkpoints/model_v0.onnx
 
+# for v3_best as well, when published:
+# curl -fL "$BASE/model_v3_best.pt"  -o checkpoints/model_v3_best.pt
+# curl -fL "$BASE/model_v3_best.onnx" -o checkpoints/model_v3_best.onnx
+
 ls -lh checkpoints/
-# model_v0.onnx  ~1.9M
-# model_v0.pt    ~1.9M
+# model_v0.onnx       ~1.9M
+# model_v0.pt         ~1.9M
+# model_v3_best.onnx  ~1.9M   (active default)
+# model_v3_best.pt    ~1.9M
 ```
 
 If you want a pinned SHA-256 check (recommended for CI / supply-chain hygiene), compare against the digest shown on the release page:
 
 ```bash
-shasum -a 256 checkpoints/model_v0.pt checkpoints/model_v0.onnx
+shasum -a 256 checkpoints/*.pt checkpoints/*.onnx
 ```
 
-Expected digests (from the release of Oct 2026):
+Expected digests for v0 (from the release of Oct 2026):
 
 ```
 5b2ebf499d391457255c2649788e45056fc3c28cf6d2a375a9e9c06ec4b9b0cf  model_v0.pt
@@ -130,18 +136,13 @@ symmetric nonmatch    = ~0.6    (below threshold)
 
 If `self-pair score` isn't above `match directional`, the model is broken or the embeddings are stale.
 
-### 3.4 Score a pair of raw profiles
+### 3.4 Score a pair of pre-computed embeddings
 
-`scripts/score_pair.py` takes two JSON profiles (one positional argument each), embeds them with OpenAI, runs the match head both directions, and prints the symmetric pair score.
-
-Required env: `OPENAI_API_KEY`.
+`scripts/score_pair.py` is a thin pass-through to `match_scorer.py`. It takes two positional JSON profiles, each carrying three pre-computed values, runs the match head both directions, and prints the symmetric pair score. **No OpenAI calls, no JSON profile parsing** — embedding + interest-jaccard are the caller's responsibility (typically the Bun/Elysia server, which already caches both).
 
 ```bash
-export OPENAI_API_KEY=sk-…
-
-JSON_A='{"interests":["music","hiking"],"my_character":"Curious and patient.","my_appearance":"Tall, glasses.","you_character":"Kind and curious.","you_appearance":"Brown hair, blue eyes."}'
-
-JSON_B='{"interests":["reading","cooking"],"my_character":"Thoughtful introvert.","my_appearance":"Short, dark hair.","you_character":"Outdoorsy and patient.","you_appearance":"Athletic build."}'
+JSON_A='{"self_emb": [...1536 floats...], "target_emb": [...1536 floats...], "soft_jacc": 0.81}'
+JSON_B='{"self_emb": [...1536 floats...], "target_emb": [...1536 floats...], "soft_jacc": 0.62}'
 
 uv run python scripts/score_pair.py "$JSON_A" "$JSON_B"
 ```
@@ -159,28 +160,44 @@ Output:
 }
 ```
 
-Each profile must have **all 5 fields** (`interests` is `list[str]`, the rest are `str`). The 5 fields match the canonical `Profile` shape used during training; omitting any field is a hard error.
+Each profile object must have exactly:
+
+| Field | Type | What |
+|---|---|---|
+| `self_emb` | `list[float]`, length 1536 | The profile's "who I am" embedding. |
+| `target_emb` | `list[float]`, length 1536 | The profile's "what I want" embedding. |
+| `soft_jacc` | `number` ∈ [-1, 1] | Soft-jaccard of THIS profile's interests against the OTHER profile. Compute with `compute_soft_jaccard_pair(interests_a, interests_b, int_vec, name_to_row)` from `just_mate_ml.data.embed` (server-side interest cache). |
+
+The symmetric pair score uses both directions:
+
+```
+score_ab = match(target_A, self_B, soft_jacc_on_A)   # A's soft_jacc (A as anchor, B as target)
+score_ba = match(target_B, self_A, soft_jacc_on_B)   # B's soft_jacc (B as anchor, A as target)
+pair_score = score_ab + score_ba
+```
 
 Flags:
 
 | Flag | Default | What |
 |---|---|---|
-| `--threshold FLOAT` | `0.78` | Pair score above which `would_match` flips to `true`. The product uses this as the calibrated gate. |
-| `--model PATH` | `checkpoints/model_v0.onnx` | ONNX model path. Resolved relative to `ml/` if not absolute. |
+| `--threshold FLOAT` | `0.40` | Pair score above which `would_match` flips to `true`. F1-best on v3-best val set (AUC=0.9637). |
+| `--model PATH` | `checkpoints/model_v3_best.onnx` | ONNX model path. Resolved relative to `ml/` if not absolute. |
 
 ### 3.5 Serve over stdio (for the Bun server)
 
 The Bun/Elysia server consumes `scripts/match_scorer.py` as a long-lived subprocess. Wire format is newline-delimited JSON (NDJSON):
 
 ```bash
-uv run python scripts/match_scorer.py checkpoints/model_v0.onnx
+uv run python scripts/match_scorer.py checkpoints/model_v3_best.onnx
 ```
 
 Request on stdin (one JSON object per line):
 
 ```json
-{"id":"req_42","target_emb":[...1536 floats...],"self_emb":[...1536 floats...]}
+{"id":"req_42","target_emb":[...1536 floats...],"self_emb":[...1536 floats...],"soft_jacc":0.81}
 ```
+
+`soft_jacc` is **required** for v3 models (3-input ONNX). The server computes it server-side per pair and forwards.
 
 Response on stdout (one JSON object per line):
 
@@ -201,23 +218,24 @@ Bun server (matching loop)
         │
         │ spawn() long-lived subprocess
         ▼
-python scripts/match_scorer.py checkpoints/model_v0.onnx
+python scripts/match_scorer.py checkpoints/model_v3_best.onnx
         │
-        │ NDJSON over stdin/stdout
+        │ NDJSON over stdin/stdout (target_emb, self_emb, soft_jacc)
         │
         ▼
 onnxruntime → score ∈ [0, 1] per direction
         │
         ▼
-server: pair_score = score_ab + score_ba, gate at ≥ 0.78
+server: pair_score = score_ab + score_ba, gate at ≥ 0.40
 ```
 
 Key facts:
 
 - The server pre-embeds both user profiles with OpenAI **once** (cached per profile change), then sends only the 1536-d vectors to the scorer. The scorer itself never calls OpenAI.
+- The server also computes `soft_jacc` per pair from its interest-index cache and forwards it alongside the embeddings.
 - The server keeps one scorer process per CPU core (tunable).
 - `pair_score` is the product signal; per-direction scores are diagnostic.
-- Calibrated threshold is **0.78** (override per-request via `--threshold` on the scorer if experimenting).
+- Calibrated threshold is **0.40** for the v3-best model (override per-request via `--threshold` on the scorer if experimenting).
 
 ---
 
@@ -296,7 +314,7 @@ Sweeps hyperparams, keeps the best checkpoint by val AUC, writes `checkpoints/mo
 
 ### 5.6 Export to ONNX
 
-ONNX is what `match_scorer.py` loads at inference. Export is currently a manual step in the training script's tail — read the last 30 lines of `train_experiments_v3.py` for the export call. Result: `checkpoints/model_v0.onnx`.
+ONNX is what `match_scorer.py` loads at inference. Export is currently a manual step in the training script's tail — read the last 30 lines of `train_experiments_v3.py` for the export call. Result: `checkpoints/model_v3_best.onnx` (or `model_v0.onnx` for the v2 pipeline).
 
 Verify parity:
 
@@ -314,7 +332,7 @@ uv run python scripts/benchmark_val.py
 uv run python scripts/build_eval_notebook.py  # → notebooks/evaluate_matching_model.ipynb
 ```
 
-- `threshold_sweep.py` — full precision/recall/F1 sweep over the calibrated threshold (0.78 by default).
+- `threshold_sweep.py` — full precision/recall/F1 sweep over the calibrated threshold (0.40 for v3-best).
 - `benchmark_val.py` — final val AUC, F1, accuracy, latency per ONNX forward pass.
 - `build_eval_notebook.py` — regenerates `notebooks/evaluate_matching_model.ipynb` from the current data + checkpoint.
 
@@ -342,13 +360,13 @@ ml/
 │   ├── build_eval_notebook.py         ← Regenerate the eval notebook
 │   ├── build_interest_embeddings.py   ← Cache per-interest OpenAI embeddings (v3)
 │   ├── match_scorer.py                ← ONNX inference daemon (NDJSON over stdio)
-│   └── score_pair.py                  ← CLI: take 2 JSON profiles → embed → score
+│   └── score_pair.py                  ← CLI: take 2 pre-computed embedding JSON → forward to scorer
 ├── notebooks/
 │   └── evaluate_matching_model.ipynb  ← Eval notebook (regenerable)
 ├── tests/
 │   └── test_bootstrap.py              ← Toolchain sanity (deps + ONNX + C++)
 ├── data/                              ← Synthetic profiles + embeddings + triplets (gitignored)
-└── checkpoints/                       ← model_v0.pt + model_v0.onnx (gitignored; downloaded from Releases)
+└── checkpoints/                       ← model_v3_best.{pt,onnx} (gitignored; downloaded from Releases)
 ```
 
 Gitignored (large or sensitive):
@@ -375,15 +393,15 @@ The bootstrap test is the only one wired into CI today. Add new tests under `tes
 
 ## 8. Troubleshooting
 
-**`OPENAI_API_KEY not set in env`** when running `score_pair.py` — export it before invoking. The scorer subprocess does **not** call OpenAI; only `score_pair.py` does.
+**`profile X missing fields: [...]`** — every profile needs `self_emb`, `target_emb`, `soft_jacc`. `self_emb` and `target_emb` must each be a `list[float]` of length 1536; `soft_jacc` must be a finite number.
 
-**`profile X missing fields: [...]`** — every profile needs `interests`, `my_character`, `my_appearance`, `you_character`, `you_appearance`. `interests` must be a `list[str]`; the other four must be `str`. Empty strings are allowed but produce out-of-distribution target text.
+**`profile X.self_emb must have 1536 floats, got (…)?`** — embedding has the wrong shape. The match head is hard-coded for 1536-d (text-embedding-3-small output).
 
-**`profile X.interests must be a list[str]`** — the field is rejected as a list, but elements inside the list must also be strings. `["music", 42]` will fail this check.
+**`profile X.self_emb contains non-finite values`** — one of the floats is `NaN`/`Inf`. Check the upstream embedding step.
 
-**`model not found: checkpoints/model_v0.onnx`** — you haven't downloaded the weights, or you ran from the wrong CWD. The path is resolved relative to `ml/`. See §3.1.
+**`model not found: checkpoints/model_v3_best.onnx`** — you haven't downloaded the weights, or you ran from the wrong CWD. The path is resolved relative to `ml/`. See §3.1.
 
-**`scorer subprocess closed: ...`** — `match_scorer.py` died (usually an ONNX parse error or OOM). Run it foreground with `python scripts/match_scorer.py checkpoints/model_v0.onnx` and read its stderr.
+**`scorer subprocess closed: ...`** — `match_scorer.py` died (usually an ONNX parse error, shape mismatch on `soft_jacc`, or OOM). Run it foreground with `python scripts/match_scorer.py checkpoints/model_v3_best.onnx` and read its stderr.
 
 **`self-test` numbers look swapped (self-pair < match)** — the cached embeddings in `data/profile_embeddings_self.npy` were built with a different `embed.py` than the model was trained against. Re-run step 5.2 with the current source.
 
@@ -391,8 +409,8 @@ The bootstrap test is the only one wired into CI today. Add new tests under `tes
 
 **ONNX export fails on macOS arm64 with `aten::empty` not supported** — your `torch` is too old or too new for `onnx==1.17`. Pin both per `pyproject.toml` and reinstall: `uv sync --reinstall`.
 
-**Threshold value** — `0.78` is calibrated on the synthetic v0 dataset. Re-run `scripts/threshold_sweep.py` after any model change; the right threshold moves with the data.
+**Threshold value** — `0.40` is the F1-best threshold for the v3-best model on the synthetic v0 dataset. Re-run `scripts/threshold_sweep.py` after any model change; the right threshold moves with the data.
 
 ---
 
-When something is wrong with the model itself (not the pipeline), bump the version on the release tag (`@just-mate@model_attachments@X.Y.Z`) and re-upload the new `model_v0.pt` + `model_v0.onnx`. The Bun server reads by URL only — no version pinning in the server config.
+When something is wrong with the model itself (not the pipeline), bump the version on the release tag (`@just-mate@model_attachments@X.Y.Z`) and re-upload the new checkpoint. The Bun server reads by URL only — no version pinning in the server config.

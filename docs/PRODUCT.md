@@ -51,6 +51,8 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 6. Screen specification
 
+Visual language, motion, haptics and accessibility for every screen below live in `DESIGN.md` (Apple fluid-interface principles applied to a dark map with warm glow); colors named here are its tokens.
+
 ### 6.1 Onboarding (3 screens)
 
 1. **"What are you looking for?"** — intent chips, multi-select, ≥1 required: `date · friends · beer · coffee · walking · sports · music`.
@@ -79,7 +81,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 ### 6.4 Compass (full-screen overlay)
 
 - **Arrow**: large, rotation = bearing(me→partner) − device heading. Points the way; the partner's position is *never* drawn on the map.
-- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue) → `warm` (<200 m, sand) → `hot` (<80 m, orange) → `burning` (<30 m, red) — color + haptic escalation.
+- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue `tempCold`) → `warm` (<200 m, amber `tempWarm`) → `hot` (<80 m, orange `tempHot`) → `burning` (<30 m, white-hot `tempBurning`) — color + label + haptic escalation. Red is reserved for Vanish.
 - **Countdown**: 10:00 session TTL, always visible.
 - **Vanish**: always-visible red control; kills the session for both, instantly.
 - States: `waiting` (partner accepted but no position yet), `active`, `expired` (TTL), `vanished`.
@@ -88,7 +90,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ## 7. Matching system
 
-**Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket.
+**Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket and the cached embeddings/z-vectors described below.
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
@@ -104,7 +106,16 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Learned compatibility model (stretch, after Sat 19:00 only).** A small model trained by the team on interaction data → pairwise score, served behind the same `/compat` interface so it is a drop-in replacement for the function above. Honesty note for the pitch: a model trained only on *synthetic* data derived from the baseline learns the baseline — so if the model ships in M0 it is presented as "the training pipeline is real, the data is synthetic", and the explainable function remains the headline. We do not say "AI matching" about something that is not learned from real signal.
+**Hard gates (server-side, NOT learned).** The model only scores pairs that have already passed: both-in-search-mode · same-zone · shared-intent ≥ 1 · K-anonymity (M0: K=1 demo, M1: K=3) · pair-cooldown · one-active-session · not-self. The model focuses purely on "given shared intent X, how compatible are they on it".
+
+**Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese model with a Match Head, custom-trained by the team. Profile text (intents + interests + vibe card) is embedded via OpenAI `text-embedding-3-small` (frozen), passed through a learned **Shared Encoder** that projects to 128-d compatibility vectors `z_a`, `z_b`, then through a **Match Head** that consumes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility score in `[0, 1]`. Trained with **triplet loss + binary match loss** jointly (one triplet yields two training examples for the head).
+
+- **Serving.** Python + FastAPI behind Bun/Elysia. Vectors (`e` and `z`) cached per user in **PostgreSQL with pgvector**. Match Head weights loaded once on app start; per-pair inference does NOT re-encode — it reads cached `z` from pgvector and runs only the head.
+- **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
+- **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
+- **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
+- **Honesty on stage.** In M0, with synthetic data only, a learned model just learns the baseline. We do not say "AI matching" about something that is not learned from real signal — the explainable function stays the headline; the model card + `docs/ML-MATCHING.md` describe the *real* M1 pipeline.
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md`.
 
 **Attraction vector (the no-faces trick — production path, one sentence on stage).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned. **Legal caveat (do not improvise on stage):** anything derived from a face is biometric data under GDPR Art. 9 (special category) even in derived form, so the production design needs a DPIA and likely explicit consent on *both* sides before any similarity is computed. On stage it stays a one-liner labelled "production path"; the demo never claims it runs.
 

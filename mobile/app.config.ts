@@ -1,4 +1,5 @@
 import type { ExpoConfig } from "expo/config"
+import pkg from "./package.json"
 
 const LOCATION_COPY =
   "JustMate uses your location only while you search, to light up zones and point the compass."
@@ -23,7 +24,7 @@ export default (): ExpoConfig => ({
   name: "JustMate",
   slug: "justmate",
   scheme: "justmate",
-  version: "0.1.0",
+  version: pkg.version,
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   userInterfaceStyle: "light",

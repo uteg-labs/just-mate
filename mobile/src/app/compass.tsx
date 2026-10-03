@@ -1,6 +1,7 @@
 import type { Bucket } from "@justmate/protocol"
 import { router } from "expo-router"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
@@ -31,6 +32,7 @@ function useCountdown(endsAt = 0) {
 }
 
 export default function Compass() {
+  const { t } = useTranslation()
   const session = useStore((s) => s.session)
   const heading = useHeading()
   const countdown = useCountdown(session?.endsAt)
@@ -59,12 +61,12 @@ export default function Compass() {
           ↑
         </Text>
         <Text style={[type.title, { color: BUCKET_COLOR[bucket] }]}>
-          {waiting ? "waiting for signal" : bucket}
+          {waiting ? t("compass.waiting") : t(`compass.${bucket}`)}
         </Text>
       </View>
 
       <Button
-        title="Vanish"
+        title={t("compass.vanish")}
         variant="danger"
         onPress={() => send({ t: "vanish", sessionId: session.id })}
       />

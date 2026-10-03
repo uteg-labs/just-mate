@@ -1,6 +1,13 @@
 # JustMate — client ↔ server protocol (M0)
 
-The contract mobile and backend build against **independently**. One WebSocket per client (Elysia `ws`), JSON text frames, one event per frame. Mobile develops against a 40-line mock server that replays this file; backend develops against `wscat`. Change this file first, code second.
+The contract mobile and backend build against **independently**. Authentication uses JSON over HTTP; the live session uses one Elysia WebSocket per client, JSON text frames, one event per frame. Change this file first, code second.
+
+## Authentication
+
+Better Auth owns `/api/auth/*`, its PostgreSQL tables, cookie sessions, and verification tokens.
+The app is passwordless: `POST /api/auth/sign-in/magic-link` sends a single-use email link and creates
+the user automatically on first verification. The Expo client persists the session cookie in the
+device's secure store. Application HTTP routes use the Better Auth session guard.
 
 ```
 ws://<host>:3000/ws?demo=a|b        (demo query param optional, dev builds only)
@@ -26,7 +33,7 @@ Socket close = search off = session vanished (if any). No goodbye frame needed.
 
 | `t` | Payload | Notes |
 |---|---|---|
-| `hello` | `{ interests: string[], nickname?: string, adult: true }` | First frame. `adult: true` is required (18+ gate); server closes the socket with code `4001` otherwise. ≥3 interests, else `4002`. Intents are **not** part of the profile — they are chosen per session (`search_on`). |
+| `hello` | `{ sessionCookie, interests: string[], nickname?: string, adult: true }` | First frame. The Better Auth session cookie must be valid or the socket closes with `4004`. `adult: true` is required (18+ gate); server closes with `4001` otherwise. ≥3 interests, else `4002`. Intents are **not** part of the profile — they are chosen per session (`search_on`). |
 | `search_on` | `{ intents: string[] }` | Enter search mode under 1–2 intents from the shared vocabulary (`soul_mate · date · beer · coffee · friends · sports · music`); else `error{invalid_intents}`. Sending `search_on` while already searching **replaces** the intents (UC8 "switch intent"). Matchable from the first `position`. |
 | `search_off` | `{}` | Leave search mode. Expires an open offer and ends an active session as `vanished`. |
 | `position` | `{ lat, lng, acc, heading?: number }` | Every ~2 s while searching, and every ~1 s while in an active session. `heading` (0–360, magnetometer) is optional and only informational. |
@@ -115,4 +122,5 @@ B← session_end {sessionId:"s1", reason:"met"}
 | `4001` | `adult` not true |
 | `4002` | invalid profile (interest minimum) |
 | `4003` | protocol violation (e.g. frame before `hello`) |
+| `4004` | missing, invalid, or expired authentication session |
 | `1000` | normal close |

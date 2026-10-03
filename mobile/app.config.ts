@@ -22,7 +22,8 @@ const INTER = [
 
 export default (): ExpoConfig => ({
   name: "JustMate",
-  slug: "justmate",
+  owner: "uteg-labs",
+  slug: "just-mate",
   scheme: "justmate",
   version: pkg.version,
   orientation: "portrait",
@@ -79,6 +80,9 @@ export default (): ExpoConfig => ({
     themeColor: "#FAFAFA",
     backgroundColor: "#FAFAFA",
     favicon: "./assets/brand/favicon.svg",
+  },
+  extra: {
+    eas: { projectId: "f3316851-3772-406c-969e-53476e1133bc" },
   },
   experiments: {
     typedRoutes: true,

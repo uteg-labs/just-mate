@@ -19,6 +19,8 @@ export type CompassViewProps = {
   session: Session
   match: Match
   buckets: Config["buckets"]
+  /** a plan's venue, shown with the intent */
+  place?: string
   onVanish: () => void
   onMet: () => void
 }
@@ -48,7 +50,14 @@ function useWarning(left: number) {
   }, [isLate])
 }
 
-export const CompassView = ({ session, match, buckets, onVanish, onMet }: CompassViewProps) => {
+export const CompassView = ({
+  session,
+  match,
+  buckets,
+  place,
+  onVanish,
+  onMet,
+}: CompassViewProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
@@ -59,6 +68,7 @@ export const CompassView = ({ session, match, buckets, onVanish, onMet }: Compas
   const isWaiting = !bucket
   const isBurning = bucket === "burning"
   const intent = intentLabel(t, match.sharedIntent)
+  const label = place ? `${intent} · ${place}` : intent
 
   useBucketHaptics(bucket)
   useWarning(left)
@@ -70,7 +80,7 @@ export const CompassView = ({ session, match, buckets, onVanish, onMet }: Compas
         { paddingTop: insets.top + space.l, paddingBottom: Math.max(insets.bottom, 36) },
       ]}
     >
-      <Countdown seconds={left} label={t("compass.left", { intent })} />
+      <Countdown seconds={left} label={t("compass.left", { intent: label })} />
 
       <View style={styles.center}>
         <CompassDial

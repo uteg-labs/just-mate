@@ -45,6 +45,16 @@ export function offset(from: LatLng, bearingDeg: number, meters: number): LatLng
 const GEOHASH_BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
 
 export function geohash(p: LatLng, precision: number): string {
+  return geohashCell(p, precision).hash
+}
+
+// a cell's centre stands in for anything inside it, so a stored point is no finer than a zone
+export function cellCentre(p: LatLng, precision: number): LatLng {
+  const { ranges } = geohashCell(p, precision)
+  return { lat: (ranges.lat[0] + ranges.lat[1]) / 2, lng: (ranges.lng[0] + ranges.lng[1]) / 2 }
+}
+
+function geohashCell(p: LatLng, precision: number) {
   const ranges: Record<keyof LatLng, [number, number]> = { lat: [-90, 90], lng: [-180, 180] }
   let hash = ""
   let index = 0
@@ -62,5 +72,5 @@ export function geohash(p: LatLng, precision: number): string {
       index = 0
     }
   }
-  return hash
+  return { hash, ranges }
 }

@@ -10,11 +10,11 @@ The story is loneliness, not dating: one hero, **Tomek** (`PRODUCT.md` §4.1), a
 - **0:30 — Meet Tomek.** One slide. 28, moved to Kraków for a job four months ago, works from home, hasn't said a word out loud all weekend. "He won't organise anything. He's scared nobody would come. And a big Meetup room is worse." The three barriers on screen: **initiative · the empty table · judgment**.
 - **1:00 — The idea.** "JustMate has three rules: no faces, no chat, no people pins. And two speeds: **Plan**, for when you need a reason to go, and **Now**, for when you're already out."
 - **1:20 — LIVE DEMO: Tomek's Thursday (the wow).** Two presenters, two phones, opposite ends of the stage. A is Tomek.
-  1. "Sunday night." A: map → **Mate** → **Plans**. One card: *chess · Thu 19:00 · 9 min on foot · 1 of 2 going*, with B's vibe badge. A reads it aloud: *"techno on fridays — crosswords on sundays"*.
-  2. A taps **I'm in**. Both phones turn **on** at the same moment. "He didn't plan anything. He didn't chat with anyone. He said yes, and he knows someone will be there."
-  3. "Thursday, 18:52." (Demo-mode time skip.) The day-of card: **Leave at 18:52 · 9 min on foot**; the venue is the only pin on the map.
-  4. The stage is the café. Both tap **I'm here** → the compass unlocks on both phones. B walks; the arrow rotates; haptics escalate; the crowd watches the bucket go warm, hot, burning.
-  5. They meet centre-stage. **We met** → *"Say hi to Sam."* Names unlock, nothing else does. Both tap **Same again next week?** → *"Thu 19:00 again."* "That's how a friendship starts. Not the first meeting — the second one." Chessboard up.
+  1. "Sunday night." A opens the map. Under the bento, **your plans · 1 new**. A taps it: B's vibe badge drops from the island, *"techno on fridays — crosswords on sundays"*, with *chess · Thursday 19:00 · Meeple Café · 9 min for you, 7 for them*. A reads it aloud.
+  2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn "you're both in" at the same moment. "He didn't plan anything. He didn't chat with anyone. He said yes, and he knows someone will be there."
+  3. "Thursday, 18:45." (Demo-mode time skip: the demo plan starts two minutes after it's proposed.) The plan page: the venue on the map, "Compass opens 18:45", **Open compass** turns amber.
+  4. The stage is the café. Both tap **Open compass** → the compass unlocks on both phones. B walks; the arrow rotates; haptics escalate; the crowd watches the bucket go warm, hot, burning.
+  5. They meet centre-stage. **We met** → *"Say hi to Sam."* Names unlock, nothing else does. "That's how a friendship starts. And next week he can put one out himself: **Plan for later**, pick a few evenings, pick a café, and the app finds the person." Chessboard up.
 - **3:20 — Now, in one breath.** Slide with two screenshots: "And when you're already out — a tourist on an evening walk — two compatible people who want the same thing ping at the same moment, and the same compass walks them together." (Lucía, `PRODUCT.md` §4.1.) Live only if the clock allows.
 - **3:40 — Safety by design.** Mutual consent before anything unlocks / no people pins / plans only at public venues / 10-minute window / one-tap Vanish. Then, labelled **production path**: verification ladder (phone, selfie, ID), report = block with automatic pause after two independent reports, meeting point first, women-only plans. Preempts the jury's first question.
 - **4:05 — Business, 20 s.** "Cafés have empty tables on a Tuesday; we fill them. Venues pay, users meet for free. We never charge for a meeting or for safety." One number: about 21 partner venues cover a city's running costs (`PRODUCT.md` §16.3, estimate).
@@ -31,9 +31,9 @@ No filmed video. The submission video is the **motion launch** (Remotion `Launch
 
 GPS inside the arena is unreliable, and nobody waits until Thursday on stage — **do not bet the demo on either.**
 
-- **Positions:** a dev-build toggle feeds scripted converging positions through the identical pipeline (plan, compass math, buckets all real). The track is defined relative to the stage (`STAGE_A` / `STAGE_B`, set after seeing the room) because the arrow uses the real magnetometer — a mismatched script makes the arrow point into the audience. For the plan, both demo phones start "at the venue" (within ~100 m), so the walk runs warm → hot → burning.
-- **Time:** the demo plan starts two minutes after it's proposed, and a hidden toggle jumps straight to its start, so "still in?", "leave at" and "I'm here" are reachable live.
-- **Ghosts:** never join real plans. If a plan shows extra attendees, they are canned badges and the README says so.
+- **Positions:** a dev-build toggle feeds scripted converging positions through the identical pipeline (plan, compass math, buckets all real). The track is defined relative to the stage (`STAGE_A` / `STAGE_B`, set after seeing the room) because the arrow uses the real magnetometer — a mismatched script makes the arrow point into the audience. For the plan, the same scripted track runs from **Open compass**, so the walk goes cold → warm → hot → burning.
+- **Time:** a demo socket's plans start two minutes after they're proposed or confirmed, so **Open compass** (start − 15 min) is reachable live.
+- **Ghosts:** never join plans. Demo sockets are only ever proposed to each other.
 - Compass heading comes from the device magnetometer (expo-sensors) — verify on both demo phones; if drifty on stage, the arrow rotation still reads perfectly from ~5 m away.
 
 ## If Plans isn't green by the freeze (Sun 07:00)

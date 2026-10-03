@@ -1,4 +1,4 @@
-import type { Mode } from "@justmate/protocol"
+import type { Mode, Venue } from "@justmate/protocol"
 import { type ReactNode, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native"
@@ -30,6 +30,10 @@ export type MapChromeProps = {
   mode: Mode
   onMode: (mode: Mode) => void
   onProfile: () => void
+  /** the where step: venues to pick from on the map */
+  venues?: Venue[]
+  venue?: Venue
+  onVenue?: (id: string) => void
 }
 
 const RISE = 8
@@ -65,6 +69,9 @@ export const MapChrome = ({
   mode,
   onMode,
   onProfile,
+  venues,
+  venue,
+  onVenue,
 }: MapChromeProps) => {
   const { t } = useTranslation()
   const { c, shadow } = useScheme()
@@ -73,7 +80,7 @@ export const MapChrome = ({
 
   const isAuth = shape === "auth"
   const isSearch = shape === "search"
-  const isMatch = shape === "match"
+  const isMatch = shape === "match" || shape === "planoffer"
   const status: PillStatus = live.link === "lost" ? "offline" : isSearch ? "searching" : "invisible"
   const top = insets.top + 4
 
@@ -89,7 +96,13 @@ export const MapChrome = ({
 
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: c.mapBg }]}>
-      <ZoneMap zones={live.search ? live.zones : []} onZone={isSearch ? setZone : undefined} />
+      <ZoneMap
+        zones={live.search ? live.zones : []}
+        onZone={isSearch ? setZone : undefined}
+        venues={venues}
+        selected={venue}
+        onVenue={onVenue}
+      />
       <View
         pointerEvents="none"
         style={[

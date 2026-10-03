@@ -1,11 +1,16 @@
 import { Elysia } from "elysia"
 
 import { userIdForCookie } from "../auth/auth"
+import { pgRepo } from "../plans/pg-repo"
+import { loadPlans } from "../plans/plans"
 import { isDangerousUser, loadProfile } from "../profile/profile.plugin"
 import { type Client, config, connect, disconnect, receive, tick } from "./session"
 
 const sockets = new Map<string, Client>()
 
+loadPlans(pgRepo, loadProfile, isDangerousUser).catch((err) =>
+  console.error("plans: load failed", err),
+)
 setInterval(tick, config.sessionIntervalMs)
 
 export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {

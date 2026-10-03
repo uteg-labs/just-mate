@@ -473,6 +473,8 @@ Things leave the way they came, and originate from what triggered them.
 
 Other fixed glyphs: `eye-off` invisible · `wifi-off` offline · `search` Find people · `compass` Open compass · `x` Vanish, Stop searching, close category · `hand` We met · `plus` → `check` Keep in touch · `circle-check` you found each other · `shuffle` Reroll · `sparkles` question caption · `arrow-left` back · `arrow-right` Start with you, Create account · `camera` Take selfie · `scan-face` → `shield-check` verify · `map` Enter the map · `chevron-right` settings rows · `shield-check` badge tag.
 
+**Plans**: `calendar-plus` Plan for later, New plan · `calendar-check` Accept plan, confirmed · `map-pin` venue · `send` Send invitation · `bell` reminder · `clock` when · `timer` open until · `eye-off` they see · `user` names unlock · `users` offered to · `pencil` edit a review row · `shuffle` same times for every day · `sparkles` See who's in · `check` picked · `star` rating. Venue icons reuse the intent glyphs (`wine`, `coffee`, `dice-5`, `beer`, `film`, `mountain`, `trees`, `martini`).
+
 **The compass arrow is Lucide `navigation-2`**, filled and stroked with the bucket colour (stroke 1, round join), 62% of the dial, with a drop-shadow glow of 14px in the bucket colour (24px `temp-hot` when burning).
 
 No emoji. No unicode pictographs, except `·` as a separator in copy.

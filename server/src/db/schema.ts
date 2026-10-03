@@ -1,6 +1,6 @@
 import type { DatePrefs, Gender, MatePrefs, Mode, QA, Settings } from "@justmate/protocol"
 import { relations } from "drizzle-orm"
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { boolean, index, integer, jsonb, pgTable, real, text, timestamp, uuid } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -90,6 +90,17 @@ export const profile = pgTable("profile", {
   settings: jsonb("settings").$type<Settings>().notNull(),
   dangerous: boolean("dangerous").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const profileEmbedding = pgTable("profile_embedding", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  selfEmb: real("self_emb").array().notNull(),
+  targetEmb: real("target_emb").array().notNull(),
+  softJacc: real("soft_jacc"),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
 

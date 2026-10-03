@@ -28,7 +28,7 @@ Done = lint, typecheck and tests green.
 
 ## Releases
 
-Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them.
+Conventional commits drive versions. On push to `main`, `.github/workflows/bump-version.yml` bumps every package named by a commit scope (`mobile`/`app`, `server`/`api`, `protocol` — see `properties` in each `package.json`), tags `@justmate/<pkg>@x.y.z`, and `release-on-tag.yml` cuts the GitHub release. Unscoped commits release nothing. Never hand-edit `version`. The workflow files come from [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows) — update them with its CLI `update`, don't edit them. One local change: `bump-version.yml` checks out and pushes with the `GH_TOKEN` secret (a PAT) instead of `GITHUB_TOKEN`, since tags pushed by `GITHUB_TOKEN` never start `release-on-tag`. Re-apply it after every `update`.
 
 ## Hard rules
 

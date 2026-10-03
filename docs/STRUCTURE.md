@@ -32,7 +32,7 @@ flowchart LR
     SR -->|offer, both phones| M[Match card]
     M -->|Dismiss · offer expired| SR
     M -->|both Open compass| C[Compass]
-    C -->|Vanish · time runs out| SEL
+    C -->|Vanish · time runs out · their phone drops| SEL
     C -->|We met, in burning| P[Post-meet]
     P -->|Back to the map| SEL
     SEL -->|monogram| ST[Settings]
@@ -65,6 +65,7 @@ Above the sheet, on the map: the wordmark **just-mate**, "Meet for real.", and m
 - Fields: `email` ("you@example.com") and `password` ("6 characters or more"). The button stays disabled until the email looks valid and the password has 6+ characters.
 - Button: **Log in**, or **Create account** with a trailing arrow.
 - Under it: ghost **Forgot password** (log in), or the footnote "Next: a faceless profile. Two minutes, no photos of you shown to anyone." (create account).
+- The reset email's link (`justmate://reset-password?token=…`) opens the same sheet as "Pick a new password" · "6 characters or more. Your other devices get signed out.", field `new password`, **Save password** → "Password saved. Log in with it." + **Log in**. An expired link reads "this link has expired. ask for a new one from log in."
 
 ### 1. Onboarding (full page, once; single steps reopen from Settings)
 
@@ -86,9 +87,9 @@ Header: ghost back arrow, `StepDots` for the whole flow (mono "editing" when a s
 | **your badge** | eyebrow "about you · your vibe" · "Designed from your picks. All a match sees." | lanyard vibe badge; caption "Colours from {3 interests}. Pattern from your {n} answers."; tertiary **Reroll** | **Keep this vibe** |
 | **who** (date) | "Who are you looking for?" · "Used for matching only. Nobody sees your settings." | interested in: women / men / everyone · age 18–60+ · looking for: something real / see where it goes / something light | **Train my taste** |
 | **who** (mate) | "Who's your kind of mate?" · "Matching uses this. It stays on your side." | who: anyone / same gender · group: one-on-one / small group · energy: chill / either / active · age | **Sounds right** |
-| **swipe** (date) | "Who catches your eye?" · "Swipe sample photos. Your taste trains on this phone and never leaves it." | 6 sample cards (placeholder "sample photo 01", traits line like "tall · dark hair · beard", mono "n of 6 · on-device only"); stamps "into it" / "not for me"; x and heart buttons with "n / 6"; done card "Taste saved on this phone" · "{n} into it · {m} not for me" | **Verify me** · disabled "{n} left to swipe" |
+| **swipe** (date) | "Who catches your eye?" · "Swipe sample photos, never real people. Only the traits you're into are kept, never a photo." | 6 sample cards (a sample photo with its description, or placeholder "sample photo 01" with a traits line like "tall · dark hair · beard"; thinking line "loading sample photos…" first), mono "n of 6 · a sample, not a user"; stamps "into it" / "not for me"; x and heart buttons with "n / 6"; done card "Taste saved" · "{n} into it · {m} not for me" | **Verify me** (loading while the traits are written) · disabled "{n} left to swipe" |
 | **schedule** (mate) | "When are you usually around?" · "Pick any. It helps us time your matches." | weekday mornings · lunch breaks · after work · late nights · weekends; "a hangout usually lasts": an hour / a few hours / all day | **Verify me** · disabled "Pick at least one" |
-| **verify** | date "Prove you're real, and 18+" · mate "Prove you're real" · "One selfie, checked once, then deleted. Nobody ever sees it." | ink selfie panel with oval guide and progress ring; status "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds the check row **"I'm 18 or older"** ("Required for dating. Checked against your selfie."). Footer mono "production path · simulated in this build" | **Take selfie** (loading while scanning) → **Enter the map** (date: only once 18+ is checked) |
+| **verify** | date "Prove you're real, and 18+" · mate "Prove you're real" · "One selfie, checked once, then deleted. Nobody ever sees it." | ink selfie panel with oval guide and progress ring; status "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds the check row **"I'm 18 or older"** ("Required for dating. Checked against your selfie."). Footer mono "liveness check simulated in this build" | **Take selfie** (loading while scanning) → **Enter the map** (date: only once 18+ is checked) |
 
 **Interests**:
 
@@ -124,19 +125,14 @@ Each interest has 3 related ones (coffee → flat white · café hopping · spec
 - Eyebrow "{name} · wants: {first interest}", the vibe line as the quote, and the mode as the tag.
 - Its colours, pattern and icon are designed from your picks and answers (`DESIGN.md` §13.5). It is all a match ever sees of you.
 
-#### Prototype flow in `mobile/src/app/onboarding.tsx`
+**Behind the badge** (never shown to anyone):
 
-What the app currently runs on the `onboading` branch, ahead of the design above (LLM interview, local vision model, swipe over generated reference photos):
+- When the badge appears, the server also writes the **character** from the answers: five lines shaped "Trait — concrete detail." (`PROTOCOL.md` › Onboarding helpers). **Keep this vibe** waits for it (fallback: the answers, one per line). It and the vibe feed the dev profile card in `temporary/` (`docs/examples/profile_card.md`), the ML input.
 
-| Step | Content | Rule |
-|---|---|---|
-| 1 · What are you up for | intent chips (`soul_mate · date · beer · coffee · friends · sports · music`), any number; below them the required checkbox **"I'm 18 or older"** (blocking: no photos and no verification, so the age gate is explicit — `PRODUCT.md` §10). Used only to tailor step 2 — intents stay per-session (`search_on`) and are never sent in `hello` | 18+ |
-| 2 · Interests | chips (min 3) filtered to the interests that fit the intents from step 1 (`mobile/src/lib/interests.ts`); selections that no longer fit are dropped when intents change | feeds the model |
-| 3 · Interview | an LLM (local Ollama in M0) asks 10 questions, one at a time, each built on the interests and the previous answers; the answer is a free-text field. After the 10th answer the LLM writes the vibe (5 × "Trait — concrete detail"); the app assembles the profile card in the `docs/examples/profile_card.md` shape, logs it and saves it to `temporary/<id>.md` through the dev-only `POST /dev/profiles` — the vibe is not part of `hello` yet. If the LLM is unreachable, canned questions are used | no chat |
-| 4 · A quick photo of you | the front camera takes one photo; a local vision model (`EXPO_PUBLIC_LLM_VISION_MODEL`, Ollama) describes only visible hair and face features (hair, face shape, cheekbones, eyes, facial hair, glasses) — never age, ethnicity, gender, weight, emotion or identity. The result is not shown on screen and is saved in `user.appearance`; the purpose is explained only in the system camera-permission prompt (`CAMERA_COPY` in `mobile/app.config.ts`); the photo itself is used once, held in memory and never stored, uploaded to the server or shown to anyone. **Skip** is allowed | no faces shown |
-| 5 · What catches your eye | generated reference photos from `GET /taste` (requested when the step opens), one card at a time: swipe **left = yes**, **right = no**; **Confirm** (enabled once at least one is liked) keeps only the liked photos and enters the map; **Skip** drops every pick. Only the photos of the preferred group are shown — a test constant (`LOOKING_FOR` in `mobile/src/lib/taste.ts`) until the preference is asked in onboarding. The LLM reduces the descriptions of the picked photos to the traits they share, saved as `taste:` in the profile card (`none` when skipped). The taste summary is appended to `user.appearance` as `taste: …` | no faces of users |
+**Swipe and selfie, what is real:**
 
-CTA on step 3: **Next question**, then **Show photos** on the last one; on step 4 **Enter the map** (`hello`). Edit path later: avatar on Home → same steps pre-filled.
+- The swipe cards are generated sample photos from `GET /taste` (`server/taste/<group>/<n>/`), filtered by "interested in" (everyone alternates women and men); without them the striped placeholders and fixed trait lines stand in. These are never users, so they don't break "no faces": they only train taste. When all 6 are swiped, the descriptions of the ones marked "into it" go to the server, which keeps only the traits they share (`profile.taste`); the photos and the "not for me" picks never leave the phone.
+- **Take selfie** opens the front camera (`expo-image-picker`, `CAMERA_COPY` in `app.config.ts`). The photo is held in memory, sent once to the server, which describes only visible hair and face features (`profile.appearance`), and is never stored, logged or shown. Liveness itself is still simulated; without a camera (simulator, access denied) the timed scan alone passes. Cancelling the camera returns to the oval.
 
 ### 2. Select: "What are you up for?" (sheet over the map)
 
@@ -208,8 +204,9 @@ The sheet springs up into an ink card at the top; a scrim dims the map; the stat
 - **Distance bucket** (deliberately imprecise): `cold` over 200 m · `warm` under 200 m · `hot` under 80 m · `burning` under 30 m. Colour + word + haptic escalation (heartbeat 3 s → 1.5 s → 0.7 s). Never colour alone.
 - **Vibe card**, compact: "you're looking for" + their line.
 - **Vanish** (danger, x): always visible, bottom-left, one tap, no confirmation. It ends the session for both and returns to select.
-- **We met** (hand): disabled until the bucket is `burning`, then the glow button → post-meet.
-- States: `waiting-for-signal` · `active` · `expired` · `vanished`.
+- **We met** (hand): disabled until the bucket is `burning`, then the glow button → post-meet. Either side's tap ends the session for both.
+- States: `waiting-for-signal` · `active` · `expired` · `vanished` · `disconnected` (their socket closed; never shown as "vanished").
+- Every end (`session_end`) also ends the search for both: select comes back invisible, and finding people again sends a fresh `search_on`. The select footer swaps "You're invisible until you pick something." for one calm line until the next pick: vanished "The compass closed. You're invisible again." · expired "Time ran out. You're invisible again." · disconnected "The signal dropped. You're invisible again." · auto-stop "Stopped after 30 min. You're invisible again."
 
 ### 6. Post-meet (full screen, night)
 
@@ -218,6 +215,7 @@ The sheet springs up into an ink card at the top; a scrim dims the map; the stat
 - Compact vibe card "an opener, if you need one" with an opener written for the pair ("pineapple. defend your position.").
 - Tertiary **Keep in touch** (plus) → loading → check **Kept** once they tap it too. Primary **Back to the map** → select.
 - Footnote "Keep in touch unlocks only if they tap it too." → "{name} tapped it too. Saved on this phone."
+- **Until names and keep in touch exist on the wire** (Protocol gaps 5–7): their badge shows their vibe line instead of a name, the title reads **"Go say hi."** with "You found each other. The rest is up to you.", and there is no opener card and no Keep in touch; only **Back to the map**.
 
 ### 7. Settings (full page, from the monogram)
 
@@ -227,10 +225,10 @@ Back arrow "Back to the map" · large title "Settings".
 
 | Group | Rows |
 |---|---|
-| your profile | Name · Interests ("a, b +n") · Questions and vibe ("{n} answers") · Who you're after (date "{seek} · {min}–{max}", mate "{anyone\|same gender} · {one-on-one\|small group}") · date: Appearance taste ("on this phone") / mate: When you're around |
+| your profile | Name · Interests ("a, b +n") · Questions and vibe ("{n} answers") · Who you're after (date "{seek} · {min}–{max}", mate "{anyone\|same gender} · {one-on-one\|small group}") · date: Appearance taste ("never shown") / mate: When you're around |
 | the map | Open the map in: Date / Mate · Walk up to: 5 min / 10 min / 15 min · Stop searching after 30 min (switch) |
 | feel | Haptics · Sounds · Reduce motion (switches) |
-| privacy and safety | Taste and photos ("this phone only") · Blocked people ("0") · Download my data |
+| privacy and safety | Taste and photos ("never stored") · Blocked people ("0") · Download my data |
 | account | Email · Log out |
 
 - Footer: ghost **Delete account** · mono "just-mate · prototype · production path simulated".
@@ -267,18 +265,18 @@ sequenceDiagram
     participant A as Phone A
     participant S as Elysia server (Bun)
     participant B as Phone B
-    A->>S: hello {interests, adult}
-    A->>S: search_on {intents: [beer]}
-    B->>S: search_on {intents: [beer]}
+    A->>S: hello {sessionCookie}
+    A->>S: search_on {mode, category, intents: [beer]}
+    B->>S: search_on {mode, category, intents: [beer]}
     loop every 2 s while searching
         A->>S: position
         B->>S: position
         S-->>A: zones
         S-->>B: zones
     end
-    Note over S: dist ≤ 400 m ∧ shared active intent ∧ compat ≥ τ (offer TTL 45 s)
-    S-->>A: match_offer {vibe(B), expiresInMs}
-    S-->>B: match_offer {vibe(A), expiresInMs}
+    Note over S: same mode + category ∧ shared intent ∧ within walk radius ∧ compat ≥ τ (offer TTL 45 s)
+    S-->>A: match_offer {partner(B), expiresInMs}
+    S-->>B: match_offer {partner(A), expiresInMs}
     A->>S: accept
     B->>S: accept
     S-->>A: session_start
@@ -303,7 +301,7 @@ sequenceDiagram
 | select | no category / category open | Find people → search · monogram → settings |
 | search | searching (clock running) | offer → match · Stop searching / auto-stop → select |
 | match | offered / accepted ("waiting for them…") / expired | both accepted → compass · Dismiss / expired → search |
-| compass | waiting-for-signal / active / expired / vanished | We met → postmeet · Vanish / time up → select |
+| compass | waiting-for-signal / active / expired / vanished / disconnected | We met → postmeet · Vanish / time up / their phone drops → select |
 | postmeet | keep in touch: idle / waiting / kept | Back to the map → select |
 | settings | — | Back to the map → select · row → onboard (editing) |
 
@@ -313,35 +311,30 @@ sequenceDiagram
 
 | Shape / action | Events |
 |---|---|
-| Onboarding → Enter the map | `hello {interests, adult: true}` → `ready {userId, vibe, config}` |
-| Select → **Find people for …** / search → **Stop searching** | `search_on {intents}` / `search_off` |
+| App open with a profile | `hello {sessionCookie}` → `ready {userId, config}` · close `4002` → onboarding · `4004` → auth |
+| Select → **Find people for …** / search → **Stop searching** | `search_on {mode, category, intents}` / `search_off` · `search_stopped {auto_stop}` → select |
 | Search | `position` every 2 s → `zones` every 2 s |
 | Match card | `match_offer` → `accept` \| `dismiss` → `session_start` \| `offer_expired` |
 | Compass | `position` every 1 s → `partner_position {bearing, bucket}` (never lat/lng) → `session_end {met\|expired\|vanished\|disconnected}` |
 | Vanish / We met | `vanish {sessionId}` / `met {sessionId}` |
 
-Server truths (today): positions in-memory per socket only · match gate = distance ≤ 400 m + shared active intent (zones are display only) · offer TTL 45 s · session TTL 10 min · pair cooldown 5 min · one active offer/session per user · ghosts never match · k-anonymity (zones < 3 stay dark) in production.
+Server truths (today): positions in-memory per socket only · match gate = same mode + category, a shared intent, within the shorter walk radius (zones are display only) · socket close = search off; an open session ends as `disconnected` for the partner · offer TTL 45 s · session TTL 10 min · pair cooldown 5 min · one active offer/session per user · ghosts never match · k-anonymity (zones < 3 stay dark) in production.
 
 ## Protocol gaps
 
 What the design needs that `PROTOCOL.md` / `@justmate/protocol` don't carry yet. Each one goes protocol-first (doc, then package, then code) before the screen relies on it.
 
-1. **Mode.** Date / Mate isn't on the wire. `hello` has no profile mode, and `search_on` has no session mode. Matching has to stay inside one mode.
-2. **Category + multi-pick intents.** `search_on.intents` takes 1–2 words from `soul_mate · date · beer · coffee · friends · sports · music`. The design sends a category (6 per mode) and any number of its intents, plus "other". The vocabulary, the 2-pick cap and `isIntent` all need replacing. `match_offer.sharedIntent` must name one of the new intents.
-3. **Interest vocabulary.** `INTERESTS` differs from the design's two per-mode lists, and doesn't cover the related interests that picks unlock (open-ended).
-4. **Profile fields.**
-   - `hello` carries only interests, nickname and adult.
-   - The design adds first name, gender, question answers, and the vibe line chosen in onboarding.
-   - Date also adds seek, age range, looking for and appearance taste (on-device score only).
-   - Mate also adds who, group, energy, age range, the "when you're around" slots and hangout length.
-   - And for both: verified.
-5. **Vibe line + badge.** `ready.vibe` / `match_offer.vibe` are written by the server from both profiles. The design shows the partner's **own** vibe line (rerolled and kept in onboarding), their top interests (badge colours, tags), a badge seed and verified / 18+ tags. Post-meet needs an **opener** for the pair.
-6. **Names after meeting.** "Say hi to {name}" needs the partner's first name, and only after `met`, e.g. on `session_end{met}`.
-7. **Keep in touch.** No message exists. It needs a mutual opt-in after `met` (`keep` → both → `kept`) and a decision on what is saved on the phone.
-8. **Offer countdown.** The design counts 45 s down from "0:45". That matches `config.offerTtlMs` (45000) and `match_offer.expiresInMs`. The client must render from `expiresInMs`, not a hard-coded 45.
-9. **Match percentage.** `match_offer.matchPct` is still sent but the design no longer renders it. Keep it dev-only or drop it.
-10. **Walk-up distance + auto-stop.** Settings › "Walk up to 5 / 10 / 15 min" implies a per-user match radius. Today the wire has one global `matchRadiusM` (400 m ≈ 5 min). Auto-stop after 30 min is client-side, but the server could enforce it too.
-11. **18+ in mate mode.** `hello` requires `adult: true` for everyone (close code `4001`). The design asks for the 18+ check only in date mode. Decide whether mate users are also 18+ (safest, and today's server rule) or the gate becomes per mode.
-12. **Verification.** The selfie check is "production path · simulated in this build". A `verified` flag needs a source of truth before it is shown on badges.
-13. **Auth.** The design shows email + password ("6 characters or more", "Forgot password"). The server ships Better Auth magic links. This isn't WebSocket protocol, but the auth sheet and the server must agree.
-14. **Account actions.** Blocked people, Download my data and Delete account have no endpoints yet.
+1. ~~**Mode.**~~ Resolved: `search_on.mode`; the profile has its own `mode`. Matching stays inside one mode.
+2. ~~**Category + multi-pick intents.**~~ Resolved: `search_on {mode, category, intents}` with `CATEGORIES` per mode, any number of picks plus `"other"`. `INTENTS`/`isIntent` are gone; `sharedIntent` is an `Intent` of the new lists.
+3. ~~**Interest vocabulary.**~~ Resolved: `INTERESTS.date` / `INTERESTS.mate`; profiles accept related picks open-endedly, and `POST /api/onboarding/related` serves them.
+4. ~~**Profile fields.**~~ Resolved: the whole profile is stored server-side (`GET`/`PUT /api/profile`, `parseProfile`); `hello` carries only the session cookie. New: the profile needs the user's own `age` (16–99) for the age-range rules, so onboarding needs an age field.
+5. ~~**Vibe line + badge.**~~ Resolved: `match_offer.partner` carries their own vibe line, first 3 interests, `badgeSeed` and `{verified, adult}` tags. Still open: the post-meet **opener** for the pair.
+6. **Names after meeting.** Still open: "Say hi to {name}" needs the partner's first name, and only after `met`, e.g. on `session_end{met}`.
+7. **Keep in touch.** Still open: no message exists. It needs a mutual opt-in after `met` (`keep` → both → `kept`) and a decision on what is saved on the phone.
+8. ~~**Offer countdown.**~~ Resolved: render from `match_offer.expiresInMs` (`config.offerTtlMs`, 45000).
+9. ~~**Match percentage.**~~ Resolved: dropped from `match_offer`.
+10. ~~**Walk-up distance + auto-stop.**~~ Resolved: `search_on.walkMin` (default `settings.walkMin`) → `config.walkRadiusM` (5 → 400 m, 10 → 800 m, 15 → 1200 m; a pair uses the shorter). The server auto-stops after `config.autoStopMs` when `settings.autoStop` is on and sends `search_stopped{auto_stop}`.
+11. ~~**18+ in mate mode.**~~ Resolved: the gate is per mode. Date needs `adult`; mate doesn't, but a non-adult only ever matches another non-adult in mate mode. Close code `4001` is retired.
+12. **Verification.** Partly open: `verified` is stored on the profile and shown on badges, but it's client-set ("simulated in this build"); production needs the verifier as its source of truth.
+13. ~~**Auth.**~~ Resolved: email + password (6+ characters) with "Forgot password" by email; magic links stay available.
+14. **Account actions.** Partly resolved: `DELETE /api/account` and `GET /api/account/export` (Download my data) exist. Blocked people is still open.

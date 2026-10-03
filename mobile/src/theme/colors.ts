@@ -36,6 +36,8 @@ export const light = {
   primaryPress: "#3D3D3D",
   dangerPress: "#CE2E25",
   onDanger: "#FFFFFF",
+  white: "#FFFFFF",
+  black: "#000000",
 
   tempCold: "#3B8FDB",
   tempWarm: "#F5A524",
@@ -47,6 +49,7 @@ export const light = {
   tint: "rgba(0,0,0,0.06)",
   tintHover: "rgba(0,0,0,0.05)",
   trackOff: "#E5E5E5",
+  thumb: "#FFFFFF",
   separator: "rgba(0,0,0,0.06)",
   border: "rgba(23,23,23,0.12)",
   hairlineTop: "rgba(255,255,255,0.9)",
@@ -96,6 +99,8 @@ export const dark = {
   primaryPress: "#BFBFC2",
   dangerPress: "#CE362D",
   onDanger: "#FFFFFF",
+  white: "#FFFFFF",
+  black: "#000000",
 
   tempCold: "#64B5F6",
   tempWarm: "#FFB23F",
@@ -107,6 +112,7 @@ export const dark = {
   tint: "rgba(255,255,255,0.12)",
   tintHover: "rgba(255,255,255,0.16)",
   trackOff: "#333333",
+  thumb: "#FFFFFF",
   separator: "rgba(255,255,255,0.08)",
   border: "rgba(245,245,247,0.12)",
   hairlineTop: "rgba(255,255,255,0.12)",

@@ -1,9 +1,12 @@
 import { Elysia } from "elysia"
 
 import { userIdForCookie } from "../auth/auth"
-import { type Client, connect, disconnect, receive } from "./session"
+import { loadProfile } from "../profile/profile.plugin"
+import { type Client, config, connect, disconnect, receive, tick } from "./session"
 
 const sockets = new Map<string, Client>()
+
+setInterval(tick, config.sessionIntervalMs)
 
 export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
   open(ws) {
@@ -13,8 +16,8 @@ export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
         send: (msg) => ws.send(JSON.stringify(msg)),
         close: (code, reason) => ws.close(code, reason),
       },
+      { userIdForCookie, profileFor: loadProfile },
       demo === "a" || demo === "b" ? demo : undefined,
-      userIdForCookie,
     )
     sockets.set(ws.id, client)
   },

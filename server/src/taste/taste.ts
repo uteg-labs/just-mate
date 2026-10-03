@@ -1,17 +1,22 @@
+import { TASTE_GROUPS, type TasteGroup, type TasteSample } from "@justmate/protocol"
+
 const root = `${import.meta.dir}/../../taste`
-const groups: readonly string[] = ["man", "women"]
 const images = new Bun.Glob("*.{jpg,jpeg,png,webp}")
 
 async function imageIn(folder: string) {
   for await (const name of images.scan({ cwd: folder })) return name
 }
 
-export async function listTaste() {
-  const items: { id: string; group: string; description: string; photo: string }[] = []
+function isGroup(value: string): value is TasteGroup {
+  return (TASTE_GROUPS as readonly string[]).includes(value)
+}
+
+export async function listTaste(): Promise<TasteSample[]> {
+  const items: TasteSample[] = []
 
   for await (const path of new Bun.Glob("*/*/description.txt").scan({ cwd: root })) {
     const [group = "", n = ""] = path.split(/[\\/]/)
-    if (!(await imageIn(`${root}/${group}/${n}`))) continue
+    if (!isGroup(group) || !(await imageIn(`${root}/${group}/${n}`))) continue
 
     items.push({
       id: `${group}/${n}`,
@@ -25,7 +30,7 @@ export async function listTaste() {
 }
 
 export async function tastePhoto(group: string, n: string) {
-  if (!groups.includes(group) || !/^\d{1,2}$/.test(n)) return
+  if (!isGroup(group) || !/^\d{1,2}$/.test(n)) return
   const folder = `${root}/${group}/${n}`
   const name = await imageIn(folder)
   return name ? Bun.file(`${folder}/${name}`) : undefined

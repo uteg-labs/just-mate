@@ -6,10 +6,15 @@ export const radius = {
   full: 9999,
   card: 24,
   sheet: 32,
+  morph: 40,
   match: 32,
   row: 20,
   container: 12,
   inner: 8,
+  tile: 20,
+  tileOpen: 28,
+  tilePill: 26,
+  badge: 20,
 } as const
 
 export const layout = { gutter: 16, sheetPadding: 24, hitMin: 44 } as const

@@ -86,11 +86,17 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ## 7. Matching system
 
-**Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket.
+**Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket and the cached embeddings/z-vectors described below.
 
-**Compatibility model (primary).** A small model, custom-trained by the team, served by the Elysia backend: preference/intent/interest data → pairwise match score. Trained during the event; the transparent function below stays as the explainable baseline and cold-start fallback (and as the sanity check in Q&A).
+**Compatibility model (primary).** A Siamese model with a Match Head, custom-trained by the team. Profile text (intents + interests + vibe card) is embedded via OpenAI `text-embedding-3-small` (frozen), passed through a learned **Shared Encoder** that projects to 128-d compatibility vectors `z_a`, `z_b`, then through a **Match Head** that consumes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility score in `[0, 1]`. Trained with **triplet loss + binary match loss** jointly (one triplet yields two training examples for the head).
 
-**Explainable baseline:**
+- **Serving.** Python + FastAPI behind Bun/Elysia. Vectors (`e` and `z`) cached per user in **PostgreSQL with pgvector**. Match Head weights loaded once on app start; per-pair inference does NOT re-encode — it reads cached `z` from pgvector and runs only the head.
+- **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
+- **Threshold.** The `0.45` rule below applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
+- **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md`.
+
+**Explainable baseline** (transparent, fallback, sanity-check for jury Q&A):
 
 ```
 compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
@@ -100,6 +106,8 @@ match  ⇔ both searching ∧ same zone ∧ shared intent ≥ 1 ∧ compat ≥ 0
 - **Intents gate, interests score.** The shared intent is the *context* of the match ("this is a beer match"), interests set the percentage.
 - **Pair cooldown: 5 min** after any match/dismiss/vanish — no re-pinging the same person, no notification spam.
 - **One active session per user.**
+
+**Hard gates (server-side, NOT learned).** The model only scores pairs that have already passed: both-in-search-mode · same-zone · shared-intent ≥ 1 · K-anonymity (M0: K=1 demo, M1: K=3) · pair-cooldown · one-active-session · not-self. The model focuses purely on "given shared intent X, how compatible are they on it".
 
 **Attraction vector (the no-faces trick).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned.
 

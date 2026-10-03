@@ -2,12 +2,13 @@
 
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 
-Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native.
+Stack: Expo (React Native) app · Bun + Elysia backend (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training) · maplibre-react-native.
 
-## Division of labor (3 roles)
+## Division of labor (4 roles)
 
 - **Mobile**: Expo app — map screen, glow zones, compass + haptics, push
-- **Backend + model**: Bun/Elysia — ws, matching, custom model training/serving, ghost seeding, demo paths, session TTL
+- **Backend**: Bun/Elysia — ws, hard gates (zone / intent / cooldown / session), compass relay, ghost seeding, demo paths, session TTL, ML fallback
+- **ML**: Python + FastAPI — synthetic data generation, Shared Encoder + Match Head, triplet + match-loss training, calibration, pgvector cache integration, /score endpoint
 - **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter
 
 ## Milestones
@@ -17,7 +18,7 @@ Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compati
 | Sat 11:30 | Demo script written (before core code) | `docs/DEMO.md` read aloud once |
 | Sat 13:00 | Dev builds started | Expo dev-client builds cooking on both demo phones (Expo Go fallback) |
 | Sat 14:00 (H+3) | Skeleton | Two devices + Elysia ws skeleton + map renders a zone |
-| Sat 16:00 | **Model v0 trained** | Synthetic dataset → model served by Elysia; baseline formula as fallback |
+| Sat 16:00 | **Model v0 trained** | Synthetic profiles (≥5k) → Shared Encoder + Match Head trained (triplet + match-loss joint) → ONNX/torchscript exported → FastAPI `/score` live → Elysia wired to it with baseline fallback; pgvector cache populated for canned profiles |
 | Sat 19:00 (H+8) | **The project is real** | Match + mutual push working on both phones |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |

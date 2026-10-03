@@ -47,14 +47,17 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-Expo (React Native) mobile app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native + OpenFreeMap · geohash-6 zones. Run instructions land with the scaffold.
+Expo (React Native) mobile app · Bun + Elysia backend (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` for profile text · custom-trained Siamese model (Shared Encoder + Match Head, triplet + match-loss) · maplibre-react-native + OpenFreeMap · geohash-6 zones. Run instructions land with the scaffold.
 
 ```
-docs/     product definition, pitch/demo scripts, build plan, submission pack
-mobile/   Expo app — profile, zone map, compass, push
-server/   Bun + Elysia — zones, matching, compass relay
-ml/       compatibility-model training
+docs/            product definition, pitch/demo scripts, build plan, ML matching, submission pack
+mobile/          Expo app — profile, zone map, compass, push
+server/          Bun + Elysia — zones, matching, compass relay, hard gates
+ml/              Python + FastAPI — Shared Encoder, Match Head, training, calibration, scoring
+shared-infra/    PostgreSQL + pgvector schema, migrations
 ```
+
+ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ## What's real vs canned (demo honesty)
 
@@ -63,5 +66,7 @@ ml/       compatibility-model training
 | Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
 | Zone glow from live positions | Vibe-card strings (until the model generates them) |
 | Mutual match + native push | Demo-mode scripted positions (indoor GPS) |
-| Custom-trained compatibility model | Attraction-side training data (synthetic until M1) |
+| Shared Encoder + Match Head (architecture, weights, training loop) | Training labels (rule-based synthetic ground truth, not real interactions) |
+| OpenAI embedding pipeline (cached per user in pgvector) | Attraction-side training data (synthetic until M1) |
+| Explainable baseline as fallback & jury sanity check | Negative sampling strategy (random for demo, semi-hard for production) |
 | Compass (magnetometer bearing), haptics, vanish | |

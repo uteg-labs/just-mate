@@ -1,6 +1,6 @@
-# just-mate
+# JustMate
 
-**Meet for real.** just-mate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
+**Meet for real.** JustMate helps two compatible strangers who want the same thing *right now* find each other in the real world — faceless, mutual, and on foot.
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków).
 
@@ -16,8 +16,8 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 
 ## How it works
 
-1. Build a faceless profile: what you're looking for (date, friends, a beer, coffee, an activity) + interests.
-2. Switch **search mode** on — only when you actually want to meet (default off: battery + privacy + intent).
+1. Build a faceless profile once: interests + a 2-line vibe card. No photo.
+2. On the map, pick what you want *right now* (a beer, coffee, friends, a soul mate…) and tap **Find people** — only when you actually want to meet (default invisible: battery + privacy + intent in one action).
 3. See zones glow where compatible people might be. Search/browse doesn't exist.
 4. When two compatible people, both searching, with aligned intents come within ~400 m of each other — **both** get notified at the same moment, with a 2-line personality card of the other person.
 5. Either opens the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
@@ -33,7 +33,7 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 
 ## Why now (the wedge: *consented serendipity*)
 
-Every leg of this mechanic is market-validated; nobody assembled it: happn proved proximity (but retrospective, photo-first), Breeze proved skipping chat (but scheduled dates), S'More proved faceless demand (dead), the Zenly lineage proved people love live maps (but friends only). just-mate is the assembly: real-time, mutual, faceless, on foot.
+Every leg of this mechanic is market-validated; nobody assembled it: happn proved proximity (but retrospective, photo-first), Breeze proved skipping chat (but scheduled dates), S'More proved faceless demand (dead), the Zenly lineage proved people love live maps (but friends only). JustMate is the assembly: real-time, mutual, faceless, on foot.
 
 ## HackYeah 2026 submission plan
 
@@ -41,23 +41,68 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 |---|---|
 | Task (default) | OPEN: Sport & Healthcare — loneliness/mental-wellbeing framing ("a social prescription you walk to") |
 | Task (alt) | OPEN: ImpactHer — if a woman on the team pitches the safety-by-design story |
-| Title (≤5 words, EN) | `just-mate: Meet For Real` |
+| Title (≤5 words, EN) | `JustMate: Meet For Real` |
 | Deck | English, ≤10 slides, PDF — see `docs/SUBMISSION.md` |
 | Deadlines | Sat 20:00 draft upload (mandatory) · Sun 11:00 final · Sun 16:00 pitch |
 
 ## Stack
 
-Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay) · Python + FastAPI ML service (compatibility scoring) · PostgreSQL with pgvector (per-user embedding & z-vector cache) · OpenAI `text-embedding-3-small` for profile text · custom-trained Siamese model (Shared Encoder + Match Head, triplet + match-loss) · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
+
+**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
-mobile/          Expo dev-client app — onboarding, zone map, match banner, compass, push
-server/          Bun + Elysia — zones, matching, compass relay, hard gates
-ml/              Python + FastAPI — Shared Encoder, Match Head, training, calibration, scoring
-shared-infra/    PostgreSQL + pgvector schema, migrations
+mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
+server/          Bun + Elysia — zones, distance-gated matching, hard gates, compass relay, TTLs, ghosts
+packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
+ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
+shared-infra/    (stretch) PostgreSQL + pgvector schema, migrations
 ```
 
 ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
+
+## Run
+
+Needs Bun ≥ 1.3 and Xcode (iOS) or Android Studio (Android); Docker only for the stretch pgvector cache. Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
+
+```bash
+bun install
+```
+
+Backend on `:3000` (`ws://<host>:3000/ws`), or the mock that replays the PROTOCOL.md happy path on `:3001`:
+
+```bash
+bun run dev:server
+```
+
+```bash
+bun run dev:mock
+```
+
+Mobile is a dev-client build — `expo-maps` is native, so Expo Go cannot run it. Copy `mobile/.env.example` to `mobile/.env` (WS URL; Google Maps key for Android), then build and run on a simulator or a plugged-in phone:
+
+```bash
+bun --cwd mobile ios
+```
+
+Or build in the cloud for both demo phones:
+
+```bash
+bunx eas-cli build --profile development --platform all
+```
+
+Checks (run before every push):
+
+```bash
+bun run lint && bun run typecheck && bun run test
+```
+
+Stretch: the pgvector cache (`ml/` is bootstrapped by `docs/ml/specs/01-bootstrap.md`):
+
+```bash
+docker compose -f shared-infra/docker-compose.yml up -d
+```
 
 ## What's real vs canned (demo honesty)
 
@@ -66,9 +111,8 @@ ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 | Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
 | Zone glow from live positions | Vibe-card strings (until the model generates them) |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
-| Shared Encoder + Match Head (architecture, weights, training loop) | Training labels (rule-based synthetic ground truth, not real interactions) |
-| OpenAI embedding pipeline (cached per user in pgvector) | Attraction-side training data (synthetic until M1) |
-| Explainable baseline as fallback & jury sanity check | Negative sampling strategy (random for demo, semi-hard for production) |
+| Explainable compatibility scoring (the formula in `docs/PRODUCT.md` §7) | Attraction vector (simulated) |
 | Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
+| *If the stretch ships:* Shared Encoder + Match Head training loop and the compiled `match_scorer` binary scoring `z` pairs over stdin/stdout | *If the stretch ships:* training labels are rule-based synthetic ground truth, not real interactions — "real pipeline, canned data", never "AI matching" |
 
-Not in M0 by decision: remote push (the app is in the foreground whenever search mode is on; push is an M1 item for background search).
+Not in M0 by decision: remote push (the app is in the foreground whenever you are searching; push is an M1 item for background search) and any database (positions live in memory per socket; the pgvector cache belongs to the ML stretch).

@@ -1,11 +1,11 @@
-# just-mate — demo & pitch script (HackYeah 2026)
+# JustMate — demo & pitch script (HackYeah 2026)
 
 Stage format: ~5 min pitch + ~5 min jury Q&A, 10-slide max. **The wow moment must land inside minute two.**
 
 ## 5-minute stage script
 
 - **0:00 — Hook.** "Dating apps solved matching. They broke meeting." Numbers on screen **only with a citable source** (one hostile fact-check sinks the opening): loneliness ≈ 15 cigarettes/day (US Surgeon General Advisory 2023, citing Holt-Lunstad). The "hours swiped per date" and "% of matches never meet" lines stay in only if a named source is found by Sat 20:00 — otherwise cut them and keep the one bulletproof number.
-- **0:45 — The rules.** "just-mate has three rules: no faces, no chat, no pins." One-liner: two compatible strangers who want the same thing right now — faceless, mutual, on foot.
+- **0:45 — The rules.** "JustMate has three rules: no faces, no chat, no pins." One-liner: two compatible strangers who want the same thing right now — faceless, mutual, on foot.
 - **1:15 — Why now.** One slide: happn proved proximity (retrospective, photo-first), Breeze proved skipping chat (scheduled), S'More proved faceless (dead), Zenly proved live maps (friends only). "Every quarter of this mechanic is validated. Nobody assembled the walk."
 - **1:45 — LIVE DEMO (the wow).** Two presenters, two phones, opposite ends of the stage.
   1. A: picks **Beer** on the "Where to?" sheet, taps **Find people**. Zones glow.

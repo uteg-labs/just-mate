@@ -1,0 +1,16 @@
+# stretch only — M0 keeps everything in memory (README "Not in M0")
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: justmate
+      POSTGRES_PASSWORD: justmate
+      POSTGRES_DB: justmate
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  db:

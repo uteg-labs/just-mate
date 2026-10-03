@@ -65,7 +65,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.2 Home — "Where to?" (the one screen; layout detail in `STRUCTURE.md` §2)
 
-- Dark base map (maplibre-react-native + OpenFreeMap), **zones** rendered as amber glow circles sized by the density of compatible searchers for the active intent (halo + core layers, additive-feel).
+- Dark native base map (`expo-maps`: Apple Maps on iOS, Google Maps on Android), **zones** rendered as amber glow circles sized by the density of compatible searchers for the active intent (halo + core layers, additive-feel).
 - Own position: small mint dot. No other dots, ever.
 - **Bottom sheet** with the prompt **"Where to?"** and intent chips; primary CTA **Find people**. While searching the sheet collapses to a status card (`● searching: beer`, elapsed time, **Stop searching**).
 - Zone tap → aggregate only ("~4 compatible around here"). No identities, no profiles, no history.

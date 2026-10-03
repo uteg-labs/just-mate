@@ -2,5 +2,16 @@ node_modules/
 dist/
 .env
 .env.*
+!.env.example
 .DS_Store
 *.log
+
+.expo/
+ios/
+android/
+
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.pt

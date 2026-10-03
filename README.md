@@ -19,9 +19,9 @@ Dating apps solved matching and broke meeting. People swipe alone at home, chat 
 1. Build a faceless profile: what you're looking for (date, friends, a beer, coffee, an activity) + interests.
 2. Switch **search mode** on — only when you actually want to meet (default off: battery + privacy + intent).
 3. See zones glow where compatible people might be. Search/browse doesn't exist.
-4. When two compatible people, both searching, with aligned intents enter the same zone — **both** get notified, with a 2-line personality card of the other person.
+4. When two compatible people, both searching, with aligned intents come within ~400 m of each other — **both** get notified at the same moment, with a 2-line personality card of the other person.
 5. Either opens the **compass**: a directional arrow with hot/cold haptics, active for 10 minutes.
-6. Walk. Meet. Talk. A real conversation in the real world.
+6. Walk. Meet. Talk. A real conversation in the real world — and a note of how far you walked to get there.
 
 ## Safety by design
 
@@ -47,11 +47,11 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-Expo (React Native) mobile app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native + OpenFreeMap · geohash-6 zones. Run instructions land with the scaffold.
+Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) · Bun + Elysia backend over one WebSocket per client · explainable compatibility scoring (learned model as a drop-in stretch) · maplibre-react-native + OpenFreeMap · geohash-6 zones for display, 400 m distance gate for matching. Run instructions land with the scaffold.
 
 ```
-docs/     product definition, pitch/demo scripts, build plan, submission pack
-mobile/   Expo app — profile, zone map, compass, push
+docs/     product definition, protocol (client↔server contract), pitch/demo scripts, build plan, submission pack
+mobile/   Expo dev-client app — onboarding, zone map, match banner, compass, post-meet
 server/   Bun + Elysia — zones, matching, compass relay
 ml/       compatibility-model training
 ```
@@ -62,6 +62,8 @@ ml/       compatibility-model training
 |---|---|
 | Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
 | Zone glow from live positions | Vibe-card strings (until the model generates them) |
-| Mutual match + native push | Demo-mode scripted positions (indoor GPS) |
-| Custom-trained compatibility model | Attraction-side training data (synthetic until M1) |
-| Compass (magnetometer bearing), haptics, vanish | |
+| Mutual match delivered live to both phones (WebSocket, in-app buzz) | Demo-mode scripted positions (indoor GPS) |
+| Explainable compatibility scoring | Attraction vector (simulated); learned model, if shown, trained on synthetic data |
+| Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
+
+Not in M0 by decision: remote push (the app is in the foreground whenever search mode is on; push is an M1 item for background search).

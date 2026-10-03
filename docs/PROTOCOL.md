@@ -102,6 +102,10 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 
 The photos are generated faces used only as taste references; the client never uploads a user photo.
 
+| Route | Body | Notes |
+|---|---|---|
+| `PUT /api/profile` | `{ interests: string[], character: string, appearance: string \| null }` | Authenticated (session cookie). Writes the onboarding result to the caller's `user` row; unknown interests are dropped. `appearance` holds the selfie feature description plus a `taste: …` line, or `null`. |
+
 ## Dev-only HTTP
 
 Not part of the WebSocket contract, absent when `NODE_ENV=production`.

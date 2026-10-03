@@ -34,7 +34,9 @@ const VIBE_WRITER =
 
 const KEEP_ALIVE = "30m"
 
-type Options = { maxTokens: number; json?: boolean }
+const visionModel = process.env.EXPO_PUBLIC_LLM_VISION_MODEL ?? "qwen2.5vl:7b"
+
+type Options = { maxTokens: number; json?: boolean; images?: string[] }
 
 export const warmUp = () =>
   fetch(`${url}/api/generate`, {
@@ -43,19 +45,23 @@ export const warmUp = () =>
     body: JSON.stringify({ model, keep_alive: KEEP_ALIVE }),
   }).catch(() => undefined)
 
-async function chat(system: string, user: string, { maxTokens, json }: Options): Promise<string> {
+async function chat(
+  system: string,
+  user: string,
+  { maxTokens, json, images }: Options,
+): Promise<string> {
   const res = await fetch(`${url}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model,
+      model: images ? visionModel : model,
       stream: false,
       keep_alive: KEEP_ALIVE,
       format: json ? "json" : undefined,
-      options: { num_ctx: 2048, num_predict: maxTokens },
+      options: { num_ctx: images ? 4096 : 2048, num_predict: maxTokens },
       messages: [
         { role: "system", content: system },
-        { role: "user", content: user },
+        { role: "user", content: user, images },
       ],
     }),
   })
@@ -81,6 +87,27 @@ export async function nextQuestion(
     console.warn("[llm] canned question:", error)
   }
   return FALLBACK[history.length % FALLBACK.length] ?? ""
+}
+
+const APPEARANCE_WRITER =
+  "You describe only the visible facial and hair features of the person in a photo, for a " +
+  "matching profile. Cover hair (color, length, style), face shape, cheekbones, eyes, eyebrows, " +
+  "facial hair and glasses. Output a single line of comma-separated traits, max 25 words, no " +
+  "heading or Markdown. Never state or guess age, ethnicity, nationality, gender, weight, " +
+  "emotion or name, and never identify the person. If no face is visible, output exactly: none"
+
+export async function describeAppearance(photoBase64: string) {
+  try {
+    const features = (
+      await chat(APPEARANCE_WRITER, "Describe the visible features.", {
+        maxTokens: 80,
+        images: [photoBase64],
+      })
+    ).trim()
+    return features && features.toLowerCase() !== "none" ? features : undefined
+  } catch (error) {
+    console.warn("[llm] appearance unavailable:", error)
+  }
 }
 
 const TASTE_WRITER =

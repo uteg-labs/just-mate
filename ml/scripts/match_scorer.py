@@ -1,9 +1,8 @@
 """Standalone match-scorer binary.
 
-Runs the exported ONNX model (full pipeline: 1536-d embeddings → score)
-in a single Python interpreter. Communicates with the parent process via
-newline-delimited JSON on stdin/stdout — same shape as the spec's
-`match_scorer` binary from docs/ML-MATCHING.md §6.1.
+Runs the exported ONNX model (full pipeline: 1536-d embeddings + soft-jaccard
+→ score) in a single Python interpreter. Communicates with the parent process
+via newline-delimited JSON on stdin/stdout.
 
 Run as a subprocess from any language:
 
@@ -11,8 +10,13 @@ Run as a subprocess from any language:
 
 Wire format (newline-delimited JSON):
   request  → stdin :  {"id":"req_42", "target_emb":[...1536 floats...],
-                         "self_emb":  [...1536 floats...]}
+                         "self_emb":  [...1536 floats...],
+                         "soft_jacc": <scalar float>}
   response → stdout:  {"id":"req_42", "score":0.78}
+
+The `soft_jacc` field is REQUIRED for v3 models (the third input). Use
+`compute_soft_jaccard_pair()` from `just_mate_ml.data.embed` to derive it
+from two profiles' interests.
 
 Errors are returned as:
   response → stdout:  {"id":"req_42", "error":"<message>"}
@@ -46,18 +50,26 @@ def load_session(model_path: Path) -> ort.InferenceSession:
     return ort.InferenceSession(str(model_path), sess_options=so)
 
 
-def score_one(sess, target_emb: list[float], self_emb: list[float]) -> float:
+def score_one(
+    sess, target_emb: list[float], self_emb: list[float], soft_jacc: float = 0.0
+) -> float:
     target_arr = np.asarray(target_emb, dtype=np.float32)[None, :]   # (1, 1536)
     self_arr = np.asarray(self_emb, dtype=np.float32)[None, :]
-    score = sess.run(None, {"target_emb": target_arr, "self_emb": self_arr})[0]
+    sj_arr = np.asarray([soft_jacc], dtype=np.float32)[None, :]      # (1, 1)
+    score = sess.run(
+        None,
+        {"target_emb": target_arr, "self_emb": self_arr, "soft_jacc": sj_arr},
+    )[0]
     return float(score[0])
 
 
-def score_pair(sess, target_a, self_a, target_b, self_b) -> float:
+def score_pair(
+    sess, target_a, self_a, target_b, self_b, soft_ab: float, soft_ba: float
+) -> float:
     """Symmetric pair score: A→B + B→A, sum ∈ [0, 2]. Inference on the
-    production server uses this with the calibrated threshold (≈0.85)."""
-    s_ab = score_one(sess, target_a, self_b)
-    s_ba = score_one(sess, target_b, self_a)
+    production server uses this with the calibrated threshold."""
+    s_ab = score_one(sess, target_a, self_b, soft_ab)
+    s_ba = score_one(sess, target_b, self_a, soft_ba)
     return s_ab + s_ba
 
 
@@ -75,7 +87,8 @@ def serve_loop(sess) -> None:
             continue
         try:
             req_id = req["id"]
-            score = score_one(sess, req["target_emb"], req["self_emb"])
+            soft = float(req.get("soft_jacc", 0.0))
+            score = score_one(sess, req["target_emb"], req["self_emb"], soft)
             sys.stdout.write(json.dumps({"id": req_id, "score": score}) + "\n")
         except KeyError as e:
             sys.stdout.write(json.dumps({"id": req.get("id"), "error": f"missing key: {e}"}) + "\n")
@@ -85,30 +98,32 @@ def serve_loop(sess) -> None:
 
 
 def self_test(sess) -> None:
-    """Sanity check using REAL profile embeddings from data/.
-
-    A self-pair (target=target, self=self) MUST score high. A cross-pair
-    (target=A, self=B where A≠B and they don't match well) MUST score low.
-    Using random Gaussian vectors doesn't work — the model is trained on
-    OpenAI text-embedding-3-small outputs, so out-of-distribution inputs
-    give meaningless numbers.
-    """
-    from pathlib import Path
+    """Sanity check using REAL profile embeddings and soft_jaccard cache."""
     here = Path(__file__).resolve().parents[1]
     self_emb = np.load(here / "data" / "profile_embeddings_self.npy")
     target_emb = np.load(here / "data" / "profile_embeddings_target.npy")
+    sj_cache = np.load(here / "data" / "soft_jaccard.npy")
 
     # Pick a profile that has a real match in the triplets and one that doesn't.
     z = np.load(here / "data" / "triplets.npz")
     val = z["anchor"][0]; pos = z["positive"][0]; neg = z["negative"][0]
+    soft_v_p = float((sj_cache[val, pos] + sj_cache[pos, val]) / 2)
+    soft_v_n = float((sj_cache[val, neg] + sj_cache[neg, val]) / 2)
 
-    s_self = score_one(sess, target_emb[val].tolist(), self_emb[val].tolist())
-    s_match = score_one(sess, target_emb[val].tolist(), self_emb[pos].tolist())
-    s_nonmatch = score_one(sess, target_emb[val].tolist(), self_emb[neg].tolist())
-    s_pair_match = score_pair(sess, target_emb[val].tolist(), self_emb[val].tolist(),
-                                target_emb[pos].tolist(), self_emb[pos].tolist())
-    s_pair_nonmatch = score_pair(sess, target_emb[val].tolist(), self_emb[val].tolist(),
-                                   target_emb[neg].tolist(), self_emb[neg].tolist())
+    s_self = score_one(sess, target_emb[val].tolist(), self_emb[val].tolist(),
+                       float((sj_cache[val, val] + sj_cache[val, val]) / 2))
+    s_match = score_one(sess, target_emb[val].tolist(), self_emb[pos].tolist(), soft_v_p)
+    s_nonmatch = score_one(sess, target_emb[val].tolist(), self_emb[neg].tolist(), soft_v_n)
+    s_pair_match = score_pair(
+        sess, target_emb[val].tolist(), self_emb[val].tolist(),
+        target_emb[pos].tolist(), self_emb[pos].tolist(),
+        soft_v_p, soft_v_p,
+    )
+    s_pair_nonmatch = score_pair(
+        sess, target_emb[val].tolist(), self_emb[val].tolist(),
+        target_emb[neg].tolist(), self_emb[neg].tolist(),
+        soft_v_n, soft_v_n,
+    )
     print(json.dumps({
         "self_test": True,
         "score_self_pair": s_self,
@@ -120,7 +135,7 @@ def self_test(sess) -> None:
     print(f"self-pair score       = {s_self:.4f}  (anchor's target vs anchor's self; expect HIGH, ≥ match)")
     print(f"match directional     = {s_match:.4f}  (expect HIGH)")
     print(f"nonmatch directional  = {s_nonmatch:.4f}  (expect < match)")
-    print(f"symmetric match pair  = {s_pair_match:.4f}  (expect HIGH, well above threshold 0.85)")
+    print(f"symmetric match pair  = {s_pair_match:.4f}  (expect HIGH, well above threshold)")
     print(f"symmetric nonmatch    = {s_pair_nonmatch:.4f}  (expect LOW, below threshold)")
 
 

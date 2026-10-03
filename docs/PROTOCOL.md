@@ -1,4 +1,4 @@
-# just-mate — client ↔ server protocol (M0)
+# JustMate — client ↔ server protocol (M0)
 
 The contract mobile and backend build against **independently**. One WebSocket per client (Elysia `ws`), JSON text frames, one event per frame. Mobile develops against a 40-line mock server that replays this file; backend develops against `wscat`. Change this file first, code second.
 

@@ -1,4 +1,4 @@
-# just-mate — 24h build plan (HackYeah 2026)
+# JustMate — 24h build plan (HackYeah 2026)
 
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 

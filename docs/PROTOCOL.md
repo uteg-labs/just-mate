@@ -86,6 +86,23 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 - `STAGE_A` / `STAGE_B` are env vars set *after* seeing the stage: A = stage-left end, B = stage-right end, both facing the audience. Because the arrow uses the real magnetometer, the scripted bearing must match the physical direction B actually walks — otherwise the arrow visibly points off-stage.
 - Demo sockets are matched only with each other (ghost rule + a `demoPair` flag), so neither phone can be offered anyone else.
 
+## HTTP (outside the WebSocket)
+
+| Route | Response | Notes |
+|---|---|---|
+| `GET /taste` | `{ id: string, group: "man"\|"women", description: string, photo: string }[]` | Reference photos for the onboarding taste step, from `server/taste/<group>/<n>/` (`description.txt` + one image). Folders without an image are skipped. `photo` is a path on the same host. |
+| `GET /taste/:group/:n/photo` | the image | `404` if the folder or image does not exist. |
+
+The photos are generated faces used only as taste references; the client never uploads a user photo.
+
+## Dev-only HTTP
+
+Not part of the WebSocket contract, absent when `NODE_ENV=production`.
+
+| Route | Body | Notes |
+|---|---|---|
+| `POST /dev/profiles` | `{ id: string, markdown: string }` | Writes the onboarding profile card (`docs/examples/profile_card.md` shape) to `temporary/<id>.md` at the repo root. `id` must match `^[A-Za-z0-9_-]{1,40}$`. |
+
 ## Minimal happy-path transcript
 
 ```

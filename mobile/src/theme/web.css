@@ -35,6 +35,8 @@
   --danger: #ff3b30;
   --danger-press: #ce2e25;
   --on-danger: #ffffff;
+  --white: #ffffff;
+  --black: #000000;
   --primary-press: #3d3d3d;
   --success: #28c840;
   --focus-ring: #6b97ff;
@@ -48,6 +50,7 @@
   --tint: rgb(0 0 0 / 0.06);
   --tint-hover: rgb(0 0 0 / 0.05);
   --track-off: #e5e5e5;
+  --thumb: #ffffff;
   --separator: rgba(0, 0, 0, 0.06);
   --hairline-top: rgba(255, 255, 255, 0.9);
   --scrim: rgba(0, 0, 0, 0.28);
@@ -98,6 +101,9 @@
     );
   --shadow-glow: 0 0 0 1px rgba(255, 178, 63, 0.45), 0 8px 24px -8px rgba(255, 160, 40, 0.55);
   --shadow-sheet: 0 0 0 1px rgb(0 0 0 / 0.05), 0 -12px 40px -12px rgba(0, 0, 0, 0.14);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-badge: 0 34px 50px -22px rgba(0, 0, 0, 0.38), 0 10px 20px -10px rgba(0, 0, 0, 0.2);
+  --shadow-clip: 0 6px 10px -4px rgba(0, 0, 0, 0.4);
 }
 
 .dark {
@@ -119,6 +125,8 @@
   --self: #5eead4;
   --danger: #ff453a;
   --danger-press: #ce362d;
+  --white: #ffffff;
+  --black: #000000;
   --primary-press: #bfbfc2;
   --success: #30d158;
   --temp-cold: #64b5f6;
@@ -131,6 +139,7 @@
   --tint: rgb(255 255 255 / 0.12);
   --tint-hover: rgb(255 255 255 / 0.16);
   --track-off: #333333;
+  --thumb: #ffffff;
   --separator: rgba(255, 255, 255, 0.08);
   --hairline-top: rgba(255, 255, 255, 0.12);
   --scrim: rgba(0, 0, 0, 0.45);
@@ -214,6 +223,9 @@
     ), 0 96px 96px -48px var(--dm-drop);
   --shadow-glow: 0 0 0 1px rgba(255, 178, 63, 0.35), 0 8px 32px -8px rgba(255, 178, 63, 0.55);
   --shadow-sheet: 0 -1px 0 0 var(--hairline-top), 0 -24px 48px -12px rgba(0, 0, 0, 0.5);
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-badge: 0 34px 50px -22px rgba(0, 0, 0, 0.38), 0 10px 20px -10px rgba(0, 0, 0, 0.2);
+  --shadow-clip: 0 6px 10px -4px rgba(0, 0, 0, 0.4);
 }
 
 :root {
@@ -272,11 +284,16 @@
   --radius-button: 9999px;
   --radius-card: 24px;
   --radius-sheet: 32px;
+  --radius-morph: 40px;
   --radius-match: 32px;
   --radius-row: 20px;
   --radius-inner: 8px;
   --radius-container: 12px;
   --radius-full: 9999px;
+  --radius-tile: 20px;
+  --radius-tile-open: 28px;
+  --radius-tile-pill: 26px;
+  --radius-badge: 20px;
 
   --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-momentum: cubic-bezier(0.34, 1.36, 0.64, 1);
@@ -290,6 +307,15 @@
   --dur-default: 400ms;
   --dur-bento: 440ms;
   --dur-morph: 520ms;
+  --dur-follow: 120ms;
+  --dur-word: 360ms;
+  --dur-lift: 420ms;
+  --dur-settle: 700ms;
+  --dur-swing: 1100ms;
+  --dur-drop: 1300ms;
+  --dur-headline: 3200ms;
+  --stagger-word: 55ms;
+  --ease-lift: cubic-bezier(0.5, 0, 0.75, 0);
   --press-scale: 0.97;
 }
 @media (prefers-reduced-motion: reduce) {

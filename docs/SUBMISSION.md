@@ -32,7 +32,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 ## Screenshots to capture (for gallery + deck)
 
 1. Profile screen (chips selected, no photo)
-2. Dark map with glowing zones + search toggle ON
+2. Home — "Where to?" sheet + glowing zones (the Bolt-shot)
 3. Match banner on two phones side by side (the money shot)
 4. Compass full-screen (arrow + distance bucket + countdown)
 5. Vanish button close-up

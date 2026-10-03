@@ -40,53 +40,22 @@ Every feature decision is tested against these three rules; anything that violat
 
 ## 5. The core loop
 
-1. **Profile once (3 minutes).** Pick intents (what you're looking for) and interests (what you're into). No photo. Optional nickname, never shown to others.
-2. **Search mode ON — deliberately, per occasion.** Default is OFF: you activate it when you're actually out and open to meeting (battery, privacy, and intent all in one toggle). This is the anti-Highlight: session-scoped, never ambient.
-3. **Watch zones glow.** The map shows geohash zones lit by the density of searching users. No list, no search field, no browsing — scarcity of information is the feature.
+1. **Profile once (3 minutes).** Interests + the private attraction setup (explain-only in M0). No photo, no nickname needed.
+2. **Pick tonight's intent — deliberately, per occasion.** Home is a Bolt-style "Where to?" sheet: Soul mate · Beer · Coffee · Attractions · Friends · Sports · Music. Tap **Find people** and you're searching for exactly that; the default state is invisible. Battery, privacy, and intent in one action — the anti-Highlight: session-scoped, never ambient.
+3. **Watch zones glow.** The map lights geohash zones by the density of *compatible* searchers for your intent. No list, no search field, no browsing — scarcity of information is the feature.
 4. **The ping (the product's heartbeat).** Two compatible people, both searching, intents aligned, same zone → both phones notify simultaneously: match %, shared intent ("wants: beer"), and a 2-line vibe card of the other person.
 5. **Mutual accept → compass unlocks.** Only if both tap "open compass". Either alone sees nothing more.
 6. **The walk.** A directional arrow with hot/cold color and haptics; distance as a bucket (cold/warm/hot/burning), never a map pin of the other person. 10-minute window.
 7. **Meet. Talk.** The vibe card doubles as the icebreaker. Afterward, session ends; positions are discarded.
 8. **Either can Vanish** at any moment — session destroyed for both instantly.
 
-## 6. Screen specification
+## 6. Screens & flows
 
-### 6.1 Onboarding (3 screens)
-
-1. **"What are you looking for?"** — intent chips, multi-select, ≥1 required: `date · friends · beer · coffee · walking · sports · music`.
-2. **"What are you into?"** — interest chips, ≥3 required: `beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food`.
-3. **"Your vibe card."** — preview of the 2-line card others will see (generated vibes, e.g. *"quietly funny — will out-argue you about pizza"*). Explains the attraction vector in one sentence: *"Optionally (production): train your private attraction profile on your own device — photos never leave your phone; only a compatibility number ever does."* Button: **Enter the map**.
-
-Design intent: the whole funnel communicates "this is not a profile-picture app" before the user ever sees the map.
-
-### 6.2 Map (home screen)
-
-- Dark base map (maplibre-react-native + OpenFreeMap), **zones** rendered as amber glow circles sized by searching-user density (halo + core layers, additive-feel).
-- Own position: small mint dot. No other dots, ever.
-- Single prominent control: the **search toggle** (`search off` / `● searching`).
-- Zone tap → aggregate only ("6 people searching in this zone"). No identities, no profiles, no history.
-- States: search off (map dimmed, zones hidden — you're invisible too), searching (glow visible, you're matchable).
-
-### 6.3 Match banner (arrives on both phones simultaneously)
-
-- `78% match · wants: beer`
-- Vibe card in quotes: *"quietly funny — will out-argue you about pizza"*
-- **[ open compass ]** — primary; **[ dismiss ]** — ghost button
-- Caption: *"unlocks only if they accept too"* — consent made visible.
-- Vibration `[200,100,200]` on arrival.
-
-### 6.4 Compass (full-screen overlay)
-
-- **Arrow**: large, rotation = bearing(me→partner) − device heading. Points the way; the partner's position is *never* drawn on the map.
-- **Distance as bucket** (gamified, deliberately imprecise): `cold` (>200 m, blue) → `warm` (<200 m, sand) → `hot` (<80 m, orange) → `burning` (<30 m, red) — color + haptic escalation.
-- **Countdown**: 10:00 session TTL, always visible.
-- **Vanish**: always-visible red control; kills the session for both, instantly.
-- States: `waiting` (partner accepted but no position yet), `active`, `expired` (TTL), `vanished`.
-- Post-meet (future): optional one-tap "how did it go?" to tune matching.
+Four surfaces: **Onboarding** (faceless profile), **Home — "Where to?"** (Bolt-style fullscreen map + intent sheet: zones glow as a heatmap of compatible people), the **Match overlay**, and **Compass**. Full screen specs, use cases, sequence flows, and the client↔server message contract live in `STRUCTURE.md` — the source of truth for the mobile app.
 
 ## 7. Matching system
 
-**Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket.
+**Data model.** `user = { id, interests[], attractionVector (private) }` + `session = { activeIntents[], ttl }` — intents are picked per occasion on Home; interests/attraction live on the profile. Nothing persisted server-side beyond the live socket.
 
 **Compatibility model (primary).** A small model, custom-trained by the team, served by the Elysia backend: preference/intent/interest data → pairwise match score. Trained during the event; the transparent function below stays as the explainable baseline and cold-start fallback (and as the sanity check in Q&A).
 
@@ -94,7 +63,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ```
 compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
-match  ⇔ both searching ∧ same zone ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
+match  ⇔ both searching ∧ same zone ∧ shared active intent ≥ 1 ∧ compat ≥ 0.45
 ```
 
 - **Intents gate, interests score.** The shared intent is the *context* of the match ("this is a beer match"), interests set the percentage.

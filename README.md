@@ -47,19 +47,62 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ## Stack
 
-**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · maplibre-react-native + OpenFreeMap (fallback inside Expo Go: `react-native-maps` with circle overlays — see `docs/BUILD-PLAN.md` risks) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
+**M0 (what runs in the demo):** Expo (React Native, **dev-client build** — the map is a native module, so Expo Go does not run it) mobile app · Bun + Elysia backend over one WebSocket per client (zones, matching, compass relay — contract in `docs/PROTOCOL.md`) · explainable compatibility scoring · native maps via `expo-maps` (Apple Maps on iOS, Google Maps on Android; glow zones as circle overlays) · geohash-6 zones for display, 400 m distance gate for matching. No database, no push.
 
-**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`. Run instructions land with the scaffold.
+**Stretch / M1 (documented, built only if the core loop is green by Sat 19:00):** PyTorch training of a Siamese model (Shared Encoder + Match Head, triplet + match-loss) → **export to ONNX** → **compiled C++ inference binary `match_scorer`** built against `onnxruntime` and **spawned by the Bun server as a long-lived subprocess**; the binary loads the ONNX graph at boot and exchanges pairwise scores with the server as **newline-delimited JSON over stdin/stdout** — **no FastAPI, no HTTP between server and model**. OpenAI `text-embedding-3-small` for profile text. PostgreSQL with pgvector as embedding cache. See `docs/ML-MATCHING.md`.
 
 ```
 docs/            product definition, app structure (STRUCTURE.md), design system (DESIGN.md), protocol (client↔server contract), pitch/demo scripts, build plan, ML matching, submission pack
 mobile/          Expo dev-client app — onboarding, Home ("Where to?" map), match banner, compass, post-meet
 server/          Bun + Elysia — zones, distance-gated matching, hard gates, compass relay, TTLs, ghosts
+packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              (stretch) PyTorch training (Shared Encoder, Match Head, calibration) → ONNX export · C++ inference binary `match_scorer` against onnxruntime — single executable, spawned by the server, no Python at inference time
 shared-infra/    (stretch) PostgreSQL + pgvector schema, migrations
 ```
 
 ML process details: see [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
+
+## Run
+
+Needs Bun ≥ 1.3 and Xcode (iOS) or Android Studio (Android); Docker only for the stretch pgvector cache. Conventions for humans and agents: [`AGENTS.md`](AGENTS.md).
+
+```bash
+bun install
+```
+
+Backend on `:3000` (`ws://<host>:3000/ws`), or the mock that replays the PROTOCOL.md happy path on `:3001`:
+
+```bash
+bun run dev:server
+```
+
+```bash
+bun run dev:mock
+```
+
+Mobile is a dev-client build — `expo-maps` is native, so Expo Go cannot run it. Copy `mobile/.env.example` to `mobile/.env` (WS URL; Google Maps key for Android), then build and run on a simulator or a plugged-in phone:
+
+```bash
+bun --cwd mobile ios
+```
+
+Or build in the cloud for both demo phones:
+
+```bash
+bunx eas-cli build --profile development --platform all
+```
+
+Checks (run before every push):
+
+```bash
+bun run lint && bun run typecheck && bun run test
+```
+
+Stretch: the pgvector cache (`ml/` is bootstrapped by `docs/ml/specs/01-bootstrap.md`):
+
+```bash
+docker compose -f shared-infra/docker-compose.yml up -d
+```
 
 ## What's real vs canned (demo honesty)
 

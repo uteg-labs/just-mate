@@ -55,7 +55,7 @@ Visual language, motion, haptics and accessibility for every screen below live i
 
 ### 6.1 Onboarding (3 screens — `STRUCTURE.md` §1 is the source of truth for the app)
 
-Intents are **not** chosen here: they are picked per session on Home (§6.2). Intent vocabulary (shared by Home chips, protocol and scoring): `soul mate · beer · coffee · attractions · friends · sports · music`.
+Intents are **not** chosen here: they are picked per session on Home (§6.2). Intent vocabulary (shared by Home chips, protocol and scoring): `soul mate · date · beer · coffee · friends · sports · music`.
 
 1. **"What are you into?"** — interest chips, ≥3 required: `beer · coffee · boardgames · rock · techno · hiking · cinema · books · travel · tech · dogs · climbing · photography · food`.
 2. **"Who catches your eye"** — explain-only in M0: *"your attraction profile trains on your device — photos never leave your phone; only a compatibility number does"* (real training: M1, see §7).
@@ -65,7 +65,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.2 Home — "Where to?" (the one screen; layout detail in `STRUCTURE.md` §2)
 
-- Dark base map (maplibre-react-native + OpenFreeMap), **zones** rendered as amber glow circles sized by the density of compatible searchers for the active intent (halo + core layers, additive-feel).
+- Dark native base map (`expo-maps`: Apple Maps on iOS, Google Maps on Android), **zones** rendered as amber glow circles sized by the density of compatible searchers for the active intent (halo + core layers, additive-feel).
 - Own position: small mint dot. No other dots, ever.
 - **Bottom sheet** with the prompt **"Where to?"** and intent chips; primary CTA **Find people**. While searching the sheet collapses to a status card (`● searching: beer`, elapsed time, **Stop searching**).
 - Zone tap → aggregate only ("~4 compatible around here"). No identities, no profiles, no history.

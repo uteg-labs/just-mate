@@ -2,10 +2,12 @@
 
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 
+Stack: Expo (React Native) app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native.
+
 ## Division of labor (3 roles)
 
-- **FE**: map screen, glow zones, compass UI + haptics, dark "glow" aesthetic
-- **BE**: ws server, matching, ghost seeding, demo-mode paths, match-session TTL
+- **Mobile**: Expo app — map screen, glow zones, compass + haptics, push
+- **Backend + model**: Bun/Elysia — ws, matching, custom model training/serving, ghost seeding, demo paths, session TTL
 - **Pitch/design**: deck, screenshots, demo script owner, mentor rounds, presenter
 
 ## Milestones
@@ -13,8 +15,10 @@ Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account requi
 | Time | Milestone | Definition of done |
 |---|---|---|
 | Sat 11:30 | Demo script written (before core code) | `docs/DEMO.md` read aloud once |
-| Sat 14:00 (H+3) | Skeleton | Two clients + ws echo + map renders a zone |
-| Sat 19:00 (H+8) | **The project is real** | Match + mutual notify working on both phones |
+| Sat 13:00 | Dev builds started | Expo dev-client builds cooking on both demo phones (Expo Go fallback) |
+| Sat 14:00 (H+3) | Skeleton | Two devices + Elysia ws skeleton + map renders a zone |
+| Sat 16:00 | **Model v0 trained** | Synthetic dataset → model served by Elysia; baseline formula as fallback |
+| Sat 19:00 (H+8) | **The project is real** | Match + mutual push working on both phones |
 | Sat 20:00 | **Mandatory HackTribe draft** | Title + 500-word description + screenshot + draft deck uploaded |
 | Sat evening | Real deck | 10-slide English deck built before sleeping (it is the first judge) |
 | Overnight | Juice | Compass polish, haptics, glow aesthetic, seeded fixtures, demo-mode timing tuned |
@@ -31,8 +35,8 @@ Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account requi
 | Jury raises stalking | HIGH | Safety-by-design slide at 3:30 — turn the question into the answer |
 | Live demo dies on stage | MED | Backup video recorded twice; never debug on stage |
 | Cold-start question | MED | Density-first launch answer rehearsed (campus/festival/venue partners) |
-| Scope creep (real ML, chat, push) | MED | Everything canned is listed in README honesty table; no new scope after Sat 20:00 |
-| PWA geolocation blocked over LAN http | LOW | `adb reverse` localhost trick (docs/DEMO.md); demo mode unaffected |
+| Scope creep (real ML rabbit holes, chat, push infra) | MED | Model training timeboxed to 2h with baseline fallback; no new scope after Sat 20:00 |
+| Expo dev-client build lead time | MED | Start builds by Sat 13:00; Expo Go as demo fallback |
 
 ## Rubric math (open-task rubric)
 

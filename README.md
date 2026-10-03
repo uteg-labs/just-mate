@@ -45,33 +45,23 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 | Deck | English, ≤10 slides, PDF — see `docs/SUBMISSION.md` |
 | Deadlines | Sat 20:00 draft upload (mandatory) · Sun 11:00 final · Sun 16:00 pitch |
 
-## Repo layout
+## Stack
+
+Expo (React Native) mobile app · Bun + Elysia backend · custom-trained compatibility model · maplibre-react-native + OpenFreeMap · geohash-6 zones. Run instructions land with the scaffold.
 
 ```
-docs/          product definition, pitch/demo scripts, build plan, submission pack
-server/        Node + ws realtime server: zones, matching, compass relay, demo ghosts
-app/           Vite + React PWA: profile, zone map (MapLibre/OpenFreeMap), compass
+docs/     product definition, pitch/demo scripts, build plan, submission pack
+mobile/   Expo app — profile, zone map, compass, push
+server/   Bun + Elysia — zones, matching, compass relay
+ml/       compatibility-model training
 ```
-
-## Run
-
-```bash
-# terminal 1 — realtime server (:8787)
-cd server && npm install && npm start
-
-# terminal 2 — client (:5173)
-cd app && npm install && npm run dev
-```
-
-- Two laptops/phones: open `http://localhost:5173/?demo=a` and `/?demo=b` — scripted converging positions (GPS indoors at an arena is unreliable; the pipeline is identical, only the position source is scripted).
-- Real GPS: open without `?demo`. Geolocation needs a secure context — on an Android phone over USB run `adb reverse tcp:5173 tcp:5173` and open `http://localhost:5173`.
-- Both sides: fill profile → enable search → wait for the zone match → accept → compass.
 
 ## What's real vs canned (demo honesty)
 
 | Real | Canned (labelled) |
 |---|---|
-| Profiles, intents, interests | The private attraction vector (precomputed stable vectors; the story: "your photo never leaves your phone — only an anonymous compatibility number does") |
-| Zone glow from live positions | Ghost users adding density (server spawns wandering ghosts) |
-| Mutual match + notification | Personality-card strings (canned vibe pairs) |
-| Compass bearing math, haptics, vanish | Push notifications (in-app banner + vibration instead) |
+| Profiles, intents, interests | Ghost users adding zone density (server spawns wandering ghosts) |
+| Zone glow from live positions | Vibe-card strings (until the model generates them) |
+| Mutual match + native push | Demo-mode scripted positions (indoor GPS) |
+| Custom-trained compatibility model | Attraction-side training data (synthetic until M1) |
+| Compass (magnetometer bearing), haptics, vanish | |

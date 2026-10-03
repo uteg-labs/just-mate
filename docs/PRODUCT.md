@@ -61,7 +61,7 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.2 Map (home screen)
 
-- Dark base map (MapLibre + OpenFreeMap), **zones** rendered as amber glow circles sized by searching-user density (halo + core layers, additive-feel).
+- Dark base map (maplibre-react-native + OpenFreeMap), **zones** rendered as amber glow circles sized by searching-user density (halo + core layers, additive-feel).
 - Own position: small mint dot. No other dots, ever.
 - Single prominent control: the **search toggle** (`search off` / `● searching`).
 - Zone tap → aggregate only ("6 people searching in this zone"). No identities, no profiles, no history.
@@ -88,7 +88,9 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 **Data model.** `user = { id, intents[], interests[], attractionVector (private), session }` — nothing persisted server-side beyond the live socket.
 
-**Compatibility (transparent by design):**
+**Compatibility model (primary).** A small model, custom-trained by the team, served by the Elysia backend: preference/intent/interest data → pairwise match score. Trained during the event; the transparent function below stays as the explainable baseline and cold-start fallback (and as the sanity check in Q&A).
+
+**Explainable baseline:**
 
 ```
 compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
@@ -98,7 +100,6 @@ match  ⇔ both searching ∧ same zone ∧ shared intent ≥ 1 ∧ compat ≥ 0
 - **Intents gate, interests score.** The shared intent is the *context* of the match ("this is a beer match"), interests set the percentage.
 - **Pair cooldown: 5 min** after any match/dismiss/vanish — no re-pinging the same person, no notification spam.
 - **One active session per user.**
-- **Why not ML now:** a transparent function is explainable to users and jurors, debuggable in a hackathon, and honest. The architecture (vector in → score out) is exactly where a model plugs in later.
 
 **Attraction vector (the no-faces trick).** Users never publish photos. In production, a user may *privately* train an on-device embedding of "faces I like" (their own examples, never uploaded); during matching only a scalar similarity to the other's on-device vector is exchanged — a number, never an image. Hackathon demo: deterministic simulated vectors; the claim in the pitch is the architecture, demonstrated honestly as canned.
 
@@ -109,7 +110,7 @@ match  ⇔ both searching ∧ same zone ∧ shared intent ≥ 1 ∧ compat ≥ 0
 - **Zone = geohash precision 6** (~1.2 km × 0.6 km at Kraków's latitude): big enough for anonymity, small enough for "walkable now".
 - **Glow semantics:** count of *search-mode* users in the cell, rendered as size/brightness. Zones with fewer than **K=3** searching users stay dark (k-anonymity in production; demo shows all) — you can't follow a glow to *the only* person in it.
 - **Data flow:** client sends position every ~2 s (while searching) → server keeps it in-memory keyed by socket → computes zone → matches → relays position *only* between mutually-accepted partners *only* during the session → everything discarded on disconnect/vanish/TTL. No database. No history. No logs of positions.
-- **Demo mode:** `?demo=a` / `?demo=b` substitute scripted converging positions (indoor GPS reality); identical pipeline.
+- **Demo mode:** scripted converging positions driven by a dev-build toggle (indoor GPS reality); identical pipeline.
 
 ## 9. Match session lifecycle (state machine)
 
@@ -185,11 +186,11 @@ The 2012 graveyard (Sonar, Highlight) died of empty rooms; just-mate launches wh
 
 | Stage | Scope |
 |---|---|
-| **M0 — HackYeah 2026** (this repo) | PWA, demo mode, transparent matching, compass, ghosts for density glow |
-| **M1 — production MVP** | Native shells + push, k-anonymity (K≥3), block/report, persistence-free audit, DPIA, E2E position encryption between paired sessions |
+| **M0 — HackYeah 2026** (this repo) | Expo app (push, magnetometer compass), Bun/Elysia backend, custom-trained model v0 + explainable baseline, demo mode |
+| **M1 — production MVP** | k-anonymity (K≥3), block/report, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
 | **v1** | On-device attraction vector (train-on-phone), generated vibe cards (Bielik/LLM), brave streaks |
 | **v2** | Venue/event platform (official zones, analytics), city heat events |
 
 ## 18. Demo scope & honesty
 
-See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match + notification, compass bearing math, haptics, vanish. Everything auxiliary is honestly canned: attraction vectors (deterministic stubs), ghost density, vibe-card strings, in-app banners instead of push.
+See README ("What's real vs canned"). Everything presentation-critical is real: profiles, zones from live positions, mutual match + push, custom-trained model, compass bearing, haptics, vanish. Everything auxiliary is honestly canned: ghost density, vibe-card strings, demo-mode positions; attraction-side training data is synthetic until M1.

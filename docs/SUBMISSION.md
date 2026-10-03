@@ -25,7 +25,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 5. **How it works** — the 6-step loop as a diagram (profile → search toggle → zones → mutual ping → compass → meet)
 6. **Safety by design** — mutual / zones-not-pins / ephemeral / 10-min / Vanish
 7. **Demo** — live, or the 60s video + two phone screenshots
-8. **Tech** — geofenced sessions, geohash-6 zones, on-device attraction vectors, MapLibre/OpenFreeMap, PWA; real-vs-canned honesty line
+8. **Tech** — geofenced sessions, geohash-6 zones, custom-trained compatibility model, Expo app, Bun + Elysia backend; real-vs-canned honesty line
 9. **Launch** — density-first: one campus/festival/city; venue partnerships ("first beer"); zone glow is an aggregate so the map is alive from day one
 10. **Credits & licenses** — AI use credited (compatibility function + canned cards), OpenFreeMap/OSM attribution, test data only
 
@@ -39,7 +39,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 ## AI-use disclosure (required by rules)
 
-"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. Compatibility scoring is a transparent function (interests × intents), attraction vectors are simulated on-device; personality cards are canned strings."
+"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. The compatibility model is custom-trained by the team (dataset and training credited); personality cards are canned strings in the demo."
 
 ## Pre-submit checklist (Sun 10:30)
 

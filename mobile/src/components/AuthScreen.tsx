@@ -1,10 +1,14 @@
 import type { ReactNode } from "react"
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { LocalSvg } from "react-native-svg/css"
 
 import { colors } from "@/theme/colors"
+import { shadow } from "@/theme/elevation"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
+
+const SYMBOL = require("@/assets/brand/just-mate-symbol.svg")
 
 type Props = {
   eyebrow: string
@@ -15,7 +19,6 @@ type Props = {
 
 export const AuthScreen = ({ eyebrow, title, description, children }: Props) => (
   <SafeAreaView style={styles.screen}>
-    <View style={styles.glow} />
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -25,11 +28,9 @@ export const AuthScreen = ({ eyebrow, title, description, children }: Props) => 
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mark}>
-          <View style={styles.markCore} />
-        </View>
+        <LocalSvg asset={SYMBOL} width={56} height={56} />
         <View style={styles.copy}>
-          <Text style={[type.caption, styles.eyebrow]}>{eyebrow}</Text>
+          <Text style={[type.mono, styles.eyebrow]}>{eyebrow}</Text>
           <Text style={[type.largeTitle, styles.title]}>{title}</Text>
           <Text style={[type.body, styles.description]}>{description}</Text>
         </View>
@@ -40,40 +41,19 @@ export const AuthScreen = ({ eyebrow, title, description, children }: Props) => 
 )
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
+  screen: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
-  glow: {
-    position: "absolute",
-    top: -130,
-    alignSelf: "center",
-    width: 360,
-    height: 360,
-    borderRadius: 180,
-    backgroundColor: "rgba(255,178,63,0.06)",
-  },
   content: { flexGrow: 1, justifyContent: "center", padding: space.xl, gap: space.xxl },
-  mark: {
-    width: 48,
-    height: 48,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 24,
-    backgroundColor: "rgba(255,178,63,0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(255,178,63,0.24)",
-  },
-  markCore: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.glow },
   copy: { gap: space.s },
-  eyebrow: { color: colors.glow, textTransform: "uppercase" },
-  title: { color: colors.textPrimary },
-  description: { color: colors.textSecondary },
+  eyebrow: { color: colors.fg2 },
+  title: { color: colors.fg1 },
+  description: { color: colors.fg2 },
   card: {
     gap: space.l,
     padding: space.xl,
     borderRadius: radius.card,
     borderCurve: "continuous",
-    borderWidth: 1,
-    borderColor: colors.separator,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceCard,
+    boxShadow: shadow[3],
   },
 })

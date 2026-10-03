@@ -2,21 +2,46 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet"
 import { INTENTS, type Intent } from "@justmate/protocol"
 import { BlurView } from "expo-blur"
 import { router } from "expo-router"
+import {
+  Beer,
+  Coffee,
+  Dumbbell,
+  FerrisWheel,
+  Heart,
+  type LucideIcon,
+  Music,
+  Search,
+  Users,
+} from "lucide-react-native"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
+import { ScrollView, StyleSheet, Text, View } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 
 import { Button } from "@/components/Button"
 import { Chip } from "@/components/Chip"
 import { MatchBanner } from "@/components/MatchBanner"
+import { Monogram } from "@/components/Monogram"
+import { StatusPill } from "@/components/StatusPill"
 // import { ZoneMap } from "@/components/ZoneMap"
 import { authClient } from "@/lib/auth-client"
 import { usePositionReports } from "@/lib/location"
 import { send, useStore } from "@/lib/store"
 import { colors } from "@/theme/colors"
-import { radius, space } from "@/theme/layout"
+import { shadow } from "@/theme/elevation"
+import { layout, radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
+
+// DESIGN.md §9
+const INTENT_ICON: Record<Intent, LucideIcon> = {
+  soul_mate: Heart,
+  date: FerrisWheel,
+  beer: Beer,
+  coffee: Coffee,
+  friends: Users,
+  sports: Dumbbell,
+  music: Music,
+}
 
 export default function Home() {
   const { t } = useTranslation()
@@ -38,36 +63,32 @@ export default function Home() {
     <View style={styles.screen}>
       {/* <ZoneMap zones={zones} /> */}
 
-      <SafeAreaView style={styles.pill} pointerEvents="none">
-        <BlurView tint="systemThinMaterialDark" intensity={60} style={styles.pillBody}>
-          <Text style={[type.caption, styles.text]}>
-            {searching
-              ? t("home.searching", {
-                  intents: intents.map((item) => t(`intents.${item}`)).join(", "),
-                })
-              : t("home.invisible")}
-          </Text>
-        </BlurView>
-      </SafeAreaView>
-
-      <SafeAreaView style={styles.accountArea} pointerEvents="box-none">
-        <Pressable
-          accessibilityLabel={t("home.openAccount")}
+      <SafeAreaView style={styles.top} pointerEvents="box-none">
+        <View pointerEvents="none">
+          <StatusPill
+            searching={searching}
+            label={
+              searching
+                ? t("home.searching", {
+                    intents: intents.map((item) => t(`intents.${item}`)).join(", "),
+                  })
+                : t("home.invisible")
+            }
+          />
+        </View>
+        <Monogram
+          label={t("home.openAccount")}
+          initials={authSession?.user.name.slice(0, 1)}
           onPress={() => router.push("/account")}
-          style={({ pressed }) => [styles.account, pressed && styles.accountPressed]}
-        >
-          <Text style={[type.caption, styles.accountText]}>
-            {authSession?.user.name.slice(0, 1).toUpperCase()}
-          </Text>
-        </Pressable>
+        />
       </SafeAreaView>
 
       <BottomSheet
         snapPoints={["28%"]}
         enableDynamicSizing={false}
-        handleIndicatorStyle={{ backgroundColor: colors.textTertiary }}
+        handleIndicatorStyle={styles.grabber}
         backgroundComponent={({ style }) => (
-          <BlurView tint="systemChromeMaterialDark" intensity={80} style={[style, styles.sheet]} />
+          <BlurView tint="systemThickMaterialLight" intensity={80} style={[style, styles.sheet]} />
         )}
       >
         <BottomSheetView style={styles.sheetContent}>
@@ -75,12 +96,14 @@ export default function Home() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            style={styles.chipsBleed}
             contentContainerStyle={styles.chips}
           >
             {INTENTS.map((i) => (
               <Chip
                 key={i}
                 label={t(`intents.${i}`)}
+                icon={INTENT_ICON[i]}
                 selected={i === intent}
                 onPress={() => setIntent(i)}
               />
@@ -89,12 +112,14 @@ export default function Home() {
           {searching ? (
             <Button
               title={t("home.stop")}
-              variant="ghost"
+              variant="secondary"
+              size="md"
               onPress={() => send({ t: "search_off" })}
             />
           ) : (
             <Button
               title={t("home.find")}
+              icon={Search}
               onPress={() => send({ t: "search_on", intents: [intent] })}
             />
           )}
@@ -107,31 +132,26 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  pill: { position: "absolute", top: 0, alignSelf: "center" },
-  accountArea: { position: "absolute", top: 0, right: space.l },
-  account: {
-    width: 44,
-    height: 44,
+  screen: { flex: 1, backgroundColor: colors.mapBg },
+  top: {
+    position: "absolute",
+    top: 0,
+    left: layout.gutter,
+    right: layout.gutter,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.full,
-    backgroundColor: colors.glow,
-  },
-  accountPressed: { transform: [{ scale: 0.97 }], opacity: 0.85 },
-  accountText: { color: colors.onGlow },
-  pillBody: {
-    paddingHorizontal: space.m,
-    paddingVertical: space.s,
-    borderRadius: radius.full,
-    overflow: "hidden",
+    justifyContent: "space-between",
   },
   sheet: {
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
+    borderCurve: "continuous",
     overflow: "hidden",
+    boxShadow: `inset 0 1px 0 0 ${colors.hairlineTop}, ${shadow.sheet}`,
   },
-  sheetContent: { paddingHorizontal: space.xl, gap: space.l },
-  chips: { gap: space.s },
-  text: { color: colors.textPrimary },
+  grabber: { width: 36, height: 5, backgroundColor: colors.fg3 },
+  sheetContent: { paddingHorizontal: layout.sheetPadding, gap: 14 },
+  chipsBleed: { marginHorizontal: -layout.sheetPadding },
+  chips: { gap: space.s, paddingHorizontal: layout.sheetPadding },
+  text: { color: colors.fg1 },
 })

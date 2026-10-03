@@ -1,6 +1,7 @@
 import { INTENTS, type Intent } from "@justmate/protocol"
 import * as ImagePicker from "expo-image-picker"
 import { router } from "expo-router"
+import { Check } from "lucide-react-native"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -34,8 +35,8 @@ import { newProfileId, profileCard, saveProfile, saveProfileCard } from "@/lib/p
 import { send } from "@/lib/store"
 import { type TastePhoto, useTastePhotos } from "@/lib/taste"
 import { colors } from "@/theme/colors"
-import { radius, space } from "@/theme/layout"
-import { fade } from "@/theme/motion"
+import { layout, radius, space } from "@/theme/layout"
+import { fade, pressScale } from "@/theme/motion"
 import { type } from "@/theme/type"
 
 const MIN_INTERESTS = 3
@@ -44,7 +45,9 @@ const SELFIE = 3
 const TASTE = 4
 const SLOTS = Array.from({ length: QUESTIONS }, (_, i) => i)
 
-type Selfie = { status: "idle" | "loading" | "failed" | "denied" } | { status: "ready"; features: string }
+type Selfie =
+  | { status: "idle" | "loading" | "failed" | "denied" }
+  | { status: "ready"; features: string }
 
 function toggle<T>(list: T[], item: T): T[] {
   return list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
@@ -248,7 +251,7 @@ export default function Onboarding() {
                   multiline
                   maxLength={280}
                   placeholder={t("onboarding.answerPlaceholder")}
-                  placeholderTextColor={colors.textTertiary}
+                  placeholderTextColor={colors.fg3}
                   style={[type.body, styles.input]}
                 />
               </>
@@ -298,14 +301,21 @@ export default function Onboarding() {
 
         <View style={styles.footer}>
           {step === 0 && (
-            <Pressable style={styles.check} onPress={() => setAdult(!adult)} hitSlop={10}>
-              <View style={[styles.box, adult && styles.boxOn]} />
-              <Text style={[type.body, styles.text]}>{t("onboarding.adult")}</Text>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: adult }}
+              style={({ pressed }) => [styles.check, pressed && styles.checkPressed]}
+              onPress={() => setAdult(!adult)}
+            >
+              <View style={[styles.box, adult ? styles.boxOn : styles.boxOff]}>
+                {adult && <Check size={16} color={colors.background} strokeWidth={2.5} />}
+              </View>
+              <Text style={[type.headline, styles.text]}>{t("onboarding.adult")}</Text>
             </Pressable>
           )}
           <Button title={nextTitle ?? ""} disabled={!canNext} onPress={onNext} />
           {selfing && selfie.status === "ready" && (
-            <Button title={t("onboarding.retake")} variant="ghost" onPress={takePhoto} />
+            <Button title={t("onboarding.retake")} variant="tertiary" onPress={takePhoto} />
           )}
           {selfing && (
             <Button
@@ -324,7 +334,7 @@ export default function Onboarding() {
             />
           )}
           {step > 0 && !selfing && !tasting && (
-            <Button title={t("onboarding.back")} variant="ghost" onPress={back} />
+            <Button title={t("onboarding.back")} variant="tertiary" onPress={back} />
           )}
         </View>
       </KeyboardAvoidingView>
@@ -333,32 +343,46 @@ export default function Onboarding() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: space.l },
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: layout.gutter },
   step: { gap: space.l },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space.s },
   dots: { flexDirection: "row", gap: space.xs },
-  dot: { flex: 1, height: 4, borderRadius: radius.full, backgroundColor: colors.surfaceRaised },
-  dotOn: { backgroundColor: colors.glow },
+  dot: { flex: 1, height: 4, borderRadius: radius.full, backgroundColor: colors.surfaceChip },
+  dotOn: { backgroundColor: colors.fg1 },
   input: {
     minHeight: 96,
     padding: space.l,
-    borderRadius: radius.card,
+    borderRadius: radius.row,
     borderCurve: "continuous",
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
+    backgroundColor: colors.surfaceRaised,
+    boxShadow: `inset 0 0 0 1px ${colors.separator}`,
+    color: colors.fg1,
     textAlignVertical: "top",
   },
-  footer: { padding: space.l, gap: space.m },
-  check: { flexDirection: "row", alignItems: "center", gap: space.m },
+  footer: { padding: layout.gutter, gap: space.m },
+  check: {
+    minHeight: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: space.l,
+    paddingVertical: space.m,
+    borderRadius: radius.row,
+    borderCurve: "continuous",
+    backgroundColor: colors.surfaceRaised,
+    boxShadow: `inset 0 0 0 1px ${colors.separator}`,
+  },
+  checkPressed: { transform: [{ scale: pressScale.row }] },
   box: {
     width: 24,
     height: 24,
-    borderRadius: radius.button / 2,
-    borderWidth: 2,
-    borderColor: colors.textSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radius.full,
   },
-  boxOn: { backgroundColor: colors.glow, borderColor: colors.glow },
-  text: { color: colors.textPrimary },
-  muted: { color: colors.textSecondary },
+  boxOff: { boxShadow: `inset 0 0 0 1.5px ${colors.fg3}` },
+  boxOn: { backgroundColor: colors.fg1 },
+  text: { color: colors.fg1 },
+  muted: { color: colors.fg2 },
 })

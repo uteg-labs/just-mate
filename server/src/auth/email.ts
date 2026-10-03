@@ -7,30 +7,43 @@ const smtpPort = Number(process.env.SMTP_PORT ?? 587)
 const smtpSecure = process.env.SMTP_SECURE === "true"
 const smtpUser = process.env.SMTP_USER
 const smtpPassword = process.env.SMTP_PASSWORD
-const emailFrom = process.env.AUTH_EMAIL_FROM
+const emailFrom = process.env.AUTH_EMAIL_FROM ?? "JustMate <auth@example.com>"
 
+if (!smtpHost && process.env.NODE_ENV === "production") throw new Error("SMTP_HOST is required")
 if (!Number.isInteger(smtpPort) || smtpPort <= 0) throw new Error("SMTP_PORT must be valid")
-if (!smtpHost) throw new Error("SMTP_HOST is required")
-if (!smtpUser) throw new Error("SMTP_USER is required")
-if (!smtpPassword) throw new Error("SMTP_PASSWORD is required")
-if (!emailFrom) throw new Error("AUTH_EMAIL_FROM is required")
+if (smtpHost && !(smtpUser && smtpPassword))
+  throw new Error("SMTP_USER and SMTP_PASSWORD are required")
 
-const transporter = nodemailer.createTransport({
-  host: smtpHost,
-  port: smtpPort,
-  secure: smtpSecure,
-  auth: { user: smtpUser, pass: smtpPassword },
-})
+const transporter = smtpHost
+  ? nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      auth: { user: smtpUser, pass: smtpPassword },
+    })
+  : undefined
 
-export async function sendMagicLink(email: string, url: string, language: SupportedLanguage) {
-  const t = i18n.getFixedT(language)
+export type AuthEmail = "magicLink" | "passwordReset"
+
+export async function sendAuthEmail(
+  kind: AuthEmail,
+  email: string,
+  url: string,
+  language: SupportedLanguage,
+) {
+  if (!transporter) {
+    console.info(`[auth:${language}] ${kind} for ${email}: ${url}`)
+    return
+  }
+
+  const t = i18n.getFixedT(language, undefined, kind)
   const link = url.replaceAll("&", "&amp;").replaceAll('"', "&quot;")
   const result = await transporter.sendMail({
     from: emailFrom,
     to: email,
-    subject: t("magicLink.subject"),
-    text: t("magicLink.text", { url }),
-    html: `<p>${t("magicLink.intro")}</p><p><a href="${link}">${t("magicLink.cta")}</a></p><p>${t("magicLink.expiry")}</p>`,
+    subject: t("subject"),
+    text: t("text", { url }),
+    html: `<p>${t("intro")}</p><p><a href="${link}">${t("cta")}</a></p><p>${t("expiry")}</p>`,
   })
-  console.info(`[auth:${language}] SMTP accepted email ${result.messageId}`)
+  console.info(`[auth:${language}] SMTP accepted ${kind} ${result.messageId}`)
 }

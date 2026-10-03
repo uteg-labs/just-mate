@@ -1,35 +1,22 @@
 import { getSetCookie, storageAdapter } from "@better-auth/expo/client"
 import * as SecureStore from "expo-secure-store"
 
+// the expo client's cookie slot (`storagePrefix` in auth-client.ts)
 const cookieKey = "justmate_cookie"
 const storage = storageAdapter(SecureStore)
 const schemes = new Set(["justmate:", "exp:", "exp+justmate:"])
 
-export type AuthDestination = "/" | "/onboarding"
-
-type AuthCallback = {
-  cookie: string
-  destination: AuthDestination
-}
-
-export function parseAuthCallback(value: string): AuthCallback | undefined {
-  let url: URL
+// a verified magic link lands on `justmate://…?cookie=…`: the session to keep
+export function authCookieOf(value: string | null): string | undefined {
+  if (!value) return
   try {
-    url = new URL(value)
-  } catch {
-    return
-  }
-
-  const cookie = url.searchParams.get("cookie")
-
-  if (!schemes.has(url.protocol) || !cookie) return
-
-  const route = [url.hostname, ...url.pathname.split("/")].find((part) => part === "onboarding")
-
-  return { cookie, destination: route ? "/onboarding" : "/" }
+    const url = new URL(value)
+    if (!schemes.has(url.protocol)) return
+    return url.searchParams.get("cookie") ?? undefined
+  } catch {}
 }
 
-export async function storeAuthCallback(callback: AuthCallback) {
+export async function storeAuthCookie(cookie: string) {
   const current = await storage.getItemAsync(cookieKey)
-  await storage.setItemAsync(cookieKey, getSetCookie(callback.cookie, current ?? undefined))
+  await storage.setItemAsync(cookieKey, getSetCookie(cookie, current ?? undefined))
 }

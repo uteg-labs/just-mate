@@ -1,8 +1,12 @@
 import {
+  badgeSeed,
   DEFAULT_CONFIG,
   type Intent,
-  isIntent,
+  type MatchPartner,
+  type Mode,
+  OTHER_INTENT,
   parseClientMsg,
+  parseSearchOn,
   type ServerMsg,
 } from "@justmate/protocol"
 import type { ServerWebSocket } from "bun"
@@ -22,11 +26,26 @@ const ZONES = [
   { h: "u2yhz1", n: 5 },
 ]
 
+const PARTNERS: Record<Mode, MatchPartner> = {
+  date: {
+    vibe: "early bird with a film camera — opinions on oat milk",
+    interests: ["photography", "coffee", "travel"],
+    badgeSeed: badgeSeed(["photography", "coffee", "travel"], []),
+    tags: { verified: true, adult: true },
+  },
+  mate: {
+    vibe: "techno on fridays — crosswords on sundays",
+    interests: ["concerts", "pub quiz", "coding"],
+    badgeSeed: badgeSeed(["concerts", "pub quiz", "coding"], []),
+    tags: { verified: true, adult: true },
+  },
+}
+
 const OFFER_DELAY_MS = 6000
 const START_DISTANCE_M = 450
 const WALK_M_PER_TICK = 10
 
-type State = { timers: Timer[]; intent: Intent }
+type State = { timers: Timer[]; mode: Mode; intent: Intent }
 
 type Socket = ServerWebSocket<State>
 
@@ -44,9 +63,8 @@ function offer(ws: Socket) {
     send(ws, {
       t: "match_offer",
       offerId: "o1",
-      matchPct: 78,
       sharedIntent: ws.data.intent,
-      vibe: "quietly funny — will out-argue you about pizza",
+      partner: PARTNERS[ws.data.mode],
       expiresInMs: config.offerTtlMs,
     })
   }, OFFER_DELAY_MS)
@@ -80,7 +98,7 @@ function walk(ws: Socket) {
 Bun.serve<State>({
   port,
   fetch(req, server) {
-    if (server.upgrade(req, { data: { timers: [], intent: "beer" } })) return
+    if (server.upgrade(req, { data: { timers: [], mode: "mate", intent: "beer" } })) return
     return new Response("justmate mock: connect over ws", { status: 426 })
   },
   websocket: {
@@ -90,20 +108,19 @@ Bun.serve<State>({
 
       switch (msg.t) {
         case "hello":
-          return send(ws, {
-            t: "ready",
-            userId: "u_mock",
-            vibe: "first on the dance floor",
-            config,
-          })
+          return send(ws, { t: "ready", userId: "u_mock", config })
 
-        case "search_on":
+        case "search_on": {
+          const search = parseSearchOn(msg)
+          if (!search.ok) return send(ws, { t: "error", code: search.error, message: "mock" })
           stop(ws)
-          ws.data.intent = msg.intents.find(isIntent) ?? "beer"
+          ws.data.mode = search.value.mode
+          ws.data.intent = search.value.intents[0] ?? OTHER_INTENT
           ws.data.timers.push(
             setInterval(() => send(ws, { t: "zones", cells: ZONES }), config.positionIntervalMs),
           )
           return offer(ws)
+        }
 
         case "search_off":
           return stop(ws)

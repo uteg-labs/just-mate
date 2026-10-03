@@ -23,6 +23,13 @@ void i18n.init({
           cta: "Meet for real",
           expiry: "This link expires in 10 minutes.",
         },
+        passwordReset: {
+          subject: "Reset your JustMate password",
+          text: "Open this link to set a new JustMate password: {{url}}\n\nThis link expires in 1 hour. If you didn't ask for it, ignore this email.",
+          intro: "Open this link to set a new JustMate password:",
+          cta: "Set a new password",
+          expiry: "This link expires in 1 hour. If you didn't ask for it, ignore this email.",
+        },
       },
     },
     pl: {
@@ -34,6 +41,13 @@ void i18n.init({
           cta: "Spotkajmy się naprawdę",
           expiry: "Link wygasa za 10 minut.",
         },
+        passwordReset: {
+          subject: "Zresetuj hasło do JustMate",
+          text: "Otwórz ten link, aby ustawić nowe hasło do JustMate: {{url}}\n\nLink wygasa za 1 godzinę. Jeśli to nie Ty, zignoruj tę wiadomość.",
+          intro: "Otwórz ten link, aby ustawić nowe hasło do JustMate:",
+          cta: "Ustaw nowe hasło",
+          expiry: "Link wygasa za 1 godzinę. Jeśli to nie Ty, zignoruj tę wiadomość.",
+        },
       },
     },
     sk: {
@@ -44,6 +58,13 @@ void i18n.init({
           intro: "Otvor tento odkaz a prihlás sa do JustMate:",
           cta: "Stretnime sa naozaj",
           expiry: "Odkaz platí 10 minút.",
+        },
+        passwordReset: {
+          subject: "Obnov si heslo do JustMate",
+          text: "Otvor tento odkaz a nastav si nové heslo do JustMate: {{url}}\n\nOdkaz platí 1 hodinu. Ak si o to nežiadal, tento e-mail ignoruj.",
+          intro: "Otvor tento odkaz a nastav si nové heslo do JustMate:",
+          cta: "Nastaviť nové heslo",
+          expiry: "Odkaz platí 1 hodinu. Ak si o to nežiadal, tento e-mail ignoruj.",
         },
       },
     },

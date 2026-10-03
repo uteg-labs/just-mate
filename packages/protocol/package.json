@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "typescript": "^7"
+  },
+  "properties": {
+    "gitCommitScopeRelatedNames": "protocol"
   }
 }

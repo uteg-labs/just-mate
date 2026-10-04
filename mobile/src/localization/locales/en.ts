@@ -199,7 +199,6 @@ export const en = {
     minutes: "{{count}} min",
     autoStop: "Stop searching after 30 min",
     haptics: "Haptics",
-    sounds: "Sounds",
     reduceMotion: "Reduce motion",
     photos: "Taste and photos",
     photosValue: "never stored",
@@ -416,6 +415,17 @@ export const en = {
     },
     over: "over {{m}} m",
     under: "under {{m}} m",
+    sides: {
+      ahead: "straight ahead",
+      right: "to your right",
+      behind: "behind you",
+      left: "to your left",
+    },
+  },
+  location: {
+    off: "Location is off",
+    denied: "Turn it on in Settings so people nearby can find you.",
+    openSettings: "Open Settings",
   },
   postmeet: {
     yourVibe: "your vibe",

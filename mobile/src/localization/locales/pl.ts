@@ -198,7 +198,6 @@ export const pl = {
     minutes: "{{count}} min",
     autoStop: "Przestań szukać po 30 min",
     haptics: "Wibracje",
-    sounds: "Dźwięki",
     reduceMotion: "Ogranicz ruch",
     photos: "Gust i zdjęcia",
     photosValue: "nigdy nie zapisywane",
@@ -416,6 +415,17 @@ export const pl = {
     },
     over: "ponad {{m}} m",
     under: "poniżej {{m}} m",
+    sides: {
+      ahead: "prosto przed tobą",
+      right: "po twojej prawej",
+      behind: "za tobą",
+      left: "po twojej lewej",
+    },
+  },
+  location: {
+    off: "Lokalizacja jest wyłączona",
+    denied: "Włącz ją w Ustawieniach, żeby osoby w pobliżu mogły cię znaleźć.",
+    openSettings: "Otwórz Ustawienia",
   },
   postmeet: {
     yourVibe: "twój vibe",

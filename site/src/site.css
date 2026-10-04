@@ -804,7 +804,7 @@ section {
   display: block;
 }
 
-.care p {
+.care.aurora p {
   margin: 24px auto 0;
   font-size: clamp(17px, 1.7vw, 20px);
   color: var(--fg2);

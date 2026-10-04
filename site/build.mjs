@@ -14,18 +14,22 @@ const shared = ["react", "react-dom", "remotion", "@remotion/fonts", "@remotion/
 
 rmSync(out, { recursive: true, force: true })
 mkdirSync(out, { recursive: true })
-await build({
-  entryPoints: ["src/main.tsx"],
-  bundle: true,
-  minify: true,
-  format: "iife",
-  jsx: "automatic",
-  target: "es2022",
-  alias: Object.fromEntries(shared.map((p) => [p, p])),
-  define: { "process.env.NODE_ENV": '"production"' },
-  outfile: `${out}/site.js`,
-  logLevel: "warning",
-})
+// the poll (/poll, rewritten in vercel.json) is its own bundle so site.js stays as it is
+const bundles = { site: "src/main.tsx", poll: "src/poll.tsx" }
+for (const [name, entry] of Object.entries(bundles)) {
+  await build({
+    entryPoints: [entry],
+    bundle: true,
+    minify: true,
+    format: "iife",
+    jsx: "automatic",
+    target: "es2022",
+    alias: Object.fromEntries(shared.map((p) => [p, p])),
+    define: { "process.env.NODE_ENV": '"production"' },
+    outfile: `${out}/${name}.js`,
+    logLevel: "warning",
+  })
+}
 cpSync(`${motion}/public`, out, { recursive: true })
 cpSync("static", out, { recursive: true })
 writeFileSync(

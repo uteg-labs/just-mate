@@ -6,7 +6,7 @@
 
 - **What it does:** given two profiles, output a pairwise compatibility score: one directional score in `[0, 1]` per direction, summed into a symmetric `pair_score` in `[0, 2]`.
 - **Stack:** OpenAI `text-embedding-3-small` (two embeddings per profile: *self* and *target*) → custom PyTorch model (Shared Encoder + asymmetric Match Head) trained in Python → exported to ONNX → served by **`match_scorer`** as an HTTP daemon (`ml/scripts/match_scorer_server.py`), bundled in one container alongside **`interest_matcher`** (`ml/scripts/interest_matcher_server.py`) — both launched together by `ml/scripts/run_servers.py` and built into `ml/Dockerfile.scorer` (PR #32). The same model is also exposed via an NDJSON subprocess (`ml/scripts/match_scorer.py`, Python or PyInstaller-frozen binary) for dev. There is no FastAPI, no in-process model in Bun, no C++ binary.
-- **Status: not wired into the server.** The HTTP container exposes `match_scorer` on `:8000` and `interest_matcher` on `:8001`; the Bun server does not import an HTTP client for them today (PR #34 reverted the server-side clients). Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × Jaccard(interests) + 0.3 × min(1, shared intents)`, threshold `0.45`). The intended integration precomputes model scores into a cache that `compat()` reads, with the rules as fallback (§6).
+- **Status.** The HTTP container exposes `match_scorer` on `:8000` and `interest_matcher` on `:8001`. Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`).
 - **Training objective:** triplet loss + binary match loss (+ a bidirectional BCE term in v3), jointly, on synthetic profiles; real meeting outcomes in M1.
 - **Hard rules (zones, cooldown, session limit, K-anonymity, intent gate) are NOT learned.** The model is one of several gates; everything else is server-side logic.
 
@@ -191,7 +191,7 @@ The model only scores pairs that already passed these:
 | Gate | Where | Rule |
 |---|---|---|
 | Both in search mode | server | `session.state == "searching"` for both |
-| Within walking range | server | `haversine(self, candidate) <= R_MATCH` (400 m) — **not** same geohash cell: a geohash-6 cell is ~1.2 km wide and its boundaries split neighbours (`PRODUCT.md` §7) |
+| Within walking range | server | `haversine(self, candidate) <= R_MATCH` (800 m by default: the shorter of both "walk up to" settings, 5 / 10 / 15 min → 400 / 800 / 1200 m) — **not** same geohash cell: a geohash-6 cell is ~1.2 km wide and its boundaries split neighbours (`PRODUCT.md` §7) |
 | Shared active intent | server | `len(session.intents ∩ candidate.session.intents) >= 1` (intents are per session, not per profile) |
 | K-anonymity | server | `count_searching_in_zone >= K` (M0: K=1 demo, M1: K=3) — zone = geohash-6, display/anonymity unit only |
 | Pair cooldown | server | `now − last_offer_or_vanish(candidate) >= 5 min` |

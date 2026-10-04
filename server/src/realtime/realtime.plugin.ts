@@ -1,6 +1,7 @@
 import { Elysia } from "elysia"
 
 import { userIdForCookie } from "../auth/auth"
+import { loadMatchScoresForUser, matchStore } from "../matching/match.repository"
 import { pgRepo } from "../plans/pg-repo"
 import { loadPlans } from "../plans/plans"
 import { isDangerousUser, loadProfile } from "../profile/profile.plugin"
@@ -24,7 +25,13 @@ export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
         send: (msg) => ws.send(JSON.stringify(msg)),
         close: (code, reason) => ws.close(code, reason),
       },
-      { userIdForCookie, profileFor: loadProfile, isDangerous: isDangerousUser },
+      {
+        userIdForCookie,
+        profileFor: loadProfile,
+        matchScoresFor: loadMatchScoresForUser,
+        isDangerous: isDangerousUser,
+        matchStore,
+      },
       demo === "a" || demo === "b" ? demo : undefined,
     )
     sockets.set(ws.id, client)

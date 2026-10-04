@@ -505,7 +505,7 @@ The PNGs referenced by `mobile/app.config.ts` (`mobile/assets/images/`: icon, ad
 ### 10.2 Wordmark
 
 - Always **`JustMate`**: one word, capital J and M (camel case), no space or hyphen. Never "just-mate", "Just Mate" or all caps in the wordmark.
-- Set in **Inter Bold** (700), tracking −0.036em (−4.3 at 120 px). The SVG files carry the wordmark as outlined paths, so they render the same without Inter installed.
+- Set in **Inter Bold** (700, display optical size `opsz` 32), tracking −0.036em (−4.3 at 120 px). The SVG files carry the wordmark as outlined paths, so they render the same without Inter installed.
 - `fg-1` on paper, `#F5F5F7` on ink. Never amber, never on a gradient other than the mark's own disc.
 - The mark and the wordmark can stand alone or side by side; use the files, don't retype the wordmark in another face.
 

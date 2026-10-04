@@ -9,9 +9,9 @@ The story is loneliness, not dating: one hero, **Tomek** (`PRODUCT.md` §4.1), a
 Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → User → Value → Solution → Reality → Next**. One slide per beat (`docs/submission/deck.html`). Every number on screen has a source on the slide footer; sources in `SUBMISSION.md` › Sources.
 
 - **0:00 — Problem (slide 2).** "One in six people worldwide is affected by loneliness. WHO links it to more than 871,000 deaths a year, and lonely people are twice as likely to get depressed. In the EU, 13% feel lonely most or all of the time." Then the friction: "The hard part isn't meeting someone online. It's the step out of the door."
-- **0:35 — User (slide 3).** "Tomek is 28, moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend." Three frictions: initiative, uncertainty, judgment.
+- **0:35 — User (slide 3).** "The quietly lonely in a city. Tomek is 28, new in Kraków, works from home, and hasn't spoken to anyone all weekend. Lucía is alone in the city for three days and already out. Ania is done with photo apps." Plan for Tomek, Now for Lucía and Ania.
 - **1:00 — Value (slide 4).** "The app makes the plan. He only says yes. The goal is not one meeting but the repeat: friendship takes about 50 hours together. We'll know it works from plans that happen, repeat meetings, and an opt-in UCLA-3 loneliness score."
-- **1:30 — Solution + live demo (slides 5–6).** Two presenters, two phones in demo mode (`EXPO_PUBLIC_DEMO=a|b`): A is Tomek, B is Ola.
+- **1:30 — Solution, matching and live demo (slides 5–6; the demo runs on the phones, slide 6 stays on the matching model).** Two presenters, two phones in demo mode (`EXPO_PUBLIC_DEMO=a|b`): A is Tomek, B is Ola.
   1. A opens the map, **your plans**: Ola's vibe, a shared activity, a public venue, "{mine} min for you, {theirs} for them". A reads it aloud.
   2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn **you're both in** at the same moment. "He didn't plan anything. He said yes, and he knows someone will be there."
   3. Demo plan starts two minutes after confirmation, so **Open compass** is live. Both open it; B walks; the bucket goes cold, warm, hot, burning; haptics speed up.

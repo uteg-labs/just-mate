@@ -1,5 +1,5 @@
 /* JustMate color tokens.
-   Neutrals = Fluid Functionalism ladders (true neutral). Accents = just-mate DESIGN.md §2.
+   Neutrals = Fluid Functionalism ladders (true neutral). Accents = JustMate DESIGN.md §2.
    LIGHT is the default theme (:root). `.dark` pins the dark ladder on any subtree; `.light` re-pins light inside a dark one. */
 :root,.light{
   color-scheme:light;

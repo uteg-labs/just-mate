@@ -8,7 +8,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 | Pitch structure | Problem → User → Value → Solution → Reality → Next (after the HackYeah workshop "Pitch Like an Architect") |
 | One-liner | For anyone lonely in a new city: a plan near you, a person who fits, and someone waiting when you get there. |
 | Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
-| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
+| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) — 22 pages, chapters 00–14 (product, Plan and Now, safety, architecture, matching & AI, engineering, business, roadmap), source [`submission/whitepaper-src/`](submission/whitepaper-src/README.md) (`python3 build.py wp`). `submission/whitepaper.html` is the earlier 10-page short version and is no longer exported. |
 | Images | [`submission/cover.png`](submission/cover.png) first, then app screens in [`submission/screens/`](submission/screens/) |
 | Website | https://just-mate-site.vercel.app — source in [`site/`](../site/), with the launch film, use-case clips and a waitlist |
 | Video | [`video/motion`](../video/motion) — Remotion launch film; script in `DEMO.md` › Launch video |
@@ -54,18 +54,18 @@ Our own estimates (labelled on slide 9, never presented as facts): €39 a month
 
 ## Deck (10 slides)
 
-1. **Title** — Meet for real. + decision opening + team; home and "you're both in" screens
+1. **Title** — Meet for real. + decision opening (plan or right now) + team; "you're both in" (Plan) and "searching" (Now) screens
 2. **Problem** — 1 in 6 · 871,000 · 2× [1] · 31% inactive [5]; the friction is the step out of the door
-3. **User** — young adults new to a city; Tomek (persona); 17–21% [1], 13% EU [2]; initiative · uncertainty · judgment
-4. **Value** — capability → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
-5. **Solution** — profile → match → plan → both in → walk and meet; Plan for later and Now
-6. **Demo** — real app screens: vibe, a plan for you, you're both in, confirmed, home; compass and "Say hi to Ola." live
-7. **Design choices** — choice · reason · gain · cost · mitigation
+3. **User** — the quietly lonely in a city, 18–35; 17–21% [1], 13% EU [2]; four use cases: Tomek (Plan, newcomer) · Lucía (Now, solo traveller) · Ania (Now, Date mode) · the shy one
+4. **Value** — capability (Plan and Now) → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
+5. **Solution** — two loops side by side: Plan (find · plan · both in · walk and meet) and Now (pick · both phones ping · both open compass · walk and meet); one profile; Plan for later
+6. **Matching** — our own AI model: who I'd like to meet ↔ who they are, scored both ways; three steps; honest footer (synthetic training data, scores Now, plans use the explainable score)
+7. **Design choices** — choice · reason · gain · cost · mitigation (four rows, incl. Now: invisible until you search)
 8. **Risk** — risk · mitigation in the build · production path · validation
 9. **Reality** — known · assumed · to validate
 10. **What's next** — real users in Kraków · measure what matters · learn from real meetings; team; full source links; AI-use disclosure
 
-Re-export after changing `deck.html`, `cover.html` or the screens:
+Re-export after changing `deck.html`, `cover.html`, the screens or `badges/`:
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=6000 --print-to-pdf=docs/submission/JustMate-Deck.pdf "file://$PWD/docs/submission/deck.html"

@@ -1,4 +1,4 @@
-/* Type scale from just-mate DESIGN.md §3 (pt → px 1:1). Tracking is size-specific, leading tightens with size.
+/* Type scale from JustMate DESIGN.md §3 (pt → px 1:1). Tracking is size-specific, leading tightens with size.
    Inter Variable weights paired with optical size (FF font-weight.ts) so weight changes don't shift width. */
 :root{
   --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;

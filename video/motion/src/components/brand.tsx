@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react"
 import { c, font } from "../theme"
 
-// just-mate symbol: aurora disc (teal → apricot → peach) with the navigation arrow.
+// JustMate symbol: aurora disc (teal → apricot → peach) with the navigation arrow.
 // Rebuilt from assets/brand/just-mate-symbol.svg so the arrow can be animated.
 export const Mark = ({
   size,
@@ -83,7 +83,7 @@ export const Wordmark = ({
       ...style,
     }}
   >
-    just-mate
+    JustMate
   </span>
 )
 

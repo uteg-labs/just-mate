@@ -25,7 +25,7 @@ function MapChrome({ shape, live, initials, intent, onProfile, tab, onTab, modeS
       </div>
 
       <div style={{ position: "absolute", top: 78, left: 24, right: 24, ...show(auth), pointerEvents: "none" }}>
-        <div style={{ fontSize: 56, lineHeight: "56px", fontWeight: 700, fontVariationSettings: "var(--fw-bold)", letterSpacing: "-2px" }}>just-mate</div>
+        <div style={{ fontSize: 56, lineHeight: "56px", fontWeight: 700, fontVariationSettings: "var(--fw-bold)", letterSpacing: "-2px" }}>JustMate</div>
         <div className="t-title" style={{ color: "var(--fg-2)", marginTop: 10 }}>Meet for real.</div>
         <div className="t-mono" style={{ color: "var(--fg-2)", marginTop: 18 }}>no faces · no chat · no pins</div>
       </div>

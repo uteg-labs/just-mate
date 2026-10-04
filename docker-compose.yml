@@ -19,12 +19,15 @@ services:
     build:
       context: ./ml
       dockerfile: Dockerfile.scorer
+      args:
+        # Pin to a known-good release tag of the weights. Bump this after
+        # running `bash ml/scripts/release_models.sh ml-models@<semver>`,
+        # then `docker compose build scorer` to pull the new ONNX.
+        # Default in the Dockerfile is the tag this image shipped with.
+        - MODEL_RELEASE_TAG=${MODEL_RELEASE_TAG:-ml-models@1.0.0}
     image: match-scorer:local
     environment:
       - LOG_LEVEL=info
-      # Pick the model you want. v3_best is the DEPLOYMENT.md default.
-      # Other options in ml/checkpoints/: model_v0, model_v3_abs,
-      # model_v3_fix, model_v3_sym-loss-{0.5,1.0}.
       - MATCH_SCORER_MODEL=/app/checkpoints/model_v3_best.onnx
       - INTEREST_MATCHER_MODEL=/app/checkpoints/interest_matcher.onnx
     # No `ports:` — internal only. Publish if you need to debug with curl.

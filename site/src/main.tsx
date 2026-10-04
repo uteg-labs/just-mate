@@ -23,7 +23,6 @@ const Header = ({ t, lang, setLang }: { t: Copy; lang: Lang; setLang: (l: Lang) 
       <nav className="links" aria-label="Sections">
         <a href="#how">{t.nav.how}</a>
         <a href="#match">{t.nav.match}</a>
-        <a href="#safety">{t.nav.safety}</a>
         <a href="#security">{t.nav.security}</a>
         <a href="#venues">{t.nav.venues}</a>
       </nav>
@@ -459,7 +458,7 @@ const App = () => {
         {t.stories.map((s, i) => (
           <Fragment key={s.id}>
             <StorySection s={s} i={i} t={t} lang={lang} />
-            {s.id === "safety" && <Security t={t.security} />}
+            {s.id === "date" && <Security t={t.security} />}
           </Fragment>
         ))}
         <Pays t={t.pays} />

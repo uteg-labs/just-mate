@@ -18,7 +18,7 @@ The app is a single continuous surface over the map that morphs between shapes (
 | `search` | floating sheet · paper | what you're looking for, the clock, **Stop searching** |
 | `match` | card from the top · ink | their vibe badge, **Open compass** / **Dismiss** |
 | `compass` | full screen · night | countdown, arrow, bucket, **Vanish** / **We met** |
-| `postmeet` | full screen · night | both badges, names, opener, **Keep in touch** |
+| `postmeet` | full screen · night | both badges, their name, distance walked, **Same again next week?** |
 | `settings` | full screen · page | profile, map, feel, privacy, account |
 
 ## Screen map
@@ -213,11 +213,11 @@ The sheet springs up into an ink card at the top; a scrim dims the map; the stat
 ### 6. Post-meet (full screen, night)
 
 - Two small badges side by side: yours with your first name, theirs with theirs.
-- Mono "you found each other" (success) · **"Say hi to {name}."** · "Names unlock once you've met. Nothing else does."
-- Compact vibe card "an opener, if you need one" with an opener written for the pair ("pineapple. defend your position.").
-- Tertiary **Keep in touch** (plus) → loading → check **Kept** once they tap it too. Primary **Back to the map** → select.
-- Footnote "Keep in touch unlocks only if they tap it too." → "{name} tapped it too. Saved on this phone."
-- **Until names and keep in touch exist on the wire** (Protocol gaps 5–7): their badge shows their vibe line instead of a name, the title reads **"Go say hi."** with "You found each other. The rest is up to you.", and there is no opener card and no Keep in touch; only **Back to the map**.
+- Mono "you found each other" (success) · **"Say hi to {name}."** (their first name from `session_end{met}`) · "You found each other. The rest is up to you."
+- Footprints line "You walked {m} m to say hi.", the walked distance rounded, measured on this phone.
+- Secondary **Same again next week?** (`calendar-plus`) → "Glad it clicked." Local only; scheduling the repeat is the production path.
+- Ghost **Report** → "Reports reach our team in the next version. Feeling unsafe? Call 112." Local notice only (§12 is the production path).
+- Primary **Back to the map** → select.
 
 ### 7. Settings (full page, from the monogram)
 
@@ -243,7 +243,7 @@ The mentors asked three things: how JustMate gets a lonely person out of the doo
 
 Stage tags: **M0** = built for HackYeah · **M1** = production path, design only. In the build, an M1 item is either absent or labelled "production path".
 
-New glyphs (Lucide; add to `DESIGN.md` §9 before use): `calendar-plus` Plan for later · `calendar-check` confirmed · `map-pin` venue · `send` Send invitation · `bell` reminder · `clock` when · `timer` open until · `eye-off` they see · `pencil` edit · `shuffle` same times · `sparkles` See who's in · `star` rating · `life-buoy` Need to talk to someone? · `ban` Block · `flag` Report · `history` Recent.
+New glyphs (Lucide; add to `DESIGN.md` §9 before use): `calendar-plus` Plan for later · `calendar-check` confirmed · `map-pin` venue · `send` Send invitation · `clock` when · `timer` open until · `eye-off` they see · `pencil` edit · `shuffle` same times · `sparkles` See who's in · `star` rating · `life-buoy` Need to talk to someone? · `ban` Block · `flag` Report · `history` Recent.
 
 ### New and changed shapes
 
@@ -326,11 +326,11 @@ Plans are 1:1, in both modes. The app proposes them, or you put an invitation ou
 - Glow **Accept plan** · **Suggest this place** (after picking another chip) · **Confirm plan** (someone's in). Then "waiting for them…" → "you're both in" (`success`) → plan. Ghost **Pass**.
 - Footnote: "Confirms only if they accept too." · "They see your pick and accept it, or it expires." · "If you pass, it goes to someone else. They only see 'plan filled'."
 
-**Plans** (`plans`, full page). Back · large title "Plans" · "Meet later, same rules. No faces, no chat." Sections: **proposed for you · {n}** (right "by the matching model"; empty "Nothing proposed right now. We'll ping you when a strong match is free when you are.") · **upcoming · {n}** (cards with a small map, "confirmed · {mode}", headline, venue, "compass at {18:45}") · **your invitations · {n}** (right "you don't pick who"; empty "Pick a time and a place. We offer it to compatible people."). Primary **New plan**.
+**Plans** (`plans`, full page). Back · large title "Plans" · "Meet later, same rules. No faces, no chat." Sections: **proposed for you · {n}** (right "by compatibility"; empty "Nothing proposed right now. We'll ping you when a strong match is free when you are.") · **upcoming · {n}** (cards with a small map, "confirmed · {mode}", headline, venue, "compass at {18:45}") · **your invitations · {n}** (right "you don't pick who"; empty "Pick a time and a place. We offer it to compatible people."). Primary **New plan**.
 
 **Plan** (`plan`, full page). The venue map on top (300 pt, fading into the page) with a back button. Mono "confirmed · {mode} · {date}" (`success`) or "your invitation · open | someone's in · {n} times". Large title. Venue disc · name · "{meta} · {hours}".
 
-- Confirmed: `VibeCard` "who you're meeting" with their vibe line. Rows: Reminder {17:30} · Compass opens {18:45} · Names unlock "when you meet".
+- Confirmed: `VibeCard` "who you're meeting" with their vibe line. Rows: Compass opens {18:45} · Names unlock "when you meet".
 - Invitation: card "You don't pick who." · "We offer it to compatible people free at one of your times. The first one in picks a time, shows up here as a vibe, and you confirm." A row per day with its times. Rows: Offered to "compatible · free then" · Open until "2 h before | the day before" · They see "vibe · place · time".
 - Footer, confirmed: glow **Open compass** (from start − 15 min, else secondary disabled "Compass opens at {18:45}") · ghost **Can't make it** → **Keep it** / danger **Cancel plan** + "They see "plan cancelled". No reason asked."
 - Footer, invitation: glow **See who's in** (taken) or secondary **Withdraw invitation**.
@@ -394,7 +394,7 @@ The wire contract is `PROTOCOL.md` › Plans. Venue coordinates are the only coo
 | UC4 | Read the heat | searching | tap a warm zone | "~n compatible around here", nothing beyond counts |
 | UC5 | Get matched | both searching, within walking range, a shared intent, compatible | ink card ×2 → both **Open compass** | compass active, positions relayed pairwise |
 | UC6 | Walk to them | compass active | follow arrow + buckets; haptics escalate | **We met** in `burning` → post-meet |
-| UC7 | Keep in touch | post-meet | both tap **Keep in touch** | "Kept", saved on this phone |
+| UC7 | After meeting | post-meet | read their name and the distance walked; optionally **Same again next week?** | noted on this phone; **Back to the map** → select |
 | UC8 | Vanish | compass | tap **Vanish** | session destroyed for both instantly; pair cooldown; select |
 | UC9 | Dismiss a match | match card shown | tap **Dismiss** | back to search; pair cooldown; still searching |
 | UC10 | Let an offer expire | match card shown | 45 s pass, or they dismiss | "offer expired" · "you're still searching" → search |
@@ -451,7 +451,7 @@ sequenceDiagram
 | search | searching (clock running) | offer → match · Stop searching / auto-stop → select |
 | match | offered / accepted ("waiting for them…") / expired | both accepted → compass · Dismiss / expired → search |
 | compass | waiting-for-signal / active / expired / vanished / disconnected | We met → postmeet · Vanish / time up / their phone drops → select |
-| postmeet | keep in touch: idle / waiting / kept | Back to the map → select |
+| postmeet | same again: idle / noted · report: idle / noted | Back to the map → select |
 | settings | — | Back to the map → select · row → onboard (editing) |
 
 ## Message contract (client ↔ Elysia)
@@ -477,9 +477,9 @@ What the design needs that `PROTOCOL.md` / `@justmate/protocol` don't carry yet.
 2. ~~**Category + multi-pick intents.**~~ Resolved: `search_on {mode, category, intents}` with `CATEGORIES` per mode, any number of picks plus `"other"`. `INTENTS`/`isIntent` are gone; `sharedIntent` is an `Intent` of the new lists.
 3. ~~**Interest vocabulary.**~~ Resolved: `INTERESTS.date` / `INTERESTS.mate`; profiles accept related picks open-endedly, and `POST /api/onboarding/related` serves them.
 4. ~~**Profile fields.**~~ Resolved: the whole profile is stored server-side (`GET`/`PUT /api/profile`, `parseProfile`); `hello` carries only the session cookie. New: the profile needs the user's own `age` (16–99) for the age-range rules, so onboarding needs an age field.
-5. ~~**Vibe line + badge.**~~ Resolved: `match_offer.partner` carries their own vibe line, first 3 interests, `badgeSeed` and `{verified, adult}` tags. Still open: the post-meet **opener** for the pair.
+5. ~~**Vibe line + badge.**~~ Resolved: `match_offer.partner` carries their own vibe line, first 3 interests, `badgeSeed` and `{verified, adult}` tags. The post-meet opener is dropped.
 6. ~~**Names after meeting.**~~ Resolved: `session_end{met}` carries `partnerName`, the other person's first name, and nothing earlier does.
-7. **Keep in touch.** Still open: no message exists. It needs a mutual opt-in after `met` (`keep` → both → `kept`) and a decision on what is saved on the phone.
+7. ~~**Keep in touch.**~~ Dropped from the build. Post-meet offers a local **Same again next week?** instead; scheduling the repeat on the wire is the production path.
 8. ~~**Offer countdown.**~~ Resolved: render from `match_offer.expiresInMs` (`config.offerTtlMs`, 45000).
 9. ~~**Match percentage.**~~ Resolved: dropped from `match_offer`.
 10. ~~**Walk-up distance + auto-stop.**~~ Resolved: `search_on.walkMin` (default `settings.walkMin`) → `config.walkRadiusM` (5 → 400 m, 10 → 800 m, 15 → 1200 m; a pair uses the shorter). The server auto-stops after `config.autoStopMs` when `settings.autoStop` is on and sends `search_stopped{auto_stop}`.

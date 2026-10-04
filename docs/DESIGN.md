@@ -39,7 +39,7 @@ The three product rules are also visual rules:
 **Voice: calm courage.** Quiet, specific, never begging.
 
 - **Lowercase in-product status and system copy**: `invisible`, `searching: beer`, `offer expired`, `waiting for them…`, `finding signal…`, `cold / warm / hot / burning`. Titles and buttons use sentence case: "What are you up for?", "Find people for beer", "Open compass".
-- **Specific labels beat generic**: "Find people for coffee or wine", "Stop searching", "Open compass", "Dismiss", "Vanish", "We met", "Keep in touch", "Back to the map", "Call me Alex", "Train my taste", "Keep this vibe", "Enter the map". A disabled CTA says what's missing: "Pick 2 more", "Type your name", "Pick at least one". Never "OK", "Continue", "Home", "Submit".
+- **Specific labels beat generic**: "Find people for coffee or wine", "Stop searching", "Open compass", "Dismiss", "Vanish", "We met", "Same again next week?", "Back to the map", "Call me Alex", "Train my taste", "Keep this vibe", "Enter the map". A disabled CTA says what's missing: "Pick 2 more", "Type your name", "Pick at least one". Never "OK", "Continue", "Home", "Submit".
 - **Second person, present tense, active voice**: "You're invisible. Pick what you want right now." Nothing "can be" or "allows you to".
 - **Short.** One line per intro. A fragment is fine: "No photos here. Not yours, not theirs."
 - **Numbers stay numeric and lead**: "~4 compatible around here", "0:45", "10:00 left · beer", "24 – 35", "3 of 6".
@@ -207,7 +207,7 @@ Weight and optical size move together, so a label can shift weight on hover with
 | Token | Size / line-height | Weight | Letter-spacing | Use |
 |---|---|---|---|---|
 | `display` | 64 / 64 | bold | −1.6 | compass countdown (tabular) |
-| `largeTitle` | 34 / 38 | bold | −0.7 | select headline, onboarding step titles, "Looking for beer", "Say hi to Mia.", category in the open card |
+| `largeTitle` | 34 / 38 | bold | −0.7 | select headline, onboarding step titles, "Looking for beer", "Say hi to Ola.", category in the open card |
 | `title` | 22 / 26 | semibold | −0.3 | screen/section headers, bucket label |
 | `vibe` | 20 / 27 | medium italic | −0.2 | the vibe-card quote (compact: 17 / 23) |
 | `headline` | 17 / 22 | semibold | −0.1 | row labels, card headings |
@@ -471,9 +471,9 @@ Things leave the way they came, and originate from what triggered them.
 
 **Intents** take their category's glyph, except these: beer `beer` · coffee, tea `coffee` · wine `wine` · cycling `bike` · cinema `film` · gym `dumbbell` · board games, cards `dice-5` · arcade, video games `gamepad-2` · hike `mountain` · walk, running `footprints` · dancing `party-popper` · cocktails `martini` · funfair, ferris wheel `ferris-wheel` · live gig, gig, concert, festival `ticket` · stargazing `moon` · sunset `sun` · museum, exhibition `palette`. The "other" chip uses `plus` and reads "something else" in labels.
 
-Other fixed glyphs: `eye-off` invisible · `wifi-off` offline · `search` Find people · `compass` Open compass · `x` Vanish, Stop searching, close category · `hand` We met · `plus` → `check` Keep in touch · `circle-check` you found each other · `shuffle` Reroll · `sparkles` question caption · `arrow-left` back · `arrow-right` Start with you, Create account · `camera` Take selfie · `scan-face` → `shield-check` verify · `map` Enter the map · `chevron-right` settings rows · `shield-check` badge tag.
+Other fixed glyphs: `eye-off` invisible · `wifi-off` offline · `search` Find people · `compass` Open compass · `x` Vanish, Stop searching, close category · `hand` We met · `circle-check` you found each other · `footprints` distance walked · `calendar-plus` Same again next week? · `shuffle` Reroll · `sparkles` question caption · `arrow-left` back · `arrow-right` Start with you, Create account · `camera` Take selfie · `scan-face` → `shield-check` verify · `map` Enter the map · `chevron-right` settings rows · `shield-check` badge tag.
 
-**Plans**: `calendar-plus` Plan for later, New plan · `calendar-check` Accept plan, confirmed · `map-pin` venue · `send` Send invitation · `bell` reminder · `clock` when · `timer` open until · `eye-off` they see · `user` names unlock · `users` offered to · `pencil` edit a review row · `shuffle` same times for every day · `sparkles` See who's in · `check` picked · `star` rating. Venue kinds reuse the intent glyphs: wine bar `wine` · café `coffee` · board-game café `dice-5` · beer bar `beer` · cinema `film` · climbing gym `mountain` · park `trees` · rooftop bar `martini` · restaurant `utensils` · bowling `gamepad-2` · gallery `palette` · jazz club `music`, plus `waves` for the riverside.
+**Plans**: `calendar-plus` Plan for later, New plan · `calendar-check` Accept plan, confirmed · `map-pin` venue · `send` Send invitation · `clock` when · `timer` open until · `eye-off` they see · `user` names unlock · `users` offered to · `pencil` edit a review row · `shuffle` same times for every day · `sparkles` See who's in · `check` picked · `star` rating. Venue kinds reuse the intent glyphs: wine bar `wine` · café `coffee` · board-game café `dice-5` · beer bar `beer` · cinema `film` · climbing gym `mountain` · park `trees` · rooftop bar `martini` · restaurant `utensils` · bowling `gamepad-2` · gallery `palette` · jazz club `music`, plus `waves` for the riverside.
 
 **The compass arrow is Lucide `navigation-2`**, filled and stroked with the bucket colour (stroke 1, round join), 62% of the dial, with a drop-shadow glow of 14px in the bucket colour (24px `temp-hot` when burning).
 
@@ -548,7 +548,7 @@ The kit the screens are built from. Each spec below is the source for both the n
 
 | Component | Variants · sizes | Spec |
 |---|---|---|
-| **VibeCard** | default · `compact`; eyebrow, intent | The faceless identity. `surface-card`, `shadow-3`, radius 24, padding 22 (compact 16 × 18). Mono eyebrow ("you're looking for", "an opener, if you need one") and "wants · beer", quote in `vibe` (compact 17 / 23) inside curly quotes. Typography only, never a photo |
+| **VibeCard** | default · `compact`; eyebrow, intent | The faceless identity. `surface-card`, `shadow-3`, radius 24, padding 22 (compact 16 × 18). Mono eyebrow ("you're looking for") and "wants · beer", quote in `vibe` (compact 17 / 23) inside curly quotes. Typography only, never a photo |
 | **Badge** | `solid` · `dot`; `md` 24 · `sm` 20; hues gray, glow, self, cold, hot, success, danger | Aggregate counts and states ("~4 compatible around here"). `solid` = hue at 18% over `background` (gray = `track-off`); `dot` = 1px `border` outline + 7 / 6 dot in the hue. Text stays `fg-1`, 12 / 11 medium, tabular |
 | **StepDots** | count, active | 6 dots, gap 6; the active step stretches to a 20 wide dash in `fg-1`, others `fg-3`. Onboarding progress |
 | **Monogram** | 36 · 40 on the map | Own avatar: up to two initials, uppercase, semibold, on thin material with hairline. Opens settings. Other people never get an avatar |
@@ -694,7 +694,7 @@ Caption under your own badge: "Colours from {three interests}. Pattern from your
 - **Search** (*paper* sheet): a 56 `fg-1` circle with the intent icon (24, stroke 1.75); mono line with the 7 pt searching dot ("searching · date · food and drink"); "Looking for {picks}" in `largeTitle`. A horizontal row of `sm` chips to adjust picks (at least one stays). A row card (radius 20, `surface-card`, `shadow-2`, padding 14 × 16) with "You're visible nearby" in `headline`, the footnote, and the elapsed clock in mono 13 tabular. Full-width `secondary` **Stop searching** with `x`.
 - **Match** (*ink* card): padding 0 × 20 × 24. The lanyard badge hangs from the top edge (strap 150, not faded). At the bottom: a mono row "match · nearby · on foot" with the 45 s countdown "0:45" right-aligned, full-width `glow` **Open compass** (`compass`), ghost md **Dismiss**, centred `footnote`. After accept the glow button becomes a disabled `secondary` "waiting for them…" and Dismiss disables. Expired: the badge dims to 40%, a 52 tall `muted` pill reads "offer expired", the footnote reads "you're still searching". No match percentage is shown.
 - **Compass** (*night*, full): padding 64 top, 16 sides, 36 bottom. `Countdown` at the top with the label "left · {intent}". `CompassDial` 290 centred with `BucketLabel` under it ("finding signal…" in `title` `fg-2` while waiting). Compact `VibeCard` "you're looking for" with their line. Bottom row: `danger` lg **Vanish** (`x`, its own width, left) and full-width **We met** (`hand`): disabled `secondary` until `burning`, then `glow`.
-- **Post-meet** (*night*, full): two small badges (150) side by side, yours tilted +4° with your name, theirs −4° with their name, in a 384 tall band at the top. Then, bottom-aligned: mono "you found each other" in `success` with `circle-check`, "Say hi to {name}." in `largeTitle`, the `body` line in `fg-2`, a compact `VibeCard` "an opener, if you need one". Bottom row: `tertiary` lg **Keep in touch** (`plus`; loading while waiting; `check` "Kept" once mutual) and full-width `primary` **Back to the map**; a centred `footnote` under it. Calm, no confetti.
+- **Post-meet** (*night*, full): two small badges (150) side by side, yours tilted +4° with your name, theirs −4° with their name, in a 384 tall band at the top. Then, bottom-aligned: mono "you found each other" in `success` with `circle-check`, "Say hi to {name}." in `largeTitle`, the `body` line in `fg-2`, and a `footnote` with `footprints`: "You walked {m} m to say hi." A row under it: `secondary` sm **Same again next week?** (`calendar-plus`; once tapped, a `circle-check` footnote "Glad it clicked." — local only, nothing is scheduled) and ghost sm **Report**, which turns into a `footnote` notice ("Reports reach our team in the next version. Feeling unsafe? Call 112."). Full-width `primary` lg **Back to the map** at the bottom. Calm, no confetti.
 
 ## 14. Haptics & sound (expo-haptics)
 
@@ -719,7 +719,7 @@ No haptics on scrolling, panning the map, or every heading sample. The **Haptics
 | Kind | Where |
 |---|---|
 | Status | top pill: `invisible` / `● searching: beer` / `offline` |
-| Completion | match card; "waiting for them…" → compass; post-meet "you found each other"; "Kept" |
+| Completion | match card; "waiting for them…" → compass; post-meet "you found each other"; "Glad it clicked." |
 | Warning | compass at 1:00 left (countdown turns `temp-hot`, warning haptic) |
 | Error | compass `waiting-for-signal` (arrow dims to 40%, label "finding signal…"); socket lost (pill shows `offline`) |
 

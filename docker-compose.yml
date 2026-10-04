@@ -8,7 +8,7 @@
 # are published for the scorer — only the server is reachable from the host.
 #
 # Override for prod:
-#   - bump MATCH_SCORER_URL to http://scaler:8000 (or a load balancer)
+#   - bump MATCH_SCORER_URL to http://scorer:8000 (or a load balancer)
 #   - mount a /var/run/docker.sock-free deploy; let external orchestrator
 #     scale `scorer` replicas.
 

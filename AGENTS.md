@@ -9,7 +9,10 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket, onboarding LLM helpers; `taste/` holds the generated swipe samples; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
-| `ml/` | PyTorch asymmetric Siamese matching model (ONNX export happens inside the repo via `scripts/train_experiments_v3.py`); `scripts/match_scorer_server.py` and `scripts/interest_matcher_server.py` run together in one HTTP container via `scripts/run_servers.py` + `Dockerfile.scorer`; the server scores pairs through it on profile saves and a periodic sweep (`server/src/matching/`) | `ml/README.md`, `docs/ML-MATCHING.md`, `ml/DEPLOYMENT.md` |
+| `ml/` | PyTorch asymmetric Siamese matching model (ONNX export happens inside the repo via `scripts/train_experiments_v3.py`); `scripts/match_scorer_server.py` and `scripts/interest_matcher_server.py` run together in one HTTP container via `scripts/run_servers.py` + `Dockerfile.scorer`; the server scores Now matches with it on profile saves and a periodic sweep (`server/src/matching/`), plans and demo mode use the rules-based `compat()` | `ml/README.md`, `docs/ML-MATCHING.md`, `ml/DEPLOYMENT.md` |
+| `site/` | public web page on Vercel: the film, use-case clips, waitlist | `site/README.md` |
+| `video/motion` | Remotion film (`Main`) and use-case clips; `video/Just-Mate App Prototype` is the design prototype | `video/motion/README.md` |
+| `docs/submission` | deck, whitepaper, cover, app screens | `docs/SUBMISSION.md` |
 
 ## Commands
 
@@ -20,11 +23,13 @@ bun --cwd server db:migrate # apply server-owned Drizzle migrations
 bun run dev:mock             # :3001, scripted transcript
 bun --cwd mobile ios         # dev-client build on simulator / device
 bun run lint                 # biome; `bun run format` to fix
-bun run typecheck            # every TS package
+bun run typecheck            # every workspace package
 bun run test                 # server bun:test
+cd site && bun run dev       # web page, built and served locally
+cd video/motion && bun run studio  # Remotion Studio
 ```
 
-Done = lint, typecheck and tests green.
+Done = lint, typecheck and tests green. `site/` and `video/motion` are not workspaces: each needs its own `bun install`, and root `typecheck` and CI skip them (biome lint still covers them).
 
 ## Releases
 

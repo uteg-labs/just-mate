@@ -2,7 +2,7 @@
 
 PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss, v3 + `soft_jacc` side feature). Trained checkpoints are served as ONNX by **`match_scorer`** and **`interest_matcher`** — two HTTP daemons bundled in one Docker container (`Dockerfile.scorer`) launched together by `scripts/run_servers.py` (PR #32). A legacy NDJSON subprocess (`scripts/match_scorer.py`, Python or PyInstaller-frozen binary) is kept for local dev.
 
-**The HTTP container is not wired into the Bun server today** — PR #34 reverted the server-side clients. Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). The intended integration is a precomputed pair-score cache that `compat()` reads synchronously, with the rules as fallback (§4).
+**Status.** Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`).
 
 Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [`../docs/ml/PLAN.md`](../docs/ml/PLAN.md) and `docs/ml/specs/` are the original hackathon plan, kept for history. This README is the run-it-yourself guide.
 
@@ -259,7 +259,7 @@ bash scripts/build_local_mac_and_linux.sh               # macOS native + Linux v
 
 ## 4. How the Bun/Elysia server would use it (planned)
 
-The HTTP container exists (`match_scorer` on `:8000`, `interest_matcher` on `:8001`); the Bun server doesn't import HTTP clients for them today — PR #34 reverted them. Live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`. The intended integration is a precomputed pair-score cache that `compat()` reads synchronously:
+The HTTP container runs `match_scorer` on `:8000` and `interest_matcher` on `:8001`. Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). The design:
 
 ```
 Bun server (background scoring, on profile create/change)
@@ -404,6 +404,7 @@ When done, publish the new checkpoint as a release (see §3.1 for the download p
 ml/
 ├── README.md                          ← this file
 ├── DEPLOYMENT.md                      ← planned server integration of match_scorer
+├── Dockerfile.scorer                  ← HTTP scorer container (:8000 + :8001)
 ├── pyproject.toml                     ← uv-managed deps; installs src/just_mate_ml (hatchling)
 ├── src/just_mate_ml/
 │   └── data/
@@ -420,13 +421,18 @@ ml/
 │   ├── build_eval_notebook.py         ← Regenerate the eval notebook
 │   ├── build_interest_embeddings.py   ← Cache per-interest OpenAI embeddings (v3)
 │   ├── match_scorer.py                ← ONNX inference daemon (NDJSON over stdio)
+│   ├── match_scorer_server.py         ← same scorer over HTTP (:8000)
+│   ├── interest_matcher_server.py     ← interest soft-jaccard over HTTP (:8001)
+│   ├── run_servers.py                 ← both HTTP servers in one process (Dockerfile.scorer CMD)
 │   ├── score_pair.py                  ← CLI: take 2 pre-computed embedding JSON → forward to scorer
 │   ├── build_match_scorer.sh          ← PyInstaller build of match_scorer (native)
 │   └── build_local_mac_and_linux.sh   ← macOS native + Linux (Docker) builds
 ├── notebooks/
 │   └── evaluate_matching_model.ipynb  ← Eval notebook (regenerable)
 ├── tests/
-│   └── test_bootstrap.py              ← Dependency + package import sanity
+│   ├── test_bootstrap.py              ← Dependency + package import sanity
+│   ├── test_scorer_server.py          ← match_scorer_server HTTP endpoints
+│   └── test_interest_matcher_server.py ← interest_matcher_server HTTP endpoints
 ├── data/                              ← Synthetic profiles + embeddings + triplets (gitignored)
 └── checkpoints/                       ← model_v0.{pt,onnx} from Releases, model_v3.* if you train v3 (gitignored)
 ```
@@ -445,11 +451,11 @@ Gitignored (large or sensitive):
 # Toolchain sanity (no model or API key needed)
 uv run pytest tests/test_bootstrap.py -v
 
-# Full test suite (when present)
+# Full test suite
 uv run pytest -v
 ```
 
-The bootstrap test is the only test, and it is not run in CI (CI covers the TypeScript workspace only). Add new tests under `tests/`; pytest discovers them via the `[tool.pytest.ini_options]` block in `pyproject.toml` (`testpaths = ["tests"]`).
+Three test files: `test_bootstrap.py`, `test_scorer_server.py` and `test_interest_matcher_server.py`; the two server tests need the checkpoints from §3.1. None run in CI (CI covers the TypeScript workspace only). Add new tests under `tests/`; pytest discovers them via the `[tool.pytest.ini_options]` block in `pyproject.toml` (`testpaths = ["tests"]`).
 
 ---
 

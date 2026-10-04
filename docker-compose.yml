@@ -8,7 +8,7 @@
 # are published for the scorer — only the server is reachable from the host.
 #
 # Override for prod:
-#   - bump MATCH_SCORER_URL to http://scaler:8000 (or a load balancer)
+#   - bump MATCH_SCORER_URL to http://scorer:8000 (or a load balancer)
 #   - mount a /var/run/docker.sock-free deploy; let external orchestrator
 #     scale `scorer` replicas.
 
@@ -22,6 +22,8 @@ services:
     image: match-scorer:local
     environment:
       - LOG_LEVEL=info
+      # the .onnx files in ml/checkpoints/ are not tracked; export or copy them
+      # there before building, or the scorer has no model to load.
       # Pick the model you want. v3_best is the DEPLOYMENT.md default.
       # Other options in ml/checkpoints/: model_v0, model_v3_abs,
       # model_v3_fix, model_v3_sym-loss-{0.5,1.0}.

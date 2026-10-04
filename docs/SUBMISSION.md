@@ -32,7 +32,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
-> Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Serhii Vielkin, Nikita Orlov.
+> Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Nikita Orlov, Serhii Vielkin.
 >
 > Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md
 

@@ -18,6 +18,8 @@ import type {
   VibeRequest,
 } from "@justmate/protocol"
 
+import { currentLanguage } from "@/localization/i18n"
+
 import { apiURL, authClient } from "./auth-client"
 
 export class ApiError extends Error {
@@ -31,7 +33,10 @@ export class ApiError extends Error {
 
 // expo has no cookie jar: the session cookie travels by hand, and `omit` keeps fetch from adding its own
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const headers: Record<string, string> = { cookie: await authClient.getCookie() }
+  const headers: Record<string, string> = {
+    cookie: await authClient.getCookie(),
+    "accept-language": currentLanguage(),
+  }
   if (body !== undefined) headers["content-type"] = "application/json"
 
   const res = await fetch(`${apiURL}${path}`, {

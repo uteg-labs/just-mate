@@ -11,6 +11,7 @@ import {
 import { Elysia } from "elysia"
 
 import { authPlugin } from "../auth/auth.plugin"
+import { resolveLanguage, type SupportedLanguage } from "../localization/i18n"
 import { fixedWindow } from "../rate-limit"
 import {
   describeAppearance,
@@ -24,6 +25,7 @@ import {
 
 type Ctx = {
   body: unknown
+  request: Request
   user: { id: string }
   status: (code: 400 | 429, body: unknown) => unknown
 }
@@ -32,11 +34,15 @@ const LLM_CALLS_MAX = Number(process.env.ONBOARDING_LLM_CALLS_MAX ?? 60)
 const LLM_WINDOW_MS = Number(process.env.ONBOARDING_LLM_WINDOW_MS ?? 10 * 60_000)
 const allowCall = fixedWindow(LLM_CALLS_MAX, LLM_WINDOW_MS)
 
-function route<T, R>(parse: (body: unknown) => Parsed<T>, write: (req: T) => Promise<R>) {
-  return ({ body, user, status }: Ctx) => {
+function route<T, R>(
+  parse: (body: unknown) => Parsed<T>,
+  write: (req: T, language: SupportedLanguage) => Promise<R>,
+) {
+  return ({ body, request, user, status }: Ctx) => {
     if (!allowCall(user.id)) return status(429, { error: "rate_limited" })
     const parsed = parse(body)
-    return parsed.ok ? write(parsed.value) : status(400, { error: parsed.error })
+    if (!parsed.ok) return status(400, { error: parsed.error })
+    return write(parsed.value, resolveLanguage(request.headers.get("accept-language")))
   }
 }
 

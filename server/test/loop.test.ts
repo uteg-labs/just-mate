@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 import type { Profile, ServerMsg } from "@justmate/protocol"
 
 import { partnerCard } from "../src/matching/compat"
-import { geohash, type LatLng, offset } from "../src/matching/geo"
+import { cellCentre, geohash, type LatLng, offset } from "../src/matching/geo"
 import { STAGE_A } from "../src/realtime/demo"
 import {
   type Client,
@@ -243,11 +243,27 @@ describe("sessions", () => {
     const { a, b } = await session(300)
     const buckets = []
     for (const meters of [300, 150, 50, 10]) {
+      now += 20_000
       await move(b, offset(ARENA, 90, meters))
       tick()
       buckets.push(lastOf(a, "partner_position")?.bucket)
     }
     expect(buckets).toEqual(["cold", "warm", "hot", "burning"])
+  })
+
+  test("a cold partner's bearing points at their geohash-7 cell, in steps of 10°", async () => {
+    const { a, b } = await session(150)
+    const cell = cellCentre(offset(ARENA, 90, 700), 7)
+    const bearings = []
+    for (const at of [offset(cell, 0, 70), offset(cell, 180, 70)]) {
+      now += 60_000
+      await move(b, at)
+      tick()
+      bearings.push(lastOf(a, "partner_position")?.bearing)
+    }
+    expect(lastOf(a, "partner_position")?.bucket).toBe("cold")
+    expect(bearings[0]).toBe(bearings[1] ?? -1)
+    expect((bearings[0] ?? 1) % 10).toBe(0)
   })
 
   test("met from one side ends it as met for both and ends both searches", async () => {
@@ -365,6 +381,28 @@ describe("positions", () => {
     expect(a.client.position?.lat).toBeCloseTo(ARENA.lat)
   })
 
+  test("a fix faster than 10 m/s from the last kept one is refused", async () => {
+    const a = await join("u_a")
+    await search(a, 0)
+    now += 2000
+    await move(a, offset(ARENA, 90, 5000))
+    expect(lastOf(a, "error")?.code).toBe("position_too_fast")
+    expect(a.client.position?.lng).toBeCloseTo(ARENA.lng)
+
+    now += 2000
+    await move(a, offset(ARENA, 90, 15))
+    expect(a.client.position?.lng).toBeGreaterThan(ARENA.lng)
+  })
+
+  test("fixes sent faster than the interval are dropped", async () => {
+    const a = await join("u_a")
+    await search(a, 0)
+    now += 200
+    await move(a, offset(ARENA, 90, 1))
+    expect(a.client.position?.lng).toBeCloseTo(ARENA.lng, 6)
+    expect(all(a, "error")).toEqual([])
+  })
+
   test("a newer hello closes the older socket for the same user", async () => {
     const first = await join("u_a")
     const second = await join("u_a")
@@ -377,6 +415,15 @@ describe("positions", () => {
 })
 
 describe("demo", () => {
+  test("demo sockets of different accounts are never paired", async () => {
+    const a = await join("u_one", makeProfile(), "a")
+    const b = await join("u_two", makeProfile(), "b")
+    await receive(a.client, beer)
+    await receive(b.client, beer)
+    tick()
+    expect([all(a, "match_offer"), all(b, "match_offer")]).toEqual([[], []])
+  })
+
   test("the demo pair runs the whole happy path on the scripted track", async () => {
     const a = await join("u_demo", makeProfile(), "a")
     const b = await join("u_demo", makeProfile(), "b")

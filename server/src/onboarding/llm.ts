@@ -19,7 +19,7 @@ import {
 
 import { type Question, SAMPLE_QUESTIONS, SAMPLE_RELATED, SAMPLE_VIBES } from "./samples"
 
-const MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini"
+const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"
 
 const QUESTION_TIMEOUT_MS = 12_000
 const VIBE_TIMEOUT_MS = 10_000
@@ -243,7 +243,8 @@ Already on screen: ${[...have].join(", ")}`
   const live = await ask(RELATED_SYSTEM, prompt, RELATED_SCHEMA, RELATED_TIMEOUT_MS)
   const suggested = (live as { items?: unknown } | undefined)?.items
   const items = relatedItems(Array.isArray(suggested) ? suggested : [], have)
-  return { items: items.length ? items : relatedItems(SAMPLE_RELATED[req.item] ?? [], have) }
+  const samples = (Object.hasOwn(SAMPLE_RELATED, req.item) && SAMPLE_RELATED[req.item]) || []
+  return { items: items.length ? items : relatedItems(samples, have) }
 }
 
 function relatedItems(candidates: unknown[], have: Set<string>): string[] {

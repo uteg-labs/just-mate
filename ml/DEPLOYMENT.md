@@ -467,6 +467,7 @@ Under the hood: one `POST /pair` JSON body → two ONNX forward passes (AB and B
 | `MATCH_SCORER_MODEL_VERSION` | `model-v3-best` | Stored on every score row. Rows with another version are ignored by matching and rescored by the sweep. |
 | `MATCH_PAIR_THRESHOLD` | `0.40` | Gate on `pair_score` for a match offer. |
 | `MATCH_SWEEP_INTERVAL_MS` | `600000` | How often the sweep looks for missing embeddings and missing or outdated pair scores. |
+| `MATCH_RELAXED` | `0` | `1` turns the threshold off for Now matching, among other demo relaxations (`docs/PROTOCOL.md` rule 13). |
 
 ### 8.2 Monitoring
 

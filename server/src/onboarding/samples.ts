@@ -64,6 +64,19 @@ export const SAMPLE_VIBES = [
   "plans the trip — forgets the charger",
 ]
 
+export const SAMPLE_ICEBREAKERS = {
+  date: [
+    "What's the best thing you ate this week?",
+    "Which place around here would you take a visitor to first?",
+    "What were you in the middle of before this?",
+  ],
+  mate: [
+    "What are you in the mood for right now?",
+    "Which spot near here has never let you down?",
+    "What's the last thing you got properly into?",
+  ],
+} as const satisfies Record<"date" | "mate", readonly string[]>
+
 export const SAMPLE_RELATED: Record<string, string[]> = {
   coffee: ["flat white", "café hopping", "specialty roasters"],
   wine: ["natural wine", "wine bars", "tastings"],

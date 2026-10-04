@@ -5,6 +5,9 @@ import {
   CHARACTER_MAX,
   type CharacterReply,
   type CharacterRequest,
+  ICEBREAKER_MAX,
+  type IcebreakerReply,
+  type IcebreakerRequest,
   type QA,
   type QuestionReply,
   type QuestionRequest,
@@ -17,7 +20,13 @@ import {
   type VibeRequest,
 } from "@justmate/protocol"
 
-import { type Question, SAMPLE_QUESTIONS, SAMPLE_RELATED, SAMPLE_VIBES } from "./samples"
+import {
+  type Question,
+  SAMPLE_ICEBREAKERS,
+  SAMPLE_QUESTIONS,
+  SAMPLE_RELATED,
+  SAMPLE_VIBES,
+} from "./samples"
 
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini"
 
@@ -27,6 +36,7 @@ const RELATED_TIMEOUT_MS = 8_000
 const CHARACTER_TIMEOUT_MS = 10_000
 const TASTE_TIMEOUT_MS = 8_000
 const APPEARANCE_TIMEOUT_MS = 12_000
+const ICEBREAKER_TIMEOUT_MS = 8_000
 
 const apiKey = process.env.OPENAI_API_KEY
 
@@ -91,6 +101,15 @@ Rules:
 - one line of comma-separated traits, at most 25 words, no heading or Markdown
 - never state or guess age, ethnicity, nationality, gender, weight, emotion or name, and never identify the person
 - if no face is visible, answer with an empty string
+- English only`
+
+const ICEBREAKER_SYSTEM = `You write one ice-breaker for two people who just met in person through JustMate, a faceless app: the line one of them can say first.
+
+Rules:
+- a light question or playful remark, one sentence, under ${ICEBREAKER_MAX} characters
+- build on an interest they share, or on the other person's vibe line
+- never mention looks, age, the app, matching or how they found each other
+- no pickup lines, no emoji, no quotation marks, no exclamation marks
 - English only`
 
 const textSchema = (key: string) => ({
@@ -232,6 +251,34 @@ export function isVibe(value: unknown, avoid: string[]): value is string {
     !EMOJI.test(value) &&
     !avoid.includes(value)
   )
+}
+
+export function isIcebreaker(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.trim() === value &&
+    value.length > 0 &&
+    value.length <= ICEBREAKER_MAX &&
+    !QUOTES.test(value) &&
+    !EMOJI.test(value)
+  )
+}
+
+export async function writeIcebreaker(req: IcebreakerRequest): Promise<IcebreakerReply> {
+  const shared = req.interests.filter((i) => req.partnerInterests.includes(i))
+  const prompt = `They both ${MODE_PITCH[req.mode]}.
+Shared interests: ${shared.join(", ") || "(none)"}
+Their interests: ${req.partnerInterests.join(", ")}
+Their vibe line: ${req.partnerVibe || "(none)"}
+
+Write the ice-breaker.`
+
+  const live = await ask(ICEBREAKER_SYSTEM, prompt, textSchema("line"), ICEBREAKER_TIMEOUT_MS)
+  const line = (live as { line?: unknown } | undefined)?.line
+  if (isIcebreaker(line)) return { line, source: "live" }
+
+  const pool = SAMPLE_ICEBREAKERS[req.mode]
+  return { line: pool[Math.floor(Math.random() * pool.length)] as string, source: "sample" }
 }
 
 export async function writeRelated(req: RelatedRequest): Promise<RelatedReply> {

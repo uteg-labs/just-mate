@@ -6,7 +6,7 @@
 // server talks to the scorer across the compose network; when it is
 // unset the helper throws at boot so misconfiguration fails loud.
 
-import type { Config } from "@justmate/protocol"
+import type { Mode } from "@justmate/protocol"
 
 export type ScoreReq = {
   target_emb: number[]
@@ -94,6 +94,11 @@ export async function getScorer(): Promise<ScorerHttp> {
   return s
 }
 
-export function pairThreshold(_config: Config): number {
+export function pairThreshold(mode: Mode): number {
+  if (mode === "mate") return Number(process.env.MATE_MATCH_THRESHOLD ?? 0.55)
+  return Number(process.env.MATCH_PAIR_THRESHOLD ?? 0.4)
+}
+
+export function rulesThreshold(): number {
   return Number(process.env.MATCH_PAIR_THRESHOLD ?? 0.4)
 }

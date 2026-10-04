@@ -1,7 +1,14 @@
 import type { Mode, Venue } from "@justmate/protocol"
 import { type ReactNode, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native"
+import {
+  type StyleProp,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type ViewStyle,
+} from "react-native"
 import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
@@ -17,9 +24,10 @@ import {
   useScheme,
 } from "@/components/ui"
 import { ZoneMap } from "@/components/ZoneMap"
+import { SHEET_SHARE } from "@/features/plans/PlanWhereSheet"
 import type { Live } from "@/lib/store"
 import { useVenues } from "@/lib/venues"
-import { layout, radius } from "@/theme/layout"
+import { layout, radius, space } from "@/theme/layout"
 import { duration } from "@/theme/motion"
 import { font, type } from "@/theme/type"
 
@@ -43,6 +51,7 @@ const FADE_H = 140
 const ZONE_MS = 2400
 const PILL_ROW = 50
 const SEGMENTED_W = 240
+const SEGMENTED_H = 44
 
 type RevealProps = { on: boolean; style: StyleProp<ViewStyle>; children: ReactNode }
 
@@ -79,6 +88,7 @@ export const MapChrome = ({
   const { t } = useTranslation()
   const { c, shadow } = useScheme()
   const insets = useSafeAreaInsets()
+  const { height } = useWindowDimensions()
   const [zone, setZone] = useState<number>()
   const places = useVenues()
 
@@ -90,6 +100,8 @@ export const MapChrome = ({
     !!live.search || !!live.session || !!live.going || shape === "select" || shape === "where"
   const top = insets.top + 4
   const isHome = shape === "select" || isSearch
+  const chrome = shape === "select" ? PILL_ROW + SEGMENTED_H + space.s : isSearch ? PILL_ROW : 0
+  const sheet = shape === "where" ? Math.round(height * SHEET_SHARE) + space.s : 0
 
   useEffect(() => {
     if (zone === undefined) return
@@ -112,6 +124,7 @@ export const MapChrome = ({
         venues={isHome ? places.filter((v) => v.modes.includes(mode)) : venues}
         selected={venue}
         onVenue={isHome ? undefined : onVenue}
+        inset={{ top: top + chrome, bottom: sheet }}
       />
       <View
         pointerEvents="none"

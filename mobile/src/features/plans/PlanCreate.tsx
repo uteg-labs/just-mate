@@ -25,7 +25,7 @@ import { layout, space } from "@/theme/layout"
 import { duration } from "@/theme/motion"
 import { type } from "@/theme/type"
 
-import { type Draft, PLAN_DAYS, pickedDays, slotTimes, timesFor } from "./draft"
+import { canHoldDay, type Draft, PLAN_DAYS, pickedDays, slotTimes, timesFor } from "./draft"
 import { MapFrame } from "./parts"
 import { capital, dateMono, dayAt, dayChip, dayWord, slotGroups, timeOf } from "./time"
 
@@ -311,7 +311,8 @@ const ReviewRow = ({ icon, label, value, lines, last, onPress }: RowProps) => {
 const Review = ({ draft, set, venues, onWhat, onWhen, onWhere, onSend }: ReviewProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
-  const venue = venues.find((v) => v.id === draft.venueId)
+  // switching mode after picking a place can leave a venue the server refuses for it
+  const venue = venues.find((v) => v.id === draft.venueId && v.modes.includes(draft.mode))
   const slots = slotTimes(draft)
   const groups = slotGroups(slots)
   const [only] = slots
@@ -367,17 +368,19 @@ const Review = ({ draft, set, venues, onWhat, onWhen, onWhere, onSend }: ReviewP
         />
       </Card>
 
-      <View style={styles.group}>
-        <FieldLabel>{t("plans.review.until")}</FieldLabel>
-        <Segmented
-          items={[
-            { value: "2h", label: t("plans.until.2h") },
-            { value: "day", label: t("plans.until.day") },
-          ]}
-          value={draft.until}
-          onChange={(until) => set({ until })}
-        />
-      </View>
+      {canHoldDay(draft) && (
+        <View style={styles.group}>
+          <FieldLabel>{t("plans.review.until")}</FieldLabel>
+          <Segmented
+            items={[
+              { value: "2h", label: t("plans.until.2h") },
+              { value: "day", label: t("plans.until.day") },
+            ]}
+            value={draft.until}
+            onChange={(until) => set({ until })}
+          />
+        </View>
+      )}
 
       <View style={styles.promises}>
         {(["users", "circle-check", "eye-off"] as const).map((icon, i) => (

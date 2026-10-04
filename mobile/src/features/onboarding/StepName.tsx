@@ -90,6 +90,8 @@ export const StepName = ({ profile, setProfile, set, next, eyebrow }: StepProps)
           <TextField
             label={t("onboarding.name.age")}
             keyboardType="number-pad"
+            // ios sends "none" as no type, which leaves the field open to its password heuristics
+            textContentType="oneTimeCode"
             autoComplete="off"
             maxLength={2}
             value={ageText}

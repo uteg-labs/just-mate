@@ -253,10 +253,16 @@ export const en = {
     loadFailed: "Couldn't load your profile. Check your connection.",
     retry: "Try again",
     refused: "That didn't go through. Try again in a moment.",
+    unsent: "You're offline, so the plan wasn't sent. Try again once you're back.",
     refusedWhy: {
       adult_required: "Dating is 18+. Mate is open to you.",
       invalid_category: "This version of the app is out of date. Update it and try again.",
       invalid_intents: "This version of the app is out of date. Update it and try again.",
+      invalid_until:
+        "Those times are too soon to offer. Pick later ones, or keep it open until 2 h before.",
+      invalid_venue: "That place isn't available for this plan. Pick another one.",
+      invalid_slots: "Something's off with the times. Pick them again.",
+      invalid_plan: "That plan isn't there any more.",
     },
     ended: {
       vanished: "The compass closed. You're invisible again.",

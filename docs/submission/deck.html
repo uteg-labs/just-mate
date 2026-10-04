@@ -64,11 +64,11 @@
   .also b { color: var(--fg-1); font-weight: 600; }
 
   /* 6 · demo */
-  .shots { display: flex; gap: 40px; margin-top: 44px; align-items: flex-start; }
-  .shots figure { display: flex; flex-direction: column; gap: 20px; width: 290px; }
-  .shots .phone { width: 290px; border-width: 9px; border-radius: 44px; }
-  .shots .phone img { border-radius: 35px; }
-  .shots figcaption { font-size: 25px; line-height: 1.35; color: var(--on-ink-2); }
+  .shots { display: flex; gap: 64px; margin-top: 36px; align-items: flex-start; }
+  .shots figure { display: flex; flex-direction: column; gap: 16px; width: 250px; }
+  .shots .phone { width: 250px; border-width: 8px; border-radius: 38px; }
+  .shots .phone img { border-radius: 30px; }
+  .shots figcaption { font-size: 22px; line-height: 1.35; color: var(--on-ink-2); }
   .shots figcaption b { display: block; color: var(--on-ink-1); font-weight: 600; }
   .shots figure::before { content: attr(data-n); font-family: var(--mono); font-size: 20px; letter-spacing: .1em; color: var(--glow); }
 
@@ -114,7 +114,7 @@
       <div class="display">Meet for real.</div>
       <p class="lede">Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate gets two compatible people to the same table.</p>
     </div>
-    <div class="phone" style="width:360px;transform:rotate(4deg);margin-bottom:-40px"><img src="images/app/03-plan.png" alt="" onerror="this.src='images/app/01-welcome.png';this.onerror=null"></div>
+    <div class="phone" style="width:360px;transform:rotate(4deg);margin-bottom:-40px"><img src="images/app/02-home.png" alt=""></div>
   </div>
   <div class="foot" style="margin-top:72px">
     <span>Artur Kozubov · Jozef Zvalo · Andrej Zak · Vielkin Serhej · Nikita Orlov</span>
@@ -188,16 +188,17 @@
 <!-- 6 · demo -->
 <section class="slide ink">
   <div class="glow" style="width:1200px;height:1200px;left:360px;top:160px;opacity:.28"></div>
-  <div class="eyebrow">Live demo · two phones</div>
-  <h2 style="margin-top:24px">Tomek's Thursday, end to end.</h2>
+  <div class="eyebrow">The build · iPhone screenshots</div>
+  <h2 style="margin-top:24px">From "what are you up for" to a plan in four taps.</h2>
   <div class="shots">
-    <figure data-n="01"><div class="phone"><img src="images/app/02-badge.png" alt="" onerror="this.parentElement.remove()"></div><figcaption><b>Your vibe</b>written from your answers</figcaption></figure>
-    <figure data-n="02"><div class="phone"><img src="images/app/03-plan.png" alt="" onerror="this.parentElement.remove()"></div><figcaption><b>A plan for you</b>activity, place, time, minutes on foot</figcaption></figure>
-    <figure data-n="03"><div class="phone"><img src="images/app/04-both-in.png" alt="" onerror="this.parentElement.remove()"></div><figcaption><b>you're both in</b>on both phones at once</figcaption></figure>
-    <figure data-n="04"><div class="phone"><img src="images/app/05-compass.png" alt="" onerror="this.parentElement.remove()"></div><figcaption><b>Open compass</b>cold, warm, hot, burning</figcaption></figure>
-    <figure data-n="05"><div class="phone"><img src="images/app/06-met.png" alt="" onerror="this.parentElement.remove()"></div><figcaption><b>We met</b>you found each other</figcaption></figure>
+    <figure data-n="01"><div class="phone"><img src="images/app/03-profile.png" alt=""></div><figcaption><b>Your vibe</b>no photo, ever</figcaption></figure>
+    <figure data-n="02"><div class="phone"><img src="images/app/04-sports.png" alt=""></div><figcaption><b>What you're up for</b>running or climbing</figcaption></figure>
+    <figure data-n="03"><div class="phone"><img src="images/app/07-plan-where.png" alt=""></div><figcaption><b>A public place</b>minutes on foot</figcaption></figure>
+    <figure data-n="04"><div class="phone"><img src="images/app/08-plan-review.png" alt=""></div><figcaption><b>Send it out</b>you don't pick who</figcaption></figure>
+    <figure data-n="05"><div class="phone"><img src="images/app/02-home.png" alt=""></div><figcaption><b>Your plans</b>and places for you</figcaption></figure>
   </div>
-  <div class="foot"><span>Stage note: positions are scripted in demo mode; matching, plans and the compass relay run live over WebSocket</span><span class="num">06 / 10</span></div>
+  </div>
+  <div class="foot"><span>Live on stage with two phones: the plan accepted on both, the compass walk, we met · positions scripted in demo mode</span><span class="num">06 / 10</span></div>
 </section>
 
 <!-- 7 · trade-offs -->

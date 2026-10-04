@@ -73,12 +73,17 @@ Upload `submission/images/cover.png` first. App screenshots (`submission/images/
 
 | File | Shows |
 |---|---|
-| `01-welcome.png` | Welcome |
-| `02-badge.png` | Your vibe (onboarding) |
-| `03-plan.png` | A plan for you: vibe, place, time, walk minutes |
-| `04-both-in.png` | you're both in |
-| `05-compass.png` | Compass: arrow, distance bucket, countdown |
-| `06-met.png` | Post-meet: you found each other |
+| `02-home.png` | Home: your plans, Plan for later, places for you (hero) |
+| `03-profile.png` | Your vibe line, no photo |
+| `04-sports.png` | Sports picker: running, climbing |
+| `05-searching.png` | Now: searching, visible nearby |
+| `06-plan-when.png` | Plan for later · when |
+| `07-plan-where.png` | Plan for later · where: public venues with walk time |
+| `08-plan-review.png` | Plan for later · send it out |
+| `09-plans.png` | Plans page with an open invitation |
+| `01-welcome.png` | Welcome / log in |
+
+Two-phone moments (plan accepted on both, compass, we met) are shown live on stage.
 
 ## What is real and what is production path
 

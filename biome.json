@@ -14,7 +14,8 @@
       "!ml",
       "!**/bun.lock",
       "!**/assets",
-      "!server/drizzle/meta"
+      "!server/drizzle/meta",
+      "!video/Just-Mate App Prototype"
     ]
   },
   "formatter": {

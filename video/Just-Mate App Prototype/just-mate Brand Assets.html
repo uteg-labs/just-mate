@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>just-mate · brand assets</title>
+<meta name="design_doc_mode" content="canvas">
+<link rel="icon" href="assets/brand/favicon.svg">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/colors.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/typography.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/motion.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/base.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/_ds_bundle.js"></script>
+<script src="app/icons-extra.js"></script>
+<style>
+a{color:var(--link)}a:hover{color:var(--fg-1)}
+@keyframes badge-drop{0%{transform:translateY(-110%) rotate(0deg)}45%{transform:translateY(2%) rotate(-6deg)}62%{transform:translateY(-1%) rotate(4deg)}78%{transform:translateY(0) rotate(-2deg)}90%{transform:rotate(.8deg)}100%{transform:none}}
+.sec{position:absolute;white-space:nowrap;font-size:34px;line-height:38px;letter-spacing:-.7px;font-weight:700;font-variation-settings:var(--fw-bold);color:var(--fg-1)}
+.lbl{position:absolute;white-space:nowrap;font-family:var(--font-mono);font-size:13px;line-height:16px;letter-spacing:.6px;text-transform:uppercase;color:var(--fg-2)}
+.fr{position:absolute;overflow:hidden;box-shadow:var(--shadow-3);font-family:var(--font-sans)}
+.paper{background:var(--background);color:var(--fg-1)}
+.ink{background:var(--jm-ink);color:#F5F5F7}
+.wm{font-weight:700;font-variation-settings:var(--fw-bold);letter-spacing:-.036em;line-height:1;white-space:nowrap}
+.mono{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.6px}
+.center{display:flex;align-items:center;justify-content:center}
+.icon{width:240px;height:240px;border-radius:54px;overflow:hidden;position:relative;box-shadow:var(--shadow-6)}
+.map{background:var(--map-bg)}
+.map::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,var(--map-line) 0 1px,transparent 1px 64px),repeating-linear-gradient(90deg,var(--map-line) 0 1px,transparent 1px 64px),repeating-linear-gradient(32deg,transparent 0 140px,var(--map-street) 140px 146px,transparent 146px 300px),repeating-linear-gradient(-58deg,transparent 0 210px,var(--map-street) 210px 214px,transparent 214px 420px)}
+.file{display:flex;align-items:center;gap:16px;padding:12px 16px;border-radius:20px;background:var(--surface-card);box-shadow:var(--shadow-2);text-decoration:none;color:var(--fg-1)}
+.file:hover{background:var(--surface-raised);color:var(--fg-1)}
+.file img{width:56px;height:56px;object-fit:contain;border-radius:12px;background:var(--surface-chip)}
+</style></head>
+<body>
+
+<div class="sec" style="left:0;top:0">Logo</div>
+<div class="lbl" style="left:0;top:66px">wordmark · paper</div>
+<div class="fr paper center" style="left:0;top:90px;width:640px;height:360px" data-screen-label="Wordmark paper">
+<div class="wm" style="font-size:112px">just-mate</div>
+</div>
+<div class="lbl" style="left:680px;top:66px">wordmark · ink</div>
+<div class="fr ink center" style="left:680px;top:90px;width:640px;height:360px" data-screen-label="Wordmark ink">
+<div class="wm" style="font-size:112px">just-mate</div>
+</div>
+<div class="lbl" style="left:1360px;top:66px">lockup · horizontal</div>
+<div class="fr paper center" style="left:1360px;top:90px;width:640px;height:360px;gap:24px" data-screen-label="Lockup horizontal">
+<img src="assets/brand/just-mate-symbol.svg" width="112" height="112" alt="" style="border-radius:999px;box-shadow:var(--shadow-6)">
+<div class="wm" style="font-size:84px">just-mate</div>
+</div>
+<div class="lbl" style="left:2040px;top:66px">lockup · stacked</div>
+<div class="fr ink" style="left:2040px;top:90px;width:360px;height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px" data-screen-label="Lockup stacked">
+<img src="assets/brand/just-mate-symbol.svg" width="104" height="104" alt="">
+<div class="wm" style="font-size:56px">just-mate</div>
+<div class="mono" style="font-size:12px;color:rgba(235,235,245,.62)">meet for real</div>
+</div>
+
+<div class="lbl" style="left:2440px;top:66px">files · svg</div>
+<div class="fr paper" style="left:2440px;top:90px;width:520px;height:360px;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;overflow:auto" data-screen-label="SVG files">
+<a class="file" href="assets/brand/just-mate-wordmark.svg" download><img src="assets/brand/just-mate-wordmark.svg" alt=""><span><b>just-mate-wordmark.svg</b><br><span class="t-footnote">ink on transparent</span></span></a>
+<a class="file" href="assets/brand/just-mate-wordmark-dark.svg" download><img src="assets/brand/just-mate-wordmark-dark.svg" alt=""><span><b>just-mate-wordmark-dark.svg</b><br><span class="t-footnote">light on ink</span></span></a>
+<a class="file" href="assets/brand/just-mate-symbol.svg" download><img src="assets/brand/just-mate-symbol.svg" alt=""><span><b>just-mate-symbol.svg</b><br><span class="t-footnote">aurora disc, round</span></span></a>
+<a class="file" href="assets/brand/just-mate-app-icon.svg" download><img src="assets/brand/just-mate-app-icon.svg" alt=""><span><b>just-mate-app-icon.svg</b><br><span class="t-footnote">1024 · aurora · square, system masks corners</span></span></a>
+<a class="file" href="assets/brand/just-mate-app-icon-cool.svg" download><img src="assets/brand/just-mate-app-icon-cool.svg" alt=""><span><b>just-mate-app-icon-cool.svg</b><br><span class="t-footnote">1024 · alternate icon</span></span></a>
+<a class="file" href="assets/brand/favicon.svg" download><img src="assets/brand/favicon.svg" alt=""><span><b>favicon.svg</b><br><span class="t-footnote">32 · round</span></span></a>
+</div>
+
+<div class="sec" style="left:0;top:520px">App icon</div>
+<div class="lbl" style="left:0;top:586px;color:var(--fg-1)">a · aurora · chosen</div>
+<div class="fr paper center" style="left:0;top:610px;width:320px;height:320px" data-screen-label="Icon aurora">
+<img class="icon" src="assets/brand/just-mate-app-icon.svg" alt="just-mate app icon">
+</div>
+<div class="lbl" style="left:360px;top:586px">b · aurora with compass ring</div>
+<div class="fr paper center" style="left:360px;top:610px;width:320px;height:320px" data-screen-label="Icon aurora ring">
+<img class="icon" src="assets/brand/just-mate-app-icon-ring.svg" alt="">
+</div>
+<div class="lbl" style="left:720px;top:586px">c · alternate icon · cool</div>
+<div class="fr paper center" style="left:720px;top:610px;width:320px;height:320px" data-screen-label="Icon aurora cool">
+<img class="icon" src="assets/brand/just-mate-app-icon-cool.svg" alt="">
+</div>
+<div class="lbl" style="left:1080px;top:586px">d · monogram</div>
+<div class="fr paper center" style="left:1080px;top:610px;width:320px;height:320px" data-screen-label="Icon monogram">
+<div class="icon center ink"><span class="wm" style="font-size:104px;letter-spacing:-.05em">j-m</span></div>
+</div>
+<div class="lbl" style="left:1440px;top:586px">sizes · ios + favicon</div>
+<div class="fr paper" style="left:1440px;top:610px;width:960px;height:320px;display:flex;align-items:flex-end;justify-content:center;gap:36px;padding-bottom:56px;box-sizing:border-box" data-screen-label="Icon sizes">
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/just-mate-app-icon.svg" width="180" height="180" style="border-radius:40px" alt=""><span class="mono t-footnote">180</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/just-mate-app-icon.svg" width="120" height="120" style="border-radius:27px" alt=""><span class="mono t-footnote">120</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/just-mate-app-icon.svg" width="87" height="87" style="border-radius:19px" alt=""><span class="mono t-footnote">87</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/just-mate-app-icon.svg" width="60" height="60" style="border-radius:13px" alt=""><span class="mono t-footnote">60</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/just-mate-app-icon.svg" width="40" height="40" style="border-radius:9px" alt=""><span class="mono t-footnote">40</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/favicon.svg" width="32" height="32" alt=""><span class="mono t-footnote">fav 32</span></figure>
+<figure style="margin:0;display:flex;flex-direction:column;align-items:center;gap:12px"><img src="assets/brand/favicon.svg" width="16" height="16" alt=""><span class="mono t-footnote">fav 16</span></figure>
+</div>
+
+<div class="sec" style="left:0;top:1000px">Social and banners</div>
+<div class="lbl" style="left:0;top:1066px">open graph · 1200 × 630</div>
+<div class="fr paper map" style="left:0;top:1090px;width:1200px;height:630px" data-screen-label="OG image">
+<div id="og-glows"></div>
+<div style="position:absolute;left:80px;top:150px;display:flex;flex-direction:column;gap:22px">
+<div class="wm" style="font-size:128px">just-mate</div>
+<div style="font-size:44px;line-height:52px;letter-spacing:-.6px;font-weight:600;font-variation-settings:var(--fw-semibold);color:var(--fg-2)">Meet for real.</div>
+<div class="mono" style="font-size:18px;color:var(--fg-2);margin-top:18px">no faces · no chat · no pins</div>
+</div>
+<div id="og-badge" style="position:absolute;right:90px;top:0;zoom:1.3"></div>
+</div>
+<div class="lbl" style="left:1260px;top:1066px">x / linkedin header · 1500 × 500</div>
+<div class="fr ink" style="left:1260px;top:1090px;width:1500px;height:500px" data-screen-label="X header">
+<div style="position:absolute;left:100px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:20px">
+<div class="wm" style="font-size:104px">just-mate</div>
+<div style="font-size:34px;line-height:42px;letter-spacing:-.5px;font-weight:600;font-variation-settings:var(--fw-semibold);color:rgba(235,235,245,.62)">Pick what you want. Walk to each other.</div>
+</div>
+<div id="x-compass" class="dark" style="position:absolute;right:120px;top:50px"></div>
+</div>
+<div class="lbl" style="left:0;top:1786px">instagram post · 1080 × 1080</div>
+<div class="fr paper" style="left:0;top:1810px;width:1080px;height:1080px" data-screen-label="Instagram post">
+<div id="ig-badge" style="position:absolute;left:0;right:0;top:0;zoom:1.8"></div>
+<div style="position:absolute;left:72px;right:72px;bottom:64px;display:flex;justify-content:space-between;align-items:flex-end">
+<div class="wm" style="font-size:56px">just-mate</div>
+<div class="mono" style="font-size:18px;color:var(--fg-2)">no faces · just a vibe</div>
+</div>
+</div>
+<div class="lbl" style="left:1140px;top:1786px">story · 1080 × 1920</div>
+<div class="fr ink" style="left:1140px;top:1810px;width:1080px;height:1920px" data-screen-label="Story">
+<div id="story-badge" style="position:absolute;left:0;right:0;top:0;zoom:2.4"></div>
+<div id="story-cta" class="dark" style="position:absolute;left:0;right:0;bottom:0;zoom:2.4"></div>
+</div>
+<div class="lbl" style="left:2280px;top:1786px">splash · 402 × 874</div>
+<div class="fr paper" style="left:2280px;top:1810px;width:402px;height:874px;border-radius:48px" data-screen-label="Splash">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+<img src="assets/brand/just-mate-symbol.svg" width="88" height="88" alt="" style="border-radius:999px;box-shadow:var(--shadow-5)">
+<div class="wm" style="font-size:48px">just-mate</div>
+</div>
+<div class="mono" style="position:absolute;left:0;right:0;bottom:64px;text-align:center;font-size:11px;color:var(--fg-2)">meet for real</div>
+</div>
+
+<script type="text/babel" src="app/Heat.jsx"></script>
+<script type="text/babel" src="app/Badge.jsx"></script>
+<script type="text/babel">
+const { ZoneGlow, CompassDial, Button } = window.JustMateDesignSystem_dee067;
+const mount = (id, el) => ReactDOM.createRoot(document.getElementById(id)).render(el);
+const meDesign = jmBadgeDesign({ interests: ["coffee", "hiking", "jazz"], qa: [{ a: "a long walk, no plan" }, { a: "a record shop" }], mode: "date" });
+const herDesign = jmBadgeDesign({ interests: ["photography", "coffee", "travel"], qa: [{ a: "early bird" }], mode: "x", seed: "Mia" });
+mount("og-glows", <HeatMap width={1200} height={630} seed={3} spread={1.3} clusters={[{ x: 0.55, y: 0.2, n: 6 }, { x: 0.74, y: 0.66, n: 9 }, { x: 0.3, y: 0.86, n: 4 }, { x: 0.92, y: 0.25, n: 3 }, { x: 0.12, y: 0.12, n: 2 }]} />);
+mount("og-badge", <VibeBadge design={meDesign} width={240} strap={60} fadeStrap={false} eyebrow="your vibe · wants: coffee" quote="quietly funny — will out-argue you about pizza" tag="verified" />);
+mount("x-compass", <CompassDial rotation={38} bucket="burning" size={400} />);
+mount("ig-badge", <VibeBadge design={herDesign} width={262} strap={40} fadeStrap={false} eyebrow="her vibe · wants: coffee" quote="early bird with a film camera — opinions on oat milk" tag="verified · 18+" />);
+mount("story-badge", <VibeBadge design={herDesign} width={262} strap={110} fadeStrap={false} eyebrow="her vibe · wants: coffee" quote="early bird with a film camera — opinions on oat milk" tag="verified · 18+" />);
+mount("story-cta", (
+  <div style={{ padding: "0 24px 40px", display: "flex", flexDirection: "column", gap: 8, color: "var(--fg-1)" }}>
+    <span className="t-mono" style={{ color: "var(--fg-2)", paddingBottom: 6 }}>match · nearby · on foot</span>
+    <Button variant="glow" fullWidth leadingIcon="compass">Open compass</Button>
+    <span className="t-footnote" style={{ textAlign: "center", paddingTop: 6 }}>unlocks only if they accept too</span>
+  </div>
+));
+</script>
+</body></html>

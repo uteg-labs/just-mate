@@ -1,0 +1,16 @@
+/* Motion tokens. Springs from just-mate DESIGN.md §6.1 (dampingRatio/duration) + FF tiers.
+   CSS approximations: critically-damped springs ≈ cubic-bezier(0.23,1,0.32,1). Momentum = slight overshoot. */
+:root{
+  --ease-spring:cubic-bezier(0.23,1,0.32,1); /* @kind other */
+  --ease-momentum:cubic-bezier(0.34,1.36,0.64,1); /* @kind other */
+  --ease-out-quad:cubic-bezier(0.25,0.46,0.45,0.94); /* @kind other */
+  --dur-press:100ms; /* @kind other */        /* press-in scale 0.97 */
+  --dur-fast:80ms; /* @kind other */          /* FF spring.fast: hover colour */
+  --dur-moderate:160ms; /* @kind other */     /* FF spring.moderate: tabs, switch thumb */
+  --dur-fade:200ms; /* @kind other */         /* non-touch cross-fades, reduce-motion */
+  --dur-sensor:250ms; /* @kind other */       /* compass arrow */
+  --dur-snappy:300ms; /* @kind other */       /* chip select, button release */
+  --dur-default:400ms; /* @kind other */      /* overlays, repositioning */
+  --press-scale:0.97; /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){:root{--dur-snappy:200ms; /* @kind other */--dur-default:200ms; /* @kind other */--ease-momentum:var(--ease-out-quad)}}

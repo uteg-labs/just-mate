@@ -1123,7 +1123,7 @@ export const Outro = ({ short = false }: S & { short?: boolean }) => {
             Meet for real.
           </div>
           <div style={{ marginTop: 34, opacity: tag }}>
-            <Mono size={20}>no faces · no chat · no people pins</Mono>
+            <Mono size={20}>we find your people · we make the plan · meet now</Mono>
           </div>
         </div>
       )}

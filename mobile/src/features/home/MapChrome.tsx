@@ -123,6 +123,7 @@ export const MapChrome = ({
         <Text style={[type.title, styles.tagline, { color: c.fg2 }]}>
           {t("home.brand.tagline")}
         </Text>
+        <Text style={[type.body, styles.line, { color: c.fg2 }]}>{t("home.brand.line")}</Text>
         <Text style={[type.mono, styles.rules, { color: c.fg2 }]}>{t("home.brand.rules")}</Text>
       </Reveal>
 
@@ -170,6 +171,7 @@ const styles = StyleSheet.create({
   brand: { position: "absolute", left: layout.sheetPadding, right: layout.sheetPadding },
   wordmark: { fontFamily: font.bold, fontSize: 56, lineHeight: 56, letterSpacing: -2 },
   tagline: { marginTop: 10 },
+  line: { marginTop: 6 },
   rules: { marginTop: 18 },
   row: {
     position: "absolute",

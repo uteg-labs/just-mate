@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test"
+import { afterEach, beforeEach, describe, expect, type Mock, spyOn, test } from "bun:test"
 import type { Profile, ServerMsg } from "@justmate/protocol"
 
+import { rememberBlocks, resetBlocks } from "../src/matching/blocks"
 import { partnerCard } from "../src/matching/compat"
 import { cellCentre, geohash, type LatLng, offset } from "../src/matching/geo"
 import {
@@ -18,8 +19,10 @@ import {
   cooldowns,
   type Deps,
   disconnect,
+  matching,
   matchScores,
   receive,
+  STALE_FIX_MS,
   tick,
 } from "../src/realtime/session"
 import { makeProfile } from "./fixtures"
@@ -33,17 +36,22 @@ const ARENA = { lat: 50.0676, lng: 19.9917 }
 const beer = { t: "search_on", mode: "mate", category: "food", intents: ["beer"] }
 
 let now = 0
+let info: Mock<typeof console.info>
 
 beforeEach(() => {
   now = 1_000_000
   clock.now = () => now
+  info = spyOn(console, "info").mockImplementation(() => {})
 })
 
 afterEach(() => {
   for (const client of [...clients.values()]) disconnect(client)
   cooldowns.clear()
   matchScores.clear()
+  resetBlocks()
+  matching.relaxed = false
   clock.now = () => Date.now()
+  info.mockRestore()
 })
 
 async function join(
@@ -72,9 +80,13 @@ function move(user: User, at: LatLng) {
   return receive(user.client, { t: "position", ...at, acc: 5 })
 }
 
-function advance(ms: number) {
+// phones keep re-sending their last fix every second, except the ones gone quiet
+function advance(ms: number, quiet: User[] = []) {
   for (let elapsed = 0; elapsed < ms; elapsed += 1000) {
     now += 1000
+    for (const client of clients.values())
+      if (client.position && !quiet.some((user) => user.client === client))
+        receive(client, { t: "position", ...client.position })
     tick()
   }
 }
@@ -240,6 +252,159 @@ describe("pairing", () => {
 
     advance(1000)
     expect(all(a, "match_offer").length).toBe(2)
+  })
+})
+
+describe("missed matches", () => {
+  test("nearby searchers outside the default age range are not offered, and the log says why", async () => {
+    const a = await join("u_young_a", makeProfile({ age: 22 }))
+    const b = await join("u_young_b", makeProfile({ age: 23 }))
+    await search(a, 0)
+    await search(b, 50)
+    tick()
+
+    expect([all(a, "match_offer"), all(b, "match_offer")]).toEqual([[], []])
+    expect(info).toHaveBeenCalledWith("[matching] u_young_a|u_young_b not offered: age range")
+  })
+
+  test("a score under the threshold is logged with where it came from", async () => {
+    const a = await join("u_chess", makeProfile({ interests: ["chess"] }))
+    const b = await join("u_climb", makeProfile({ interests: ["climbing"] }))
+    await search(a, 0)
+    await search(b, 50)
+    tick()
+
+    expect(all(a, "match_offer")).toEqual([])
+    expect(info).toHaveBeenCalledWith(
+      "[matching] u_chess|u_climb not offered: score 0.30 < 0.4 (rules)",
+    )
+  })
+
+  test("a reason is logged once, not every tick", async () => {
+    const a = await join("u_far_a")
+    const b = await join("u_far_b")
+    await search(a, 0)
+    await search(b, 1000)
+    advance(3000)
+
+    expect(info.mock.calls).toEqual([["[matching] u_far_a|u_far_b not offered: beyond 800 m"]])
+  })
+
+  test("a searcher without an accepted position is logged", async () => {
+    const a = await join("u_blind")
+    await receive(a.client, beer)
+    tick()
+
+    expect(info).toHaveBeenCalledWith("[matching] u_blind not offered: no position")
+  })
+})
+
+describe("stale positions", () => {
+  async function awayAndHere() {
+    const away = await join("u_away")
+    const here = await join("u_here")
+    await search(away, 0)
+    advance(STALE_FIX_MS + 1000, [away])
+    await search(here, 150)
+    tick()
+    return { away, here }
+  }
+
+  test("a searcher who stopped reporting is not offered, and the log says why", async () => {
+    const { away, here } = await awayAndHere()
+
+    expect([all(away, "match_offer"), all(here, "match_offer")]).toEqual([[], []])
+    expect(info).toHaveBeenCalledWith("[matching] u_away not offered: stale position")
+  })
+
+  test("their next fix makes them matchable again at once", async () => {
+    const { away, here } = await awayAndHere()
+    await move(away, offset(ARENA, 90, 0))
+    tick()
+
+    expect([all(away, "match_offer").length, all(here, "match_offer").length]).toEqual([1, 1])
+  })
+
+  test("an open offer ends when one side goes stale, without a cooldown for the pair", async () => {
+    const { a, b, offerId } = await pair()
+    advance(STALE_FIX_MS, [a])
+    expect(all(b, "offer_expired")).toEqual([])
+
+    advance(1000, [a])
+    expect([lastOf(a, "offer_expired"), lastOf(b, "offer_expired")]).toEqual([
+      { t: "offer_expired", offerId },
+      { t: "offer_expired", offerId },
+    ])
+    expect(cooldowns.size).toBe(0)
+
+    await move(a, offset(ARENA, 90, 0))
+    tick()
+    expect(all(b, "match_offer").length).toBe(2)
+  })
+
+  test("a session outlives a partner who stopped reporting", async () => {
+    const { a, b } = await session()
+    advance(STALE_FIX_MS * 2, [a])
+
+    expect(all(b, "session_end")).toEqual([])
+    expect(lastOf(b, "partner_position")?.bucket).toBeDefined()
+  })
+})
+
+describe("relaxed matching", () => {
+  beforeEach(() => {
+    matching.relaxed = true
+  })
+
+  test("same-mode searchers who share nothing else are offered 5 km apart", async () => {
+    const mate = { ...makeProfile().mate, who: "same gender" as const }
+    const young = makeProfile({ age: 19, gender: "man", interests: ["chess"] })
+    const a = await join("u_young", young)
+    const b = await join("u_older", makeProfile({ age: 50, interests: ["climbing"], mate }))
+    await search(a, 0)
+    await search(b, 5000, { ...beer, category: "games", intents: ["chess"] })
+    tick()
+
+    expect(lastOf(b, "match_offer")).toEqual({
+      t: "match_offer",
+      offerId: expect.any(String),
+      sharedIntent: "beer",
+      partner: partnerCard(young),
+      expiresInMs: config.offerTtlMs,
+    })
+    expect(lastOf(a, "match_offer")?.sharedIntent).toBe("beer")
+  })
+
+  test("a dismissed pair is offered again after 30 s", async () => {
+    const { a, offerId } = await pair()
+    await receive(a.client, { t: "dismiss", offerId })
+    advance(29_000)
+    expect(all(a, "match_offer").length).toBe(1)
+
+    advance(1000)
+    expect(all(a, "match_offer").length).toBe(2)
+  })
+
+  test("a minor never searches in date mode, nor meets an adult", async () => {
+    const minor = await join("u_minor", makeProfile({ age: 16, adult: false }))
+    const adult = await join("u_adult")
+    await receive(minor.client, { ...beer, mode: "date" })
+    expect(lastOf(minor, "error")?.code).toBe("adult_required")
+
+    await search(minor, 0)
+    await search(adult, 50)
+    tick()
+
+    expect([all(minor, "match_offer"), all(adult, "match_offer")]).toEqual([[], []])
+    expect(info).toHaveBeenCalledWith("[matching] u_adult|u_minor not offered: adult")
+  })
+
+  test("a blocked pair is never offered", async () => {
+    rememberBlocks([{ blockerId: "u_a", blockedId: "u_b" }])
+    const { a } = await pair()
+
+    expect(all(a, "match_offer")).toEqual([])
+    expect(info).toHaveBeenCalledWith("[matching] u_a|u_b not offered: blocked")
   })
 })
 

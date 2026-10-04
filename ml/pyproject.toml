@@ -21,6 +21,7 @@ dev = [
     "scikit-learn>=1.5",
     "pytest==8.3.3",
     "pytest-cov==5.0.0",
+    "pyinstaller>=6.10",  # build-time only — bundles match_scorer.py into a standalone binary
     "python-dotenv==1.0.1",
     "tenacity==9.0.0",
     "torch==2.4.0",

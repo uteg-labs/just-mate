@@ -1,7 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import { badgeSeed, DEFAULT_CONFIG, type Profile, type Search } from "@justmate/protocol"
 
-import { canMatch, compat, matchRadiusM, partnerCard, type Seeker } from "../src/matching/compat"
+import {
+  canMatch,
+  compat,
+  gateMiss,
+  matchRadiusM,
+  partnerCard,
+  type Seeker,
+} from "../src/matching/compat"
 import { makeProfile } from "./fixtures"
 
 const mateBeer: Search = { mode: "mate", category: "food", intents: ["beer"], walkMin: 10 }
@@ -87,6 +94,26 @@ describe("mate preferences", () => {
   test("mate age ranges are checked both ways", () => {
     expect(canMatch(seeker({ age: 40 }), seeker())).toBe(false)
   })
+})
+
+test("the failing gate is named for the log", () => {
+  const sameGender = { ...her, mate: { ...makeProfile().mate, who: "same gender" as const } }
+  expect(gateMiss(seeker(), seeker())).toBeUndefined()
+  expect(gateMiss(seeker(), seeker({}, { category: "games" }))).toBe("category")
+  expect(gateMiss(seeker(), seeker({}, { intents: ["coffee"] }))).toBe("intents")
+  expect(gateMiss(seeker(sameGender), seeker(him))).toBe("gender")
+  expect(gateMiss(seeker({ age: 22 }), seeker({ age: 23 }))).toBe("age range")
+})
+
+test("relaxed, only the mode and the adult rules gate", () => {
+  const stranger = seeker(
+    { ...him, age: 50, interests: [] },
+    { category: "games", intents: ["chess"] },
+  )
+  expect(gateMiss(seeker({ age: 19 }), stranger, true)).toBeUndefined()
+  expect(gateMiss(seeker(), seeker({}, dateWine), true)).toBe("mode")
+  expect(gateMiss(seeker(minor), seeker(), true)).toBe("adult")
+  expect(gateMiss(seeker(minor, dateWine), seeker(minor, dateWine), true)).toBe("adult")
 })
 
 describe("compat", () => {

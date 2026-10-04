@@ -215,6 +215,8 @@ Match Head is called only when ALL gates pass. This is important:
 
 Re-run `ml/scripts/threshold_sweep.py` (2-input models) or `gate_sweep.py` (any model) after every retrain; the threshold moves with the data.
 
+`MATCH_RELAXED=1` on the server turns the threshold off for Now matching (demos only), together with the category, intent, preference and radius gates of §7; the score then only ranks. See `PROTOCOL.md` rule 13.
+
 ## 9. Fallback path
 
 The model is **not** on the critical path. In the planned integration a missing cache entry, a scorer that is down, errors or times out all leave `compat()` on the rules-based score:

@@ -8,6 +8,7 @@ import { account, profile, session, user } from "../db/schema"
 import { scheduleMatchScoreRecalculation } from "../matching/recalculation"
 import { isDangerous } from "../onboarding/moderation"
 import { forgetUser, invalidateMatchScores, updateProfile } from "../realtime/session"
+import { fillAgeRanges } from "./age-range"
 import { saveProfileCard } from "./card"
 import { embeddingInputsChanged } from "./embedding-text"
 
@@ -18,7 +19,7 @@ export async function loadProfile(userId: string): Promise<Profile | undefined> 
   const [row] = await db.select().from(profile).where(eq(profile.userId, userId))
   if (!row) return
   const { userId: _, createdAt, updatedAt, dangerous, ...stored } = row
-  return stored
+  return fillAgeRanges(stored)
 }
 
 export async function isDangerousUser(userId: string): Promise<boolean> {
@@ -42,6 +43,7 @@ export const profilePlugin = new Elysia({ name: "profile" })
     async ({ user, body, status }) => {
       const parsed = parseProfile(body)
       if (!parsed.ok) return status(400, { error: parsed.error })
+      parsed.value = fillAgeRanges(parsed.value)
 
       const before = await loadProfile(user.id)
       const flagged = await isDangerous([

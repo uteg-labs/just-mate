@@ -314,6 +314,21 @@ section {
   margin-top: clamp(48px, 7vw, 88px);
 }
 
+.yt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--fg2);
+  text-decoration: none;
+}
+
+.yt:hover {
+  color: var(--fg);
+}
+
 /* clip */
 .clip {
   margin: 0;

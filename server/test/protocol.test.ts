@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   badgeSeed,
+  parseIcebreakerRequest,
   parsePlanInvite,
   parsePlansGet,
   parseProfile,
@@ -200,6 +201,14 @@ describe("onboarding requests", () => {
     const qa = [{ q: "Pick a deal-breaker.", a: "no banter" }]
     expect(parseQuestionRequest({ mode: "mate", name: "", interests: ["chess"], qa }).ok).toBe(true)
     expect(parseVibeRequest({ mode: "mate", interests: ["chess"], qa }).ok).toBe(true)
+    expect(
+      parseIcebreakerRequest({
+        mode: "date",
+        interests: ["coffee"],
+        partnerInterests: ["coffee", "books"],
+        partnerVibe: "quietly funny — pizza opinions",
+      }).ok,
+    ).toBe(true)
     expect(parseRelatedRequest({ mode: "date", item: "Coffee", have: [] })).toEqual({
       ok: true,
       value: { mode: "date", item: "coffee", have: [] },
@@ -213,6 +222,9 @@ describe("onboarding requests", () => {
     })
     expect(parseVibeRequest({ mode: "date", interests: [], qa: [], avoid: [1] }).ok).toBe(false)
     expect(parseRelatedRequest({ mode: "date", item: "", have: [] }).ok).toBe(false)
+    expect(
+      parseIcebreakerRequest({ mode: "date", interests: [], partnerInterests: [], partnerVibe: 1 }).ok,
+    ).toBe(false)
   })
 })
 

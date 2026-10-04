@@ -1,10 +1,14 @@
 import {
+  type AgeRange,
+  anchorAgeRanges,
   CloseCode,
   DEFAULT_PROFILE,
   findCategory,
+  isSameAgeRange,
   type Mode,
   type Profile,
   parseSearchOn,
+  START_AGE_RANGE,
 } from "@justmate/protocol"
 import * as Linking from "expo-linking"
 import { useNetworkState } from "expo-network"
@@ -107,6 +111,13 @@ function isSetUp(profile: Profile, mode: Mode) {
   return mode === "date" ? !!profile.taste : profile.mate.when.length > 0
 }
 
+// a mode never set up still holds the start range, so its setup starts from the user's age
+function setupDraft(profile: Profile, mode: Mode) {
+  const isStart = (range: AgeRange, of: Mode) =>
+    of === mode && isSameAgeRange(range, START_AGE_RANGE)
+  return anchorAgeRanges({ ...profile, mode }, isStart)
+}
+
 function planAt(place: Place, plans: LivePlan[]) {
   if (place.at !== "plan" && place.at !== "offer") return
   return plans.find((p) => p.id === place.id)
@@ -159,8 +170,9 @@ export const Surface = () => {
   const draftVenue = venues.find((v) => v.id === planDraft.venueId)
   const hasHere = !!here
 
+  // gated on the link so a resumed search reports a fix right after `ready` re-sends it
   usePositionReports(
-    !!live.search || !!live.session || !!live.going,
+    live.link === "open" && (!!live.search || !!live.session || !!live.going),
     live.session || live.going ? config.sessionIntervalMs : config.positionIntervalMs,
   )
 
@@ -196,7 +208,8 @@ export const Surface = () => {
   }, [isProfileFailed, t])
 
   useEffect(() => {
-    if (live.refused) Alert.alert(t("home.refused"))
+    if (!live.refused) return
+    Alert.alert(t(`home.refusedWhy.${live.refused.code}`, { defaultValue: t("home.refused") }))
   }, [live.refused, t])
 
   useEffect(() => {
@@ -235,8 +248,9 @@ export const Surface = () => {
 
   const switchMode = (next: Mode) => {
     haptic.select()
-    if (profile && (next === "mate" || profile.adult) && !isSetUp(profile, next)) {
-      setDraft({ ...profile, mode: next })
+    if (next === "date" && !profile?.adult) return Alert.alert(t("home.refusedWhy.adult_required"))
+    if (profile && !isSetUp(profile, next)) {
+      setDraft(setupDraft(profile, next))
       return setPlace({ at: "setup", step: "who" })
     }
     setTab(next)
@@ -380,6 +394,7 @@ export const Surface = () => {
             setProfile={setDraft}
             onDone={finishOnboarding}
             onExit={exitOnboarding}
+            resumeFor={userId}
           />
         )
 
@@ -611,7 +626,11 @@ export const Surface = () => {
         />
         {shape && (
           <Animated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, lift]}>
-            <Morph shape={shape} render={render} />
+            <Morph
+              shape={shape}
+              render={render}
+              canCollapse={shape === "select" || shape === "search"}
+            />
           </Animated.View>
         )}
       </View>

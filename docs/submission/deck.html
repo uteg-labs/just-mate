@@ -89,8 +89,11 @@
   .reality li b { color: var(--fg-1); font-weight: 600; }
 
   /* 10 · ask */
-  .ask { margin-top: 36px; font-size: 52px; line-height: 1.12; font-weight: 700; letter-spacing: -0.03em; max-width: 1640px; }
-  .ask span { color: var(--glow); }
+  .next { margin-top: 36px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; counter-reset: n; }
+  .next div { display: flex; flex-direction: column; gap: 10px; padding-top: 20px; border-top: 2px solid var(--on-ink-1); }
+  .next div::before { counter-increment: n; content: "0" counter(n); font-family: var(--mono); font-size: 20px; letter-spacing: .1em; color: var(--glow); }
+  .next h3 { font-size: 30px; }
+  .next p { font-size: 22px; color: var(--on-ink-2); }
   .people { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
   .refs { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 48px; font-size: 17px; line-height: 1.45; color: var(--on-ink-2); }
   .refs b { color: var(--glow); font-family: var(--mono); font-weight: 400; margin-right: 8px; }
@@ -221,7 +224,7 @@
     <div class="h">Risk</div><div class="h">Mitigation in the build</div><div class="h">Production path</div><div class="h">How we validate</div>
     <div class="c">Stalking, location misuse</div><div>Mutual accept before anything unlocks; bearing and bucket only; no location history; one-tap Vanish ends it for both</div><div>Report and block with automatic pause; meeting point first</div><div>Red-team test; DPIA before launch</div>
     <div class="c">Unsafe or abusive users</div><div>Profile answers pass OpenAI moderation; flagged users are never matched; adults never matched with minors; support lines (116 123) in Settings</div><div>Report and block (today a local notice), phone and ID verification, women-only plans</div><div>Report rate per 100 meetings</div>
-    <div class="c">No-shows</div><div>A plan is on only when both accept; "Can't make it" reaches the other side in one tap</div><div>Push reminders 2 h before; prepaid first round at partner venues</div><div>Show-up rate in the pilot</div>
+    <div class="c">No-shows</div><div>A plan is on only when both accept; "Can't make it" reaches the other side in one tap</div><div>Push reminders 2 h before; prepaid first round at partner venues</div><div>Show-up rate with real users</div>
     <div class="c">Empty city at launch</div><div>Plans need a few compatible people within a walk over days, not two in the same minute</div><div>Launch per campus with venue partners</div><div>Plans proposed per user per week</div>
   </div>
   <div class="foot"><span>Not therapy: no health claims, no mood or health data (EU MDR, GDPR Art. 9)</span><span class="num">08 / 10</span></div>
@@ -261,12 +264,17 @@
   <div class="foot"><span>Production path: "same again next week?" scheduling (today a button), report and block, verification, group plans, push reminders</span><span class="num">09 / 10</span></div>
 </section>
 
-<!-- 10 · ask -->
+<!-- 10 · next -->
 <section class="slide ink">
   <div class="glow" style="width:1000px;height:1000px;right:-360px;top:-460px;opacity:.4"></div>
-  <div class="eyebrow">6 · Ask</div>
-  <p class="ask">Help us run a 4-week pilot in Kraków: <span>one student community and five partner venues,</span> measuring show-ups, repeat meetings and UCLA-3.</p>
-  <div class="people">
+  <div class="eyebrow">6 · What's next</div>
+  <h2 style="margin-top:24px">Next: real people, real meetings, measured.</h2>
+  <div class="next">
+    <div><h3>Real users in Kraków</h3><p>One campus and a few partner venues, so plans have enough people within a walk.</p></div>
+    <div><h3>Measure what matters</h3><p>Show-ups, repeat meetings with the same person, and an opt-in UCLA-3 loneliness score.</p></div>
+    <div><h3>Learn from real meetings</h3><p>Replace synthetic training data with real outcomes, then let the learned model compete with the explainable score.</p></div>
+  </div>
+  <div class="people" style="margin-top:36px">
     <span class="chip">Arthur Kozubov</span><span class="chip">Jozef Zvalo</span><span class="chip">Andrej Zak</span><span class="chip">Serhii Vielkin</span><span class="chip">Nikita Orlov</span>
   </div>
   <div class="refs">

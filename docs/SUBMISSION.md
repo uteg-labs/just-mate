@@ -5,7 +5,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 | Item | Value |
 |---|---|
 | Task | OPEN: Sport & Healthcare — loneliness and social connection |
-| Pitch structure | Problem → User → Value → Solution → Reality → Ask (HackYeah workshop "Pitch Like an Architect") |
+| Pitch structure | Problem → User → Value → Solution → Reality → Next (after the HackYeah workshop "Pitch Like an Architect") |
 | One-liner | A plan near you, a person who fits, and someone waiting when you get there. |
 | Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
 | Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
@@ -18,7 +18,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 `JustMate: Meet For Real` (4 words)
 
-## Description (final, 481 words incl. team and sources)
+## Description (final, 486 words incl. team and sources)
 
 > Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
@@ -30,7 +30,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 132 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
 >
-> Ask: a 4-week pilot in Kraków with one student community and five partner venues.
+> Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
 > Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Serhii Vielkin, Nikita Orlov.
 >
@@ -63,7 +63,7 @@ Our own estimates (labelled on slide 9, never presented as facts): €39 a month
 7. **Design choices** — choice · reason · gain · cost · mitigation
 8. **Risk** — risk · mitigation in the build · production path · validation
 9. **Reality** — known · assumed · to validate
-10. **Ask** — 4-week pilot in Kraków; team; full source links; AI-use disclosure
+10. **What's next** — real users in Kraków · measure what matters · learn from real meetings; team; full source links; AI-use disclosure
 
 Re-export after changing `deck.html`, `cover.html` or the screens:
 

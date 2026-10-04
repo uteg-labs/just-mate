@@ -1,5 +1,13 @@
 import type { Profile } from "@justmate/protocol"
-import { type Dispatch, type ReactNode, type SetStateAction, useCallback, useState } from "react"
+import {
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react"
 import { useTranslation } from "react-i18next"
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from "react-native"
 import Animated, {
@@ -16,6 +24,7 @@ import { duration, spring } from "@/theme/motion"
 import { type } from "@/theme/type"
 
 import { FLOWS, GROUP, type OnboardingStep, SaveContext, type StepProps } from "./flow"
+import { clearProgress, readProgress, writeProgress } from "./progress"
 import { StepInterests } from "./StepInterests"
 import { StepMode } from "./StepMode"
 import { StepName } from "./StepName"
@@ -32,6 +41,7 @@ export type OnboardingProps = {
   onExit: () => void
   startStep?: OnboardingStep
   single?: boolean
+  resumeFor?: string
 }
 
 const STEPS = {
@@ -46,6 +56,7 @@ const STEPS = {
 } satisfies Record<OnboardingStep, (props: StepProps) => ReactNode>
 
 const SLIDE = 28
+const SAVE_MS = 300
 
 function slideIn(dir: number) {
   return (_: EntryAnimationsValues) => {
@@ -67,13 +78,16 @@ export const Onboarding = ({
   onExit,
   startStep,
   single = false,
+  resumeFor,
 }: OnboardingProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
   const flow: readonly OnboardingStep[] = FLOWS[profile.mode]
+  const [saved] = useState(() => (resumeFor ? readProgress(resumeFor) : undefined))
+  const [isRestored, setIsRestored] = useState(!saved)
   const [first] = useState(() => Math.max(0, startStep ? flow.indexOf(startStep) : 0))
-  const [index, setIndex] = useState(first)
+  const [index, setIndex] = useState(saved?.index ?? first)
   const [dir, setDir] = useState(1)
   const [save, setSave] = useState({ isSaving: false, hasFailed: false })
 
@@ -90,10 +104,25 @@ export const Onboarding = ({
           m: inGroup.length,
         })
 
+  // the steps read their first state from the profile, so none mounts before the draft is back
+  useLayoutEffect(() => {
+    if (!saved) return
+    setProfile(saved.profile)
+    setIsRestored(true)
+  }, [saved, setProfile])
+
+  useEffect(() => {
+    if (!resumeFor || !isRestored) return
+    const timer = setTimeout(() => writeProgress({ userId: resumeFor, step, profile }), SAVE_MS)
+    return () => clearTimeout(timer)
+  }, [resumeFor, isRestored, step, profile])
+
   const finish = async () => {
     setSave({ isSaving: true, hasFailed: false })
     try {
-      onDone(await saveProfile(profile))
+      const stored = await saveProfile(profile)
+      clearProgress()
+      onDone(stored)
     } catch {
       setSave({ isSaving: false, hasFailed: true })
     }
@@ -107,8 +136,9 @@ export const Onboarding = ({
 
   const back = () => {
     setDir(-1)
-    if (single || index === first) return onExit()
-    setIndex(index - 1)
+    if (!single && index !== first) return setIndex(index - 1)
+    clearProgress()
+    onExit()
   }
 
   const set = useCallback(
@@ -116,6 +146,7 @@ export const Onboarding = ({
     [setProfile],
   )
   const Current = STEPS[step]
+  if (!isRestored) return null
 
   return (
     <KeyboardAvoidingView

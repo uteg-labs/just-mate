@@ -77,8 +77,9 @@ export class InterestMatcherHttp {
   private fetch(path: string, init: RequestInit): Promise<Response> {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS)
-    return fetch(`${this.base}${path}`, { ...init, signal: ctrl.signal })
-      .finally(() => clearTimeout(timer))
+    return fetch(`${this.base}${path}`, { ...init, signal: ctrl.signal }).finally(() =>
+      clearTimeout(timer),
+    )
   }
 }
 

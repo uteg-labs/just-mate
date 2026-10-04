@@ -8,18 +8,22 @@ import {
   type Profile,
   parseClientMsg,
   parsePosition,
+  parseReport,
   parseSearchOn,
   type Search,
   type ServerMsg,
   type SessionEndReason,
 } from "@justmate/protocol"
 
+import { type BlockStore, isBlocked, rememberBlocks } from "../matching/blocks"
 import { canMatch, compat, matchRadiusM, partnerCard, sharedIntents } from "../matching/compat"
 import { bearing, bucketFor, cellCentre, distanceM, geohash } from "../matching/geo"
 import { MATCH_ALGORITHM_VERSION, type MatchScoreRecord, type MatchStore } from "../matching/match"
 import { pairThreshold } from "../matching/scorer_http"
 import {
   type PlanLink,
+  pausePlans,
+  planBlocked,
   planDisconnect,
   planHello,
   planReceive,
@@ -41,6 +45,7 @@ export type Deps = {
   matchScoresFor?(userId: string): Promise<MatchScoreRecord[]>
   isDangerous?(userId: string): Promise<boolean>
   matchStore?: MatchStore
+  blockStore?: BlockStore
 }
 
 type Pair = [Client, Client]
@@ -113,6 +118,9 @@ const MAX_SPEED_MPS = 10
 const BEARING_STEP = 10
 const COLD_CELL_PRECISION = 7
 
+const REPORTABLE_MS = 86_400_000
+const PAUSE_REPORTERS = 2
+
 export const config: Config = { ...DEFAULT_CONFIG }
 
 export const clock = { now: () => Date.now() }
@@ -123,6 +131,9 @@ export const clients = new Map<string, Client>()
 export const cooldowns = new Map<string, number>()
 
 export const matchScores = new Map<string, MatchScoreRecord>()
+
+// sessionId → both user ids, kept after the end so post-meet can still report
+export const pastSessions = new Map<string, { ids: string[]; endedAt: number }>()
 
 export function cacheMatchScores(records: MatchScoreRecord[]) {
   for (const record of records)
@@ -200,6 +211,9 @@ export async function receive(client: Client, frame: unknown) {
       if (client.offer && client.offer.id === msg.offerId) expireOffer(client.offer, "dismissed")
       return
 
+    case "report":
+      return report(client, msg)
+
     case "vanish":
     case "met":
       if (client.session && client.session.id === msg.sessionId) {
@@ -230,12 +244,13 @@ async function greet(client: Client, sessionCookie: string) {
   if (client.isClosed) return
   if (!userId) return client.conn.close(CloseCode.Unauthorized, "authentication required")
 
-  const [profile, isDangerous, scores] = client.demo
-    ? [DEMO_PROFILES[client.demo], false, []]
+  const [profile, isDangerous, scores, blocks] = client.demo
+    ? [DEMO_PROFILES[client.demo], false, [], []]
     : await Promise.all([
         client.deps.profileFor(userId),
         client.deps.isDangerous?.(userId),
         client.deps.matchScoresFor?.(userId),
+        client.deps.blockStore?.forUser(userId),
       ])
   if (client.isClosed) return
   if (!profile) return client.conn.close(CloseCode.NoProfile, "finish onboarding first")
@@ -252,11 +267,13 @@ async function greet(client: Client, sessionCookie: string) {
   client.profile = profile
   client.dangerous = !!isDangerous
   cacheMatchScores(scores ?? [])
+  rememberBlocks(blocks ?? [])
   clients.set(client.id, client)
   client.conn.send({
     t: "ready",
     userId: id,
     config: client.demo ? { ...config, demo: true } : config,
+    blockedCount: blocks?.filter((row) => row.blockerId === id).length ?? 0,
   })
   planHello(planLink, id, profile, client.dangerous)
 }
@@ -310,6 +327,40 @@ function accept(client: Client, offerId: string) {
 
   offer.accepted.add(client)
   if (offer.accepted.size === 2) startSession(offer)
+}
+
+async function report(client: Client, msg: unknown) {
+  const parsed = parseReport(msg)
+  if (!parsed.ok) return error(client, parsed.error, "see PROTOCOL.md › report")
+
+  const { sessionId, reason } = parsed.value
+  const ids = await pairOf(client, sessionId)
+  const them = ids?.includes(client.id) && ids.find((id) => id !== client.id)
+  if (!them) return error(client, "invalid_session", "see PROTOCOL.md › report")
+
+  if (client.session?.id === sessionId) endSession(client.session, "vanished")
+  if (client.demo) return client.conn.send({ t: "reported", sessionId, blockedCount: 0 })
+
+  const row = { blockerId: client.id, blockedId: them }
+  rememberBlocks([row])
+  planBlocked(planLink, client.id, them)
+  const store = client.deps.blockStore
+  const stored = await store?.add({ ...row, reason })
+  if (store && stored && stored.reporters >= PAUSE_REPORTERS) await pause(store, them)
+  client.conn.send({ t: "reported", sessionId, blockedCount: stored?.blockedCount ?? 0 })
+}
+
+async function pairOf(client: Client, sessionId: string): Promise<string[] | undefined> {
+  if (client.session?.id === sessionId) return client.session.pair.map((c) => c.id)
+  return pastSessions.get(sessionId)?.ids ?? client.deps.blockStore?.sessionPair(sessionId)
+}
+
+// the same flag moderation sets: out of matching and plans at once
+async function pause(store: BlockStore, userId: string) {
+  await store.pause(userId)
+  const client = clients.get(userId)
+  if (client) client.dangerous = true
+  pausePlans(userId)
 }
 
 function leave(client: Client, reason: SessionEndReason) {
@@ -462,6 +513,7 @@ function endSession(session: Session, reason: SessionEndReason) {
       ...(partnerName && { partnerName }),
     })
   }
+  pastSessions.set(session.id, { ids: [a.id, b.id], endedAt: clock.now() })
   const matchId = session.matchId
   if (session.store && matchId)
     persist(session, () => session.store?.finish(matchId, reason, new Date(clock.now())))
@@ -501,6 +553,8 @@ function guarded(name: string, step: () => void) {
 function sessionTick() {
   const now = clock.now()
   for (const [key, until] of cooldowns) if (until <= now) cooldowns.delete(key)
+  for (const [id, past] of pastSessions)
+    if (past.endedAt + REPORTABLE_MS <= now) pastSessions.delete(id)
 
   for (const client of clients.values()) {
     if (client.demo && isLocating(client))
@@ -539,17 +593,15 @@ function isSearching(client: Client): client is Searcher {
 }
 
 function isCompatible(a: Searcher, b: Searcher): boolean {
-  if (a.dangerous || b.dangerous) return false
+  if (a.dangerous || b.dangerous || isBlocked(a.id, b.id)) return false
   const isSameSide = demoAccountOf(a.id) === demoAccountOf(b.id)
   return isSameSide && canMatch(a, b) && compatibilityScore(a, b) >= pairThreshold(config)
 }
 
+// the rules-based score stands in until the scorer has written this pair's current row
 function compatibilityScore(a: Searcher, b: Searcher): number {
-  // Demo sockets and tests without persistence retain the deterministic rule-based score.
-  // Real clients only match once the background profile job has populated the ML matrix.
-  if (a.demo || !a.deps.matchStore) return compat(a, b)
   const score = matchScores.get(pairKey([a, b]))
-  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : -Infinity
+  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : compat(a, b)
 }
 
 function relay(me: Client, session: Session) {

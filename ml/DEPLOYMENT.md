@@ -162,6 +162,8 @@ The legacy NDJSON subprocess daemon (`scripts/match_scorer.py`) is still availab
 
 Wire payload is auto-detected by key name (`interests_a_emb` → numeric, `interests_a` → string).
 
+`score` is the bidirectional soft Jaccard from `docs/ML-MATCHING.md` §3 — the exact `soft_jacc` `model_v3` was trained on — computed by `ml/src/just_mate_ml/models/interest_matcher.py` from the released interest embeddings (`mode: "linear"`). App labels are lowercased with spaces → `_`, a few are aliased to the trained vocabulary (`gym` → `fitness`, …), and labels outside it are dropped, as in training. The released `interest_matcher.onnx` is loaded by path but not run: its 10-feature input layout was never committed.
+
 ### 3.3 Wire format (JSON over HTTP)
 
 Field-for-field identical to the NDJSON daemon (`target_emb`, `self_emb`, `soft_jacc`), transported over HTTP:

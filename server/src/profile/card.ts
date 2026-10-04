@@ -1,6 +1,6 @@
 import type { Profile } from "@justmate/protocol"
 
-const dir = new URL("../../../temporary/", import.meta.url)
+const dir = new URL("../../.cards/", import.meta.url)
 const fence = "```"
 
 const indent = (text: string, pad: string) =>

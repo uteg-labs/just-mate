@@ -209,7 +209,7 @@ export const Speeds = ({ dur }: S) => {
               <div style={{ fontFamily: font, fontWeight: 700, fontSize: 32, color: c.fg }}>
                 board games · Thu 19:00
               </div>
-              <Mono size={16}>9 min on foot · 2 of 4 going</Mono>
+              <Mono size={16}>9 min on foot · with one person</Mono>
             </div>
           </div>
         </div>
@@ -991,9 +991,9 @@ export const VenueIntro = ({ dur }: S) => {
   )
 }
 
-// Piotr lists two table slots; the app fills them with people who wanted exactly that.
-export const FILL_AT = [70, 88, 106, 124]
-const FILLERS = ["sam-quote", "mia-quote", "olek-quote", "tomek-quote"]
+// Piotr lists two tables for two; the app fills them with people who wanted exactly that.
+export const FILL_AT = [70, 96]
+const FILLERS = ["tomek-quote", "mia-quote"]
 const Toggle = ({ on }: { on: number }) => (
   <div
     style={{
@@ -1054,7 +1054,7 @@ export const VenueList = ({ dur }: S) => {
         >
           List a table
         </div>
-        {["Tue 19:00 · board games · table for 4", "Thu 19:00 · board games · table for 4"].map(
+        {["Tue 19:00 · board games · table for 2", "Thu 19:00 · board games · table for 2"].map(
           (t, i) => (
             <div
               key={t}
@@ -1153,9 +1153,9 @@ export const VenueList = ({ dur }: S) => {
             Tue 19:00 · 6 min on foot · first coffee −50%
           </div>
           <div style={{ marginTop: 22, display: "flex", justifyContent: "space-between" }}>
-            <Mono size={18}>who's going</Mono>
+            <Mono size={18}>who's meeting</Mono>
             <Mono size={18} color={c.fg}>
-              {n} of 4 going
+              {n} of 2 in
             </Mono>
           </div>
           <div style={{ display: "flex", gap: 40, marginTop: 8 }}>

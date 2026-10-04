@@ -8,6 +8,7 @@ import type {
   PlanState,
   PlanUntil,
   QA,
+  ReportReason,
   Settings,
   VenueKind,
 } from "@justmate/protocol"
@@ -248,6 +249,26 @@ export const userMatch = pgTable(
     index("user_match_userAId_createdAt_idx").on(table.userAId, table.createdAt),
     index("user_match_userBId_createdAt_idx").on(table.userBId, table.createdAt),
     uniqueIndex("user_match_sessionId_uidx").on(table.sessionId),
+  ],
+)
+
+// PROTOCOL.md › rule 12: every report blocks, both ways; two different reporters pause the reported
+export const block = pgTable(
+  "block",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    blockerId: text("blockerId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    blockedId: text("blockedId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    reason: text("reason").$type<ReportReason>(),
+    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("block_blockerId_blockedId_uidx").on(table.blockerId, table.blockedId),
+    index("block_blockedId_idx").on(table.blockedId),
   ],
 )
 

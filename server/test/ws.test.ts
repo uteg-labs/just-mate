@@ -48,7 +48,7 @@ describe("hello", () => {
   test("a stored profile gets ready with the config", async () => {
     const { client, sent } = fakeClient()
     await hello(client)
-    expect(sent[0]).toEqual({ t: "ready", userId: "u_test", config })
+    expect(sent[0]).toEqual({ t: "ready", userId: "u_test", config, blockedCount: 0 })
     expect(sent[1]).toEqual({ t: "plans", plans: [] })
     expect(client.profile?.name).toBe("Alex")
   })

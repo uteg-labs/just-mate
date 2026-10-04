@@ -19,9 +19,11 @@ import {
 import {
   AGAIN_DONE,
   Again,
-  Leave,
   ON_AT,
+  ON_TAP,
   On,
+  OPEN_AT,
+  Opens,
   OUTRO_LOGO,
   Outro,
   PLAN_TAP,
@@ -30,6 +32,7 @@ import {
   Rules,
   SAFETY_AT,
   Safety,
+  TABLE_MET,
   Table,
 } from "./scenes/warm"
 
@@ -83,6 +86,8 @@ const outroShort = (frames = 95) =>
     [fx("chime", 2, 0.45)],
   )
 const tick = (at: number[]) => at.map((a) => fx("pop", a, 0.35))
+const met = [...tick([8, 18]), fx("pop", TABLE_MET, 0.6), fx("chime", TABLE_MET + 2, 0.35)]
+const again = [fx("pop", AGAIN_DONE - 4, 0.5), fx("chime", AGAIN_DONE, 0.4)]
 
 const mateWalk = ({ dur }: { dur: number }) => (
   <Walk
@@ -136,12 +141,12 @@ const MAIN: Piece = {
     sc(
       "on",
       100,
-      ({ dur }) => <On dur={dur} at={14} count={6} />,
+      ({ dur }) => <On dur={dur} at={14} tap={6} />,
       [vo("m-plan-1", 4)],
       [fx("buzz", 14, 0.8), fx("chime", 16, 0.35)],
     ),
-    sc("table", 105, Table, [vo("m-table", 6)], tick([8, 18, 30, 42])),
-    sc("again", 125, Again, [], [...tick([52, 60, 68, 76]), fx("chime", AGAIN_DONE, 0.4)]),
+    sc("table", 105, Table, [vo("m-table", 6)], met),
+    sc("again", 125, Again, [], again),
     sc(
       "now",
       130,
@@ -172,7 +177,7 @@ const MAIN: Piece = {
 const TOMEK: Piece = {
   id: "Tomek",
   title: "Tomek · Plan",
-  about: "Newcomer, works from home. The app proposes one small plan; he only says yes.",
+  about: "Newcomer, works from home. The app proposes one plan with one person; he says yes.",
   scenes: [
     sc(
       "persona",
@@ -202,17 +207,11 @@ const TOMEK: Piece = {
       128,
       On,
       [vo("on", 4)],
-      [fx("pop", 74, 0.35), fx("buzz", ON_AT, 0.8), fx("chime", ON_AT + 2, 0.4)],
+      [fx("pop", ON_TAP, 0.35), fx("buzz", ON_AT, 0.8), fx("chime", ON_AT + 2, 0.4)],
     ),
-    sc("leave", 80, Leave, [], tick([10, 46])),
-    sc("table", 108, Table, [vo("table", 4)], tick([8, 18, 30, 42])),
-    sc(
-      "again",
-      134,
-      Again,
-      [vo("again", 4)],
-      [...tick([52, 60, 68, 76]), fx("chime", AGAIN_DONE, 0.4)],
-    ),
+    sc("opens", 80, Opens, [], tick([10, OPEN_AT])),
+    sc("table", 108, Table, [vo("table", 4)], met),
+    sc("again", 134, Again, [vo("again", 4)], again),
     outroShort(),
   ],
 }

@@ -13,7 +13,7 @@ import { useLastPosition, useOwnPosition } from "@/lib/location"
 import { colors } from "@/theme/colors"
 import { layout } from "@/theme/layout"
 
-// the only map in the app: swap the map provider here and nowhere else (BUILD-PLAN risks)
+// the only map in the app: swap the map provider here and nowhere else (docs/archive/BUILD-PLAN.md risks)
 
 type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 

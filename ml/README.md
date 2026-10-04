@@ -4,7 +4,7 @@ PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Matc
 
 **Status.** Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`).
 
-Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [`../docs/ml/PLAN.md`](../docs/ml/PLAN.md) and `docs/ml/specs/` are the original hackathon plan, kept for history. This README is the run-it-yourself guide.
+Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [`docs/PLAN.md`](docs/PLAN.md) and `docs/specs/` are the original hackathon plan, kept for history. This README is the run-it-yourself guide.
 
 ---
 

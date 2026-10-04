@@ -53,7 +53,7 @@ Profile = {
 - `mode: "date"` requires `adult: true`.
 - Both `date` and `mate` preferences are always present, because the map switches mode at any time. `DEFAULT_PROFILE` in the package holds the prototype defaults.
 - `appearance`, `taste` and `character` feed matching later (`ML-MATCHING.md`); M0 stores them and never sends them in `match_offer`.
-- In development (`NODE_ENV` ≠ `production`) every `PUT` also writes the profile card (`docs/examples/profile_card.md` shape) to `temporary/<userId>.md` at the repo root, for the ML work.
+- In development (`NODE_ENV` ≠ `production`) every `PUT` also writes the profile card (`docs/examples/profile_card.md` shape) to `server/.cards/<userId>.md`, for the ML work.
 
 ## Onboarding helpers (HTTP)
 
@@ -139,12 +139,13 @@ Interests (onboarding base lists; related picks extend them open-endedly):
 | `dismiss` | `{ offerId: string }` | Decline. **Server never forwards a dismiss**; the other side only ever sees `offer_expired`. Idempotent. |
 | `vanish` | `{ sessionId: string }` | Kill the active session for both. Idempotent. |
 | `met` | `{ sessionId: string }` | Optional: user tapped "we met" (only enabled in `burning`). Either side's `met` ends the session as `met` for both; the server does not re-check the bucket. Idempotent. |
+| `report` | `{ sessionId: string, reason?: "unsafe" \| "inappropriate" \| "no_show" \| "other" }` | Report the other person of a session you were in: from the compass (a match's or a plan's), or from post-meet after it ended. Reporting always blocks them, both ways and for good (rule 12). A session still running ends as `vanished` for both, so the reported side sees an ordinary vanish. Reply: `reported`. Idempotent. Errors (non-fatal): `invalid_session` (unknown, or not one you were in) · `invalid_reason`. |
 
 ## Server → client
 
 | `t` | Payload | Notes |
 |---|---|---|
-| `ready` | `{ userId: string, config: Config }` | Reply to `hello`. The profile itself comes from `GET /api/profile`. |
+| `ready` | `{ userId: string, config: Config, blockedCount: number }` | Reply to `hello`. `blockedCount` = how many people you have reported (and so blocked). The profile itself comes from `GET /api/profile`. |
 | `error` | `{ code: string, message: string }` | Non-fatal validation errors (e.g. `position_before_search_on`). Fatal ones close the socket with a 4xxx code instead. |
 | `search_stopped` | `{ reason: "auto_stop" }` | The server ended the search: `auto_stop` = `config.autoStopMs` (30 min) of searching with `settings.autoStop` on. Client returns to select. |
 | `zones` | `{ cells: { h: string, n: number }[] }` | Every `positionIntervalMs` (2 s) while searching with a position and not in a session. `h` = geohash of `zonePrecision` (6), `n` = other searchers with a position within 2 km of the recipient who share the recipient's mode + category and ≥ 1 intent, pass the profile rules (rule 2) and `compat ≥ threshold` with the recipient, are on the same side of the demo split, and are not in a session — plus ghosts on demo sockets. Cooldown and open offers don't matter here. The recipient never counts. Cells with `n < config.kAnonymity` are **omitted**; demo sockets get all cells. `cells: []` clears the map. Client renders only what it receives. |
@@ -153,6 +154,7 @@ Interests (onboarding base lists; related picks extend them open-endedly):
 | `session_start` | `{ sessionId, expiresInMs: number, planId?: string }` | Both accepted, or both sent `plan_go` (then `planId` is set). Compass unlocks in state `waiting` until the first `partner_position`. |
 | `partner_position` | `{ sessionId, bearing: number, bucket: "cold"\|"warm"\|"hot"\|"burning", distanceM?: number }` | Every `sessionIntervalMs` (1 s) once both members have a position. **Server sends bearing + bucket, never the partner's lat/lng** — the "no pins" rule is enforced at the protocol layer, not in the UI. `bearing` is a multiple of 10°; while the bucket is `cold` it points at the centre of the partner's geohash-7 cell rather than at the partner (demo sockets: always at the partner), so bearings from faked far-apart spots can't be intersected into a pin. `bucket` from `config.buckets`: under `burning` m → `burning`, under `hot` → `hot`, under `warm` → `warm`, else `cold`. `distanceM` (whole metres) is sent only to demo sockets (`config.demo: true`) for tuning and must not be rendered. |
 | `session_end` | `{ sessionId, reason: "met"\|"expired"\|"vanished"\|"disconnected", partnerName?: string }` | Sent to both (the remaining one, on `disconnected`). `met`: either side's `met`; only then `partnerName` carries the other person's first name (names unlock in person, never before). `expired`: session TTL. `vanished`: either side's `vanish`, `search_off` or replacing `search_on`. `disconnected`: the partner's socket closed. Client discards all session state. `vanished` is shown identically whichever side pressed it. The search ends with the session for both (auto-stop clock cleared, positions dropped); the client returns to select and sends `search_on` to search again. |
+| `reported` | `{ sessionId, blockedCount: number }` | Reply to `report`, also when the person was already blocked. `blockedCount` as in `ready`. Never sent to the reported side. |
 
 ### `MatchPartner` — the other person's badge, and nothing else
 
@@ -200,7 +202,7 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
    - Date mode requires `adult` — at `search_on`, and again in the match gate.
    - Date: each side's `seek` accepts the other's `gender` (`everyone` accepts all), and each side's age is inside the other's `date` range.
    - Mate: `who: "same gender"` requires equal genders (checked both ways), and each side's age is inside the other's `mate` range.
-3. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)`, threshold `0.45`. If the stretch model is enabled it is called behind the same function, returns the same shape, and uses its own calibrated threshold (`ML-MATCHING.md` §8); on any ML error the server falls back to the formula. The score is never sent.
+3. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)`, threshold `0.45`. If the stretch model is enabled it is called behind the same function, returns the same shape, and uses its own calibrated threshold (`ML-MATCHING.md` §8); on any ML error, or while the pair has no score for the current model version yet, the server falls back to the formula. The score is never sent.
 4. **Ghosts** add to `zones.n` only. They never appear in `match_offer`.
    **Moderation:** `PUT /api/profile` runs the free-text parts of the profile (answers, `character`, `partnerCharacter`, `vibe`, `name`, `interests`) through the OpenAI moderation model. A hit on harassment, hate, violence or sexual content involving minors sets the server-only `dangerous` flag on the stored profile. It is never part of the wire `Profile`, never returned by `GET /api/profile`, and sticky: a later clean save does not clear it. A `dangerous` user is silently excluded from the match gate, from other users' `zones`, from `match_offer`, and from plans: they are never proposed, never offered an invitation, and their own invitations are never offered to anyone. They still connect, search and plan, and simply never see anyone. Without `OPENAI_API_KEY`, or when the moderation call fails, nothing is flagged.
 5. **Offer TTL** 45 s. Any of: TTL, `dismiss`, `search_off`, a replacing `search_on`, disconnect, auto-stop → `offer_expired` to the *other* side (and to the dismissing side too, for symmetry of client code). Pair enters cooldown (`pairCooldownMs`, 5 min).
@@ -210,6 +212,7 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
 9. **Bearing** = initial bearing from *recipient* to *partner* (in `cold`: to the centre of the partner's geohash-7 cell), degrees clockwise from true north, rounded to 10°, computed server-side. Client arrow rotation = `bearing − deviceHeading`.
 10. **Auto-stop:** with `settings.autoStop` on, searching ends `autoStopMs` after it started (`search_stopped{auto_stop}`). Replacing the search does not restart the clock. An open offer expires first; an active session is never cut short (the search ends with it).
 11. **Loop:** the server ticks every `sessionIntervalMs` (1 s): expire offers and sessions, relay `partner_position`, pair searchers, and every `positionIntervalMs` send `zones`. Pairing is greedy by score: of all pairs passing the match gate, the highest `compat` goes first (ties: the shorter distance), and each user gets at most one offer per tick. `sharedIntent` is the first intent both picked in the category's list order, `"other"` last.
+12. **Report and block** (`PRODUCT.md` §10.2): a `report` stores a block from the reporter to the other person. A block works both ways: the pair never passes the match gate again (and they don't count in each other's `zones`), is never proposed a plan, and is never offered each other's invitations; live plans between them end as if the reporter cancelled. The reported side is never told. Once **two different people** have reported someone, their profile gets the same server-only `dangerous` flag as moderation (rule 4), effective at once. A session stays reportable while it runs and for 24 h after it ends; a match session also as long as its stored match row exists. Demo sockets can report, which ends the session, but nothing is stored or blocked.
 
 ## Plans
 
@@ -309,6 +312,7 @@ Any `planId` you can't act on (unknown, not yours, or the wrong state) gives `in
 1. **Proposals** run every `config.planProposeIntervalMs`, and for you on `plans_get`. They pair two anchored people who:
    - each have no open proposal;
    - have no live plan with each other, and haven't ended one (`done` or `cancelled`) in the last 7 days;
+   - haven't blocked each other (rule 12);
    - pass rule 2 in the plan's mode (each profile's own mode when they agree, else `mate`);
    - share an intent, the first of that mode's category intents in list order that is in both people's interests;
    - reach `compat ≥ threshold`;
@@ -321,6 +325,7 @@ Any `planId` you can't act on (unknown, not yours, or the wrong state) gives `in
    - pass rule 2 against the invitation's `mode` and `intents`;
    - are free at one of its offerable times (windows widened by 30 min with `flex`) that doesn't clash with their live plans;
    - haven't passed on it before;
+   - haven't blocked the owner, or been blocked by them (rule 12);
    - have nothing else `offered` to them.
 5. **Offer timing.** An offer lasts `config.planOfferTtlMs`, but never past that time's cutoff. Then the next person gets it. The invitation ends (`expired`) once no time is offerable.
 6. **Visibility.** People who aren't connected get their plans in the next `plans` snapshot. The owner of an invitation never learns who passed.

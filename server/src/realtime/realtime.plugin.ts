@@ -1,6 +1,7 @@
 import { Elysia } from "elysia"
 
 import { userIdForCookie } from "../auth/auth"
+import { blockStore, loadBlocks } from "../matching/block.repository"
 import { loadMatchScoresForUser, matchStore } from "../matching/match.repository"
 import { pgRepo } from "../plans/pg-repo"
 import { loadPlans } from "../plans/plans"
@@ -15,6 +16,7 @@ const sockets = new Map<string, Client>()
 loadPlans(pgRepo, loadProfile, isDangerousUser).catch((err) =>
   console.error("plans: load failed", err),
 )
+loadBlocks().catch((err) => console.error("blocks: load failed", err))
 setInterval(tick, config.sessionIntervalMs)
 
 export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
@@ -31,6 +33,7 @@ export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
         matchScoresFor: loadMatchScoresForUser,
         isDangerous: isDangerousUser,
         matchStore,
+        blockStore,
       },
       demo === "a" || demo === "b" ? demo : undefined,
     )

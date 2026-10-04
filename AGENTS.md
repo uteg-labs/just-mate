@@ -9,7 +9,7 @@ Rules for anyone writing code here — humans and coding agents alike. Product c
 | `packages/protocol` | `@justmate/protocol` — wire types, `Config`, intent/interest vocab, close codes | `docs/PROTOCOL.md` |
 | `server/` | Bun + Elysia + Drizzle; auth, migrations, WebSocket, onboarding LLM helpers; `taste/` holds the generated swipe samples; `mock/replay.ts` replays the happy path | `docs/PROTOCOL.md` |
 | `mobile/` | Expo dev-client app, expo-router routes in `src/app/` (more rules in `mobile/AGENTS.md`) | `docs/STRUCTURE.md` screens · `docs/DESIGN.md` tokens · brand in `mobile/assets/brand/` |
-| `ml/` | PyTorch Siamese matching model (ONNX export happens outside the repo), `scripts/match_scorer.py` NDJSON scorer, `Dockerfile.scorer` HTTP scorer; not wired into the server yet | `ml/README.md`, `docs/ML-MATCHING.md` |
+| `ml/` | PyTorch asymmetric Siamese matching model (ONNX export happens inside the repo via `scripts/train_experiments_v3.py`); `scripts/match_scorer_server.py` and `scripts/interest_matcher_server.py` run together in one HTTP container via `scripts/run_servers.py` + `Dockerfile.scorer`; not wired into the Bun server yet (live matching uses the rules-based `compat()`) | `ml/README.md`, `docs/ML-MATCHING.md`, `ml/DEPLOYMENT.md` |
 | `site/` | public web page on Vercel: the film, use-case clips, waitlist | `site/README.md` |
 | `video/motion` | Remotion film (`Main`) and use-case clips; `video/Just-Mate App Prototype` is the design prototype | `video/motion/README.md` |
 | `docs/submission` | deck, whitepaper, cover, app screens | `docs/SUBMISSION.md` |

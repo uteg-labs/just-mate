@@ -5,10 +5,10 @@ import { Elysia } from "elysia"
 import { authPlugin } from "../auth/auth.plugin"
 import { db } from "../db"
 import { account, profile, session, user } from "../db/schema"
+import { scheduleMatchScoreRecalculation } from "../matching/recalculation"
 import { isDangerous } from "../onboarding/moderation"
-import { forgetUser, updateProfile } from "../realtime/session"
+import { forgetUser, invalidateMatchScores, updateProfile } from "../realtime/session"
 import { saveProfileCard } from "./card"
-import { saveEmbeddings } from "./embedding"
 import { embeddingInputsChanged } from "./embedding-text"
 
 // a profile card per save, for the ML work; never in production or under test
@@ -61,10 +61,10 @@ export const profilePlugin = new Elysia({ name: "profile" })
         })
         .returning({ dangerous: profile.dangerous })
       updateProfile(user.id, parsed.value, saved?.dangerous ?? flagged)
-      if (embeddingInputsChanged(before, parsed.value))
-        saveEmbeddings(user.id, parsed.value).catch((err) =>
-          console.warn("[profile] embeddings not saved:", err),
-        )
+      if (embeddingInputsChanged(before, parsed.value)) {
+        invalidateMatchScores(user.id)
+        scheduleMatchScoreRecalculation(user.id, parsed.value)
+      }
       if (writesCards)
         saveProfileCard(user.id, parsed.value).catch((err) =>
           console.warn("[profile] card not saved:", err),

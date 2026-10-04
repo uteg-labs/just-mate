@@ -1,8 +1,8 @@
 # JustMate ML
 
-PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss). Trained checkpoints are served as ONNX by `scripts/match_scorer.py`: a long-lived subprocess speaking newline-delimited JSON (NDJSON) over stdin/stdout, run as a Python script or frozen into a standalone binary with PyInstaller. The second path is HTTP: `Dockerfile.scorer` runs `scripts/match_scorer_server.py` (`:8000`, `POST /score`) and `scripts/interest_matcher_server.py` (`:8001`) in one container via `scripts/run_servers.py`.
+PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss, v3 + `soft_jacc` side feature). Trained checkpoints are served as ONNX by **`match_scorer`** and **`interest_matcher`** — two HTTP daemons bundled in one Docker container (`Dockerfile.scorer`) launched together by `scripts/run_servers.py` (PR #32). A legacy NDJSON subprocess (`scripts/match_scorer.py`, Python or PyInstaller-frozen binary) is kept for local dev.
 
-**It is not wired into the server yet.** `server/src/matching/scorer_http.ts` and `interest_matcher_http.ts` are HTTP clients for those containers, but nothing calls them. Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). Because `compat()` runs per pair on every matching tick, the planned integration reads model scores from a precomputed score cache rather than calling the scorer inline (§4).
+**The HTTP container is not wired into the Bun server today** — PR #34 reverted the server-side clients. Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). The intended integration is a precomputed pair-score cache that `compat()` reads synchronously, with the rules as fallback (§4).
 
 Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [`../docs/ml/PLAN.md`](../docs/ml/PLAN.md) and `docs/ml/specs/` are the original hackathon plan, kept for history. This README is the run-it-yourself guide.
 
@@ -17,8 +17,9 @@ Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [
    - 3.2 [Sanity-check the toolchain](#32-sanity-check-the-toolchain)
    - 3.3 [Self-test the model](#33-self-test-the-model)
    - 3.4 [Score a pair of pre-computed embeddings](#34-score-a-pair-of-pre-computed-embeddings)
-   - 3.5 [Serve over stdio](#35-serve-over-stdio)
-   - 3.6 [Standalone binary (PyInstaller)](#36-standalone-binary-pyinstaller)
+   - 3.5 [Serve over HTTP (production)](#35-serve-over-http-production)
+   - 3.6 [Serve over stdio (dev)](#36-serve-over-stdio-dev)
+   - 3.7 [Standalone binary (PyInstaller)](#37-standalone-binary-pyinstaller)
 4. [How the Bun/Elysia server would use it (planned)](#4-how-the-bunelysia-server-would-use-it-planned)
 5. [Train from scratch](#5-train-from-scratch)
    - 5.1 [Synthesize profiles](#51-synthesize-profiles)
@@ -180,17 +181,42 @@ Flags:
 | `--threshold FLOAT` | `0.78` | Pair score at or above which `would_match` flips to `true`. Tuned for the published v2 `model_v0`; pass `0.40` for a v3 model (see §5.7). |
 | `--model PATH` | `checkpoints/model_v0.onnx` | ONNX model path. Resolved relative to `ml/` if not absolute. |
 
-### 3.5 Serve over stdio
+### 3.5 Serve over HTTP (production)
 
-`scripts/match_scorer.py` is built to run as a long-lived subprocess (of the Bun/Elysia server, once integrated). Wire format is newline-delimited JSON (NDJSON):
+The ONNX model is wrapped by `scripts/match_scorer_server.py` (HTTP, port `:8000` by default) and bundled together with `scripts/interest_matcher_server.py` (HTTP, port `:8001`) into one Docker container by `scripts/run_servers.py` + `Dockerfile.scorer`. This is the production serving path — the container image is published as `match-scorer` and is the `scorer` service in `docker-compose.yml`.
+
+Run the two servers together locally without a container (requires the trained checkpoints):
 
 ```bash
-uv run python scripts/match_scorer.py checkpoints/model_v0.onnx
+uv run python scripts/run_servers.py \
+    --match-checkpoint checkpoints/model_v3.onnx \
+    --match-scorer-port 8000 \
+    --interest-port 8001
+```
+
+`match_scorer` endpoints:
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| `GET` | `/health` | — | `{"ok": true}` |
+| `GET` | `/ready` | — | `{"ready": true, "uptime_s": …}` after ONNX load |
+| `POST` | `/score` | `{"target_emb":[…1536…], "self_emb":[…1536…], "soft_jacc": <float>}` | `{"score": <float>}` |
+| `POST` | `/pair` | `{"target_a":[…], "self_a":[…], "target_b":[…], "self_b":[…], "soft_ab": <float>, "soft_ba": <float>}` | `{"score_ab": <float>, "score_ba": <float>, "pair_score": <float>}` |
+| `POST` | `/batch` | `{"rows": [{…}, …]}` (cap 256) | `{"scores": [<float>, …]}` |
+
+Errors come back as HTTP 4xx with a JSON `{"error": "..."}` body; the daemon never crashes on a bad request.
+
+### 3.6 Serve over stdio (dev)
+
+`scripts/match_scorer.py` is the legacy NDJSON daemon, useful when standing up a container is overkill (local debugging, or wiring a non-HTTP client). Wire format is field-for-field identical to the HTTP body. One request = one JSON line on stdin, one response = one JSON line on stdout.
+
+```bash
+uv run python scripts/match_scorer.py checkpoints/model_v3.onnx
 ```
 
 With no model argument it loads `$MATCH_SCORER_MODEL`, else `checkpoints/model_v0.onnx`.
 
-Request on stdin (one JSON object per line):
+Request on stdin:
 
 ```json
 {"id":"req_42","target_emb":[...1536 floats...],"self_emb":[...1536 floats...],"soft_jacc":0.81}
@@ -198,13 +224,13 @@ Request on stdin (one JSON object per line):
 
 `soft_jacc` is fed to the model only when it declares a `soft_jacc` input (v3); 2-input v2 models ignore it. Omitted, it defaults to `0.0`, which is out-of-distribution for a v3 model.
 
-Response on stdout (one JSON object per line):
+Response on stdout:
 
 ```json
 {"id":"req_42","score":0.78}
 ```
 
-Errors come back as `{"id":"req_42","error":"<message>"}` on stdout (the server handles them — no exit, no exception).
+Errors come back as `{"id":"req_42","error":"<message>"}` on stdout (the daemon handles them — no exit, no exception).
 
 **One-shot CLI mode** (ad-hoc, no subprocess plumbing):
 
@@ -217,11 +243,9 @@ uv run python scripts/match_scorer.py checkpoints/model_v3.onnx \
 
 `target_emb.json` and `self_emb.json` are files each holding a JSON list of 1536 floats. `--soft-jacc` defaults to 0.0 and is ignored by 2-input models.
 
-Run the serve loop in the foreground for dev. The planned server-side spawner is in [`DEPLOYMENT.md`](DEPLOYMENT.md).
+### 3.7 Standalone binary (PyInstaller)
 
-### 3.6 Standalone binary (PyInstaller)
-
-The same `match_scorer.py`, frozen so the host needs no Python:
+The NDJSON daemon (`match_scorer.py`), frozen so the host needs no Python:
 
 ```bash
 bash scripts/build_match_scorer.sh                      # native build → dist/match_scorer/
@@ -235,22 +259,22 @@ bash scripts/build_local_mac_and_linux.sh               # macOS native + Linux v
 
 ## 4. How the Bun/Elysia server would use it (planned)
 
-Only the unused HTTP clients exist in `server/` (`scorer_http.ts`, `interest_matcher_http.ts`); today the server scores pairs with the rules in `server/src/matching/compat.ts`.
+The HTTP container exists (`match_scorer` on `:8000`, `interest_matcher` on `:8001`); the Bun server doesn't import HTTP clients for them today — PR #34 reverted them. Live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`. The intended integration is a precomputed pair-score cache that `compat()` reads synchronously:
 
 ```
-Bun server (background scoring)
+Bun server (background scoring, on profile create/change)
         │
-        │ spawn() long-lived subprocess
+        │ POST /score   interests_a → interests_b soft_jacc cache
+        │ POST /pair    target_a, self_a, target_b, self_b, soft_ab, soft_ba → pair_score
         ▼
-match_scorer (script or PyInstaller binary)
+scorer container (match_scorer_server.py + interest_matcher_server.py in one process)
         │
-        │ NDJSON over stdin/stdout (target_emb, self_emb, soft_jacc)
+        │ ONNX forward pass per direction
+        ▼
+onnxruntime → score_ab, score_ba ∈ [0, 1]
         │
         ▼
-onnxruntime → score ∈ [0, 1] per direction
-        │
-        ▼
-server: pair_score = score_ab + score_ba → score cache
+server: pair_score = score_ab + score_ba → in-memory cache (pairKey → pair_score)
         │
         ▼
 compat(a, b): synchronous read of the cached pair_score, rules-based score on a miss
@@ -260,8 +284,8 @@ Key facts:
 
 - The server pre-embeds both user profiles with OpenAI **once** (cached per profile change), then sends only the 1536-d vectors to the scorer. The scorer itself never calls OpenAI.
 - The server also computes `soft_jacc` per pair from its interest-index cache and forwards it alongside the embeddings.
-- `compat()` runs synchronously for every candidate pair on every matching tick, so it can't await a subprocess. Pair scores are precomputed off the hot path (when a profile is created or changes) into a cache that `compat()` reads; a miss falls back to the rules-based score.
-- The server keeps one scorer process per CPU core (tunable).
+- `compat()` runs synchronously for every candidate pair on every matching tick, so it can't await a network round-trip. Pair scores are precomputed off the hot path (when a profile is created or changes) into a cache that `compat()` reads; a miss falls back to the rules-based score.
+- The HTTP container is stateless. Scale by running more `scorer` replicas behind a load balancer (not by adding intra-process threads).
 - `pair_score` is the product signal; per-direction scores are diagnostic.
 - The gate on `pair_score` is model-specific: **0.78** for the published v2 `model_v0`, **0.40** for the v3 run (§5.7). The scorer only returns scores; the threshold lives with the caller.
 

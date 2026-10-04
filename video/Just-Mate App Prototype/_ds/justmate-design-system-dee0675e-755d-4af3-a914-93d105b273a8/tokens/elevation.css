@@ -1,0 +1,29 @@
+/* Fluid Functionalism shadow ladder. LIGHT default: 1px ring + halving stacked drops. `.dark`: inset highlight + inset ring + stacked drops. */
+:root,.light{
+  --sc:rgb(0 0 0 / 0.06);
+  --shadow-1:0 0 0 1px var(--sc);
+  --shadow-2:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc);
+  --shadow-3:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc);
+  --shadow-4:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc),0 6px 6px -3px var(--sc);
+  --shadow-5:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc),0 6px 6px -3px var(--sc),0 12px 12px -6px var(--sc);
+  --shadow-6:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc),0 6px 6px -3px var(--sc),0 12px 12px -6px var(--sc),0 24px 24px -12px var(--sc);
+  --shadow-7:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc),0 6px 6px -3px var(--sc),0 12px 12px -6px var(--sc),0 24px 24px -12px var(--sc),0 48px 48px -24px var(--sc);
+  --shadow-8:0 0 0 1px var(--sc),0 1px 1px -0.5px var(--sc),0 3px 3px -1.5px var(--sc),0 6px 6px -3px var(--sc),0 12px 12px -6px var(--sc),0 24px 24px -12px var(--sc),0 48px 48px -24px var(--sc),0 96px 96px -48px var(--sc);
+  --shadow-glow:0 0 0 1px rgba(255,178,63,0.45),0 8px 24px -8px rgba(255,160,40,0.55);
+  --shadow-sheet:0 0 0 1px rgb(0 0 0 / 0.05),0 -12px 40px -12px rgba(0,0,0,0.14);
+}
+.dark{
+  --dm-hi-mid:rgba(255,255,255,0.02);--dm-hi-high:rgba(255,255,255,0.04);--dm-hi-peak:rgba(255,255,255,0.06);
+  --dm-ring-base:rgba(255,255,255,0.02);--dm-ring-mid:rgba(255,255,255,0.04);--dm-ring-high:rgba(255,255,255,0.06);
+  --dm-drop:rgba(0,0,0,0.18);
+  --shadow-1:inset 0 0 0 1px var(--dm-ring-base);
+  --shadow-2:inset 0 1px 0 0 rgba(255,255,255,0.01),inset 0 0 0 1px var(--dm-ring-base),0 1px 1px -0.5px var(--dm-drop);
+  --shadow-3:inset 0 1px 0 0 var(--dm-hi-mid),inset 0 0 0 1px var(--dm-ring-base),0 0 0 1px rgba(0,0,0,0.12),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop);
+  --shadow-4:inset 0 1px 0 0 var(--dm-hi-mid),inset 0 0 0 1px var(--dm-ring-mid),0 0 0 1px rgba(0,0,0,0.14),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop),0 6px 6px -3px var(--dm-drop);
+  --shadow-5:inset 0 1px 0 0 var(--dm-hi-high),inset 0 0 0 1px var(--dm-ring-mid),0 0 0 1px rgba(0,0,0,0.16),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop),0 6px 6px -3px var(--dm-drop),0 12px 12px -6px var(--dm-drop);
+  --shadow-6:inset 0 1px 0 0 var(--dm-hi-high),inset 0 0 0 1px var(--dm-ring-high),0 0 0 1px rgba(0,0,0,0.18),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop),0 6px 6px -3px var(--dm-drop),0 12px 12px -6px var(--dm-drop),0 24px 24px -12px var(--dm-drop);
+  --shadow-7:inset 0 1px 0 0 var(--dm-hi-peak),inset 0 0 0 1px var(--dm-ring-high),0 0 0 1px rgba(0,0,0,0.20),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop),0 6px 6px -3px var(--dm-drop),0 12px 12px -6px var(--dm-drop),0 24px 24px -12px var(--dm-drop),0 48px 48px -24px var(--dm-drop);
+  --shadow-8:inset 0 1px 0 0 var(--dm-hi-peak),inset 0 0 0 1px var(--dm-ring-high),0 0 0 1px rgba(0,0,0,0.22),0 1px 1px -0.5px var(--dm-drop),0 3px 3px -1.5px var(--dm-drop),0 6px 6px -3px var(--dm-drop),0 12px 12px -6px var(--dm-drop),0 24px 24px -12px var(--dm-drop),0 48px 48px -24px var(--dm-drop),0 96px 96px -48px var(--dm-drop);
+  --shadow-glow:0 0 0 1px rgba(255,178,63,0.35),0 8px 32px -8px rgba(255,178,63,0.55);
+  --shadow-sheet:0 -1px 0 0 var(--hairline-top),0 -24px 48px -12px rgba(0,0,0,0.5);
+}

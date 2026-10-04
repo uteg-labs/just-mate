@@ -1,6 +1,6 @@
 import * as Device from "expo-device"
 import * as ImagePicker from "expo-image-picker"
-import { useState } from "react"
+import { useEffect, useEffectEvent, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Platform, StyleSheet, Text, View } from "react-native"
 import Animated, {
@@ -49,6 +49,13 @@ async function takeSelfie(): Promise<string | null | undefined> {
   } catch {
     return null
   }
+}
+
+// android may kill the app while the system camera is open; the photo it took waits here
+async function pendingSelfie(): Promise<string | null | undefined> {
+  const shot = await ImagePicker.getPendingResultAsync().catch(() => null)
+  if (!shot || "code" in shot || shot.canceled) return
+  return shot.assets[0]?.base64 ?? null
 }
 
 async function describe(photo: string | null) {
@@ -138,15 +145,28 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
       ),
     )
 
-  const scan = async () => {
+  const check = async (photo: string | null) => {
     setPhase("scanning")
-    const photo = await takeSelfie()
-    if (photo === undefined) return setPhase("idle")
-
     const [appearance] = await Promise.all([describe(photo), sweep()])
     set({ verified: true, appearance })
     setPhase("done")
   }
+
+  const scan = async () => {
+    setPhase("scanning")
+    const photo = await takeSelfie()
+    if (photo === undefined) return setPhase("idle")
+    await check(photo)
+  }
+
+  const resume = useEffectEvent(async () => {
+    const photo = await pendingSelfie()
+    if (photo !== undefined) await check(photo)
+  })
+
+  useEffect(() => {
+    void resume()
+  }, [])
 
   return (
     <Step

@@ -230,6 +230,8 @@ export const sk = {
     offline: "offline",
     openSettings: "Otvoriť nastavenia",
     recenter: "Vycentrovať na mňa",
+    sheetCollapse: "Zobraziť celú mapu",
+    sheetExpand: "Vrátiť panel",
     zone: "~{{n}} kompatibilných ľudí v okolí",
     headlines: {
       date: ["Na čo máš chuť?", "Kam dnes večer?", "Aký je plán?", "Skúsiš niečo nové?"],
@@ -245,6 +247,11 @@ export const sk = {
     loadFailed: "Profil sa nepodarilo načítať. Skontroluj pripojenie.",
     retry: "Skúsiť znova",
     refused: "Nepodarilo sa. Skús to o chvíľu.",
+    refusedWhy: {
+      adult_required: "Rande je od 18 rokov. Parťák je otvorený aj pre teba.",
+      invalid_category: "Táto verzia aplikácie je zastaraná. Aktualizuj ju a skús znova.",
+      invalid_intents: "Táto verzia aplikácie je zastaraná. Aktualizuj ju a skús znova.",
+    },
     ended: {
       vanished: "Kompas sa zavrel. Znova ťa nikto nevidí.",
       expired: "Čas vypršal. Znova ťa nikto nevidí.",

@@ -82,7 +82,12 @@ const STEP_MIN_M = 10
 const WALK_ROUND_M = 10
 
 // background reports and the compass's clock race are nothing the user can act on
-const QUIET = new Set(["position_before_search_on", "invalid_position", "plan_not_yet"])
+const QUIET = new Set([
+  "position_before_search_on",
+  "invalid_position",
+  "position_too_fast",
+  "plan_not_yet",
+])
 
 const IDLE: Live = {
   link: "idle",
@@ -276,7 +281,8 @@ export function disconnect() {
 
 export function send(msg: ClientMsg) {
   if (msg.t === "search_on") lastSearch = msg
-  if (msg.t !== "search_on" || state.link === "open") socket?.send(msg)
+  // before `ready` the server closes on anything but hello; `ready` resends the search
+  if (state.link === "open") socket?.send(msg)
 
   switch (msg.t) {
     case "search_on":

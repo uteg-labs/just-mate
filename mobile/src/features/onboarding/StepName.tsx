@@ -49,9 +49,6 @@ export const StepName = ({ profile, set, next, eyebrow }: StepProps) => {
           <TextField
             label={t("onboarding.name.label")}
             kind="name"
-            textContentType="none"
-            autoComplete="off"
-            importantForAutofill="no"
             maxLength={40}
             value={profile.name}
             onChangeText={(v) => set({ name: v })}
@@ -63,6 +60,7 @@ export const StepName = ({ profile, set, next, eyebrow }: StepProps) => {
           <TextField
             label={t("onboarding.name.age")}
             keyboardType="number-pad"
+            autoComplete="off"
             maxLength={2}
             value={ageText}
             onChangeText={changeAge}

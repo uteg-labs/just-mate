@@ -26,6 +26,25 @@ const KIND_ICON: Record<VenueKind, IconName> = {
   pool: "waves",
 }
 
+// the same glyphs as SF Symbols, for the Apple Maps marker balloons
+const KIND_SYMBOL: Record<VenueKind, string> = {
+  wine_bar: "wineglass.fill",
+  cafe: "cup.and.saucer.fill",
+  board_game_cafe: "dice.fill",
+  beer_bar: "mug.fill",
+  cinema: "film.fill",
+  climbing_gym: "figure.climbing",
+  riverside: "water.waves",
+  rooftop_bar: "wineglass",
+  park: "tree.fill",
+  restaurant: "fork.knife",
+  bowling: "figure.bowling",
+  museum: "building.columns.fill",
+  jazz_club: "music.note",
+  sports_centre: "dumbbell.fill",
+  pool: "figure.pool.swim",
+}
+
 let venues: Venue[] = []
 let isAsked = false
 const listeners = new Set<() => void>()
@@ -57,6 +76,10 @@ export function useVenues() {
 
 export function venueIcon(kind: VenueKind): IconName {
   return KIND_ICON[kind]
+}
+
+export function venueSymbol(kind: VenueKind): string {
+  return KIND_SYMBOL[kind]
 }
 
 export function metersBetween(from: LatLng, to: LatLng): number {

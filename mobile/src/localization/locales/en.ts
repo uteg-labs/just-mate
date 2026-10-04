@@ -231,6 +231,8 @@ export const en = {
     offline: "offline",
     openSettings: "Open settings",
     recenter: "Center on me",
+    sheetCollapse: "Show the whole map",
+    sheetExpand: "Bring the sheet back",
     zone: "~{{n}} compatible around here",
     headlines: {
       date: ["What are you up for?", "Where to tonight?", "What's the plan?", "Try something new?"],
@@ -251,6 +253,11 @@ export const en = {
     loadFailed: "Couldn't load your profile. Check your connection.",
     retry: "Try again",
     refused: "That didn't go through. Try again in a moment.",
+    refusedWhy: {
+      adult_required: "Dating is 18+. Mate is open to you.",
+      invalid_category: "This version of the app is out of date. Update it and try again.",
+      invalid_intents: "This version of the app is out of date. Update it and try again.",
+    },
     ended: {
       vanished: "The compass closed. You're invisible again.",
       expired: "Time ran out. You're invisible again.",

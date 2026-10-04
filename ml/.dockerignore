@@ -7,17 +7,14 @@
 # the build context — that's why these patterns are not whitelisted.
 *
 */*/.DS_Store
+**/__pycache__/**
 !scripts
 !scripts/match_scorer_server.py
 !scripts/interest_matcher_server.py
 !scripts/run_servers.py
 !pyproject.toml
 !uv.lock
-!src
-!src/just_mate_ml
-!src/just_mate_ml/models
+# whitelisting each file (not the directory) keeps __pycache__ out
 !src/just_mate_ml/models/interest_matcher.py
-!src/just_mate_ml/models/__init__.py
-!src/just_mate_ml/data
 !src/just_mate_ml/data/embed.py
 !src/just_mate_ml/data/__init__.py

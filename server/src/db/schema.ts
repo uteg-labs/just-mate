@@ -19,8 +19,10 @@ import {
   integer,
   jsonb,
   pgTable,
+  real,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
@@ -171,6 +173,17 @@ export const venue = pgTable("venue", {
   fits: jsonb("fits").$type<Intent[]>().notNull(),
   partner: boolean("partner").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const profileEmbedding = pgTable("profile_embedding", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  selfEmb: real("self_emb").array().notNull(),
+  targetEmb: real("target_emb").array().notNull(),
+  softJacc: real("soft_jacc"),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
 

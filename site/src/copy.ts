@@ -36,7 +36,7 @@ const en = {
   meta: {
     title: "just-mate · Meet for real",
     description:
-      "No faces, no chat, no people pins. just-mate gets you out of the door and in front of someone compatible: right now, or at a small plan the app makes for you.",
+      "For anyone lonely in a new city. just-mate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
   },
   nav: { how: "How it works", safety: "Safety", venues: "Venues", join: "Join the waitlist" },
   clip: {
@@ -49,7 +49,7 @@ const en = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Meet for real.",
-    lead: "just-mate gets you out of the door and in front of someone compatible. No faces, no chat, no people pins. Right now, or at a small plan the app makes for you.",
+    lead: "For anyone lonely in a new city. just-mate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
     join: "Join the waitlist",
     watch: "Watch with sound · 54 s",
   },
@@ -260,7 +260,7 @@ const pl: Copy = {
   meta: {
     title: "just-mate · Spotkaj kogoś naprawdę",
     description:
-      "Bez zdjęć, bez czatu, bez pinezek z ludźmi. just-mate wyciąga cię z domu i stawia przed kimś, kto do ciebie pasuje: teraz albo na małym planie, który aplikacja ułoży za ciebie.",
+      "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
   },
   nav: {
     how: "Jak to działa",
@@ -278,7 +278,7 @@ const pl: Copy = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Spotkaj kogoś naprawdę.",
-    lead: "just-mate wyciąga cię z domu i stawia przed kimś, kto do ciebie pasuje. Bez zdjęć, bez czatu, bez pinezek z ludźmi. Teraz albo na małym planie, który aplikacja ułoży za ciebie.",
+    lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
     join: "Zapisz się na listę",
     watch: "Obejrzyj z dźwiękiem · 54 s",
   },

@@ -315,6 +315,24 @@ describe("invitations", () => {
     expect(lastOf(a, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "expired" })
   })
 
+  test("a sixth invitation not yet confirmed is refused", async () => {
+    const a = await join("u_a")
+    const invite = {
+      t: "plan_invite",
+      mode: "date",
+      category: "food",
+      intents: ["wine"],
+      slots: [MONDAY_17],
+      flex: false,
+      venueId: "dvor",
+      until: "2h",
+    }
+    for (let i = 0; i < 6; i++) await send(a, invite)
+
+    expect(all(a, "plan_update")).toHaveLength(5)
+    expect(lastOf(a, "error")?.code).toBe("too_many_invites")
+  })
+
   test("times that can't be offered any more are refused", async () => {
     const { a } = await invited({ slots: ["2026-10-05T09:00:00.000Z"] })
     expect(lastOf(a, "error")?.code).toBe("invalid_until")

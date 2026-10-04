@@ -77,8 +77,9 @@ The trained checkpoint is published as a GitHub Release asset (not in the repo �
 | Release tag | Assets |
 |---|---|
 | `@just-mate@model_attachments@0.0.1` | `model_v0.pt`, `model_v0.onnx` (v2 pipeline, 2-input ONNX) |
+| `ml-models@1.0.0`, `ml-models@1.1.0` | `model_v3_best.onnx` + `.json` (v3, 3-input ONNX), `interest_matcher.onnx` + `.json`, `interest_embeddings.npz`, `interest_index.json` (uploaded by `scripts/release_models.sh`) |
 
-Every script defaults to `checkpoints/model_v0.onnx`, the published v2 model (2 inputs: `target_emb`, `self_emb`). A v3 model (3 inputs, adds `soft_jacc`) is not published; train it yourself (§5, writes `checkpoints/model_v3.pt`) and pass `--model checkpoints/model_v3.onnx`.
+Every script defaults to `checkpoints/model_v0.onnx`, the published v2 model (2 inputs: `target_emb`, `self_emb`). The v3 model (3 inputs, adds `soft_jacc`) is published in the `ml-models@*` releases; the scorer container fetches the tag set by `MODEL_RELEASE_TAG` (`ml-models@1.1.0` in `docker-compose.yml`). To use it locally, download `model_v3_best.onnx` from that release (or train and export it, §5) and pass `--model checkpoints/model_v3_best.onnx`.
 
 ```bash
 mkdir -p checkpoints
@@ -293,7 +294,7 @@ Key facts:
 
 ## 5. Train from scratch
 
-Only needed if you're improving the model or reproducing from zero. The pipeline is self-contained up to the PyTorch checkpoint — synthetic data → embeddings → triplets → train; the ONNX export step is not in the repo (§5.6).
+Only needed if you're improving the model or reproducing from zero. The pipeline is self-contained up to the PyTorch checkpoint — synthetic data → embeddings → triplets → train → ONNX export (§5.6).
 
 ### 5.1 Synthesize profiles
 
@@ -366,12 +367,13 @@ Sweeps hyperparams and keeps the best checkpoint by val AUC: v2 writes `checkpoi
 
 ### 5.6 Export to ONNX
 
-ONNX is what `match_scorer.py` loads at inference. **The export step is not in this repo**: the training scripts only save the PyTorch state dict (`{"encoder": …, "head": …}`), and the published `model_v0.onnx` was exported outside it. Whatever exports a new model must produce the graph the scorer expects: encoder + head + sigmoid on raw embeddings, inputs `target_emb` `(N, 1536)` and `self_emb` `(N, 1536)` float32, plus `soft_jacc` `(N, 1)` for v3, one output of directional scores in `[0, 1]`. Name it `checkpoints/model_v0.onnx` (v2) or `checkpoints/model_v3.onnx` (v3).
+ONNX is what `match_scorer.py` and `match_scorer_server.py` load at inference. The graph is encoder + head + sigmoid on raw embeddings: inputs `target_emb` `(N, 1536)` and `self_emb` `(N, 1536)` float32, plus `soft_jacc` `(N, 1)` for v3, one output `score` `(N,)` of directional scores in `[0, 1]`.
 
-Verify parity:
+`scripts/export_v3_onnx.py` builds it for v3. It loads the state dict `train_experiments_v3.py` saves (`checkpoints/model_v3.pt`, `{"encoder": …, "head": …}`) and the winning run's config from `reports/train_experiments_v3.json`, exports at opset 17 with a dynamic batch axis, writes `checkpoints/model_v3_best.onnx` plus a `model_v3_best.json` model card (config + val metrics of that run), and asserts torch vs onnxruntime parity on random inputs. The v2 `model_v0.onnx` was exported outside the repo.
 
 ```bash
-uv run python scripts/match_scorer.py --self-test
+uv run python scripts/export_v3_onnx.py   # --pt, --onnx, --report override the defaults
+uv run python scripts/match_scorer.py checkpoints/model_v3_best.onnx --self-test
 ```
 
 If the `--self-test` ordering holds (self-pair ≥ match > nonmatch), the export is wired correctly.
@@ -381,7 +383,7 @@ If the `--self-test` ordering holds (self-pair ≥ match > nonmatch), the export
 ```bash
 uv run python scripts/threshold_sweep.py
 uv run python scripts/benchmark_val.py
-uv run python scripts/gate_sweep.py --model checkpoints/model_v3.onnx
+uv run python scripts/gate_sweep.py --model checkpoints/model_v3_best.onnx
 uv run python scripts/build_eval_notebook.py  # → notebooks/evaluate_matching_model.ipynb
 ```
 
@@ -415,6 +417,7 @@ ml/
 ├── scripts/
 │   ├── train_experiments_v2.py        ← V2 train sweep → checkpoints/model_v0.pt
 │   ├── train_experiments_v3.py        ← V3 train sweep (asymmetric head + soft_jaccard) → checkpoints/model_v3.pt
+│   ├── export_v3_onnx.py              ← model_v3.pt → checkpoints/model_v3_best.onnx + .json, parity check
 │   ├── benchmark_val.py               ← ONNX benchmark (val AUC, F1, latency; 2-input models)
 │   ├── threshold_sweep.py             ← Threshold precision/recall sweep (2-input models)
 │   ├── gate_sweep.py                  ← Sum / min / two-stage gate comparison via match_scorer

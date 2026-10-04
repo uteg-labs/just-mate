@@ -141,9 +141,6 @@ def build_triplets(
         sample = rng.sample(all_cands, min(sample_size, len(all_cands)))
 
         # Get interest indices for sample
-        sample_ints = interest_idx_arr[sample, :interest_count_arr[i]]  # varying length → can't directly slice
-        # Actually need to handle variable length properly
-        # Build list of interest index arrays for sample
         sample_int_list = []
         for j in sample:
             cnt = interest_count_arr[j]
@@ -153,38 +150,6 @@ def build_triplets(
         i_ints = interest_idx_arr[i, :interest_count_arr[i]]
         soft_scores = _soft_jaccard_batch(i_ints, sample_int_list, int_vec)
 
-        for k_idx, j in enumerate(sample):
-            if j in used_pos_pairs[i]:
-                continue
-            j_int = _jaccard(interests[i], interests[j])
-            c_ij = float(cos_ij[i, j])
-            c_ji = float(cos_ji[i, j])
-            s_soft = float(soft_scores[k_idx])
-
-            interest_ok = j_int >= jaccard_threshold
-            pref_ab = c_ij >= 0.50
-            pref_ba = c_ji >= 0.50
-            soft_ok = s_soft >= soft_threshold
-
-            if interest_ok and pref_ab and pref_ba and soft_ok:
-                # Score and add to positives
-                score = j_int + 0.5 * (c_ij + c_ji) + 0.5 * s_soft
-                # We'll collect positive candidates in this loop and select top from them
-            # else: bucket as negative
-
-            if j in used_neg_pairs.get(i, set()):
-                continue
-
-            if interest_ok and pref_ab and pref_ba and soft_ok:
-                # positive candidate
-                pass  # we'll collect below
-            elif j_int == 0.0:
-                pass  # no_overlap negative
-            # ... (rest handled below)
-
-        # (Loop above is incomplete — redoing this logic outside)
-
-        # OK simpler: do it inline like before but use pre-computed soft_scores
         pos_scores: list[tuple[float, int]] = []
         neg_by_type: dict[str, list[tuple[float, int]]] = defaultdict(list)
 

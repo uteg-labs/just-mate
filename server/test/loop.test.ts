@@ -14,6 +14,7 @@ import {
 import { STAGE_A } from "../src/realtime/demo"
 import {
   type Client,
+  cacheMatchScores,
   clients,
   clock,
   config,
@@ -226,6 +227,33 @@ describe("pairing", () => {
     expect(lastOf(a, "match_offer")?.offerId).toBeString()
     expect(created[0]?.compatibilityScore).toBe(0.8)
     expect(created[0]?.algorithmVersion).toBe(DATE_MATCH_ALGORITHM_VERSION)
+  })
+
+  test("a date scorer pair does not outrank a better rules pair just by its 0–2 scale", async () => {
+    const scored = (userAId: string, userBId: string, score: number): MatchScoreRecord => ({
+      userAId,
+      userBId,
+      mode: "date",
+      scoreAToB: score / 2,
+      scoreBToA: score / 2,
+      score,
+      algorithmVersion: DATE_MATCH_ALGORITHM_VERSION,
+      calculatedAt: new Date(now),
+    })
+    const x = await join("u_x")
+    const y = await join("u_y")
+    const z = await join("u_z")
+    cacheMatchScores([scored("u_x", "u_y", 1.8), scored("u_y", "u_z", 1.6)])
+    const wine = { t: "search_on", mode: "date", category: "food", intents: ["wine"] }
+
+    await search(x, 0, wine)
+    await search(y, 30, wine)
+    await search(z, 60, wine)
+    tick()
+
+    expect(lastOf(x, "match_offer")).toBeDefined()
+    expect(lastOf(z, "match_offer")).toBeDefined()
+    expect(lastOf(y, "match_offer")).toBeUndefined()
   })
 
   test("real clients fall back to the rules-based score before their ML row exists", async () => {

@@ -60,9 +60,9 @@ Our own estimates (labelled on slide 9, never presented as facts): €39 a month
 4. **Value** — capability (Plan and Now) → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
 5. **Solution** — two loops side by side: Plan (find · plan · both in · walk and meet) and Now (pick · both phones ping · both open compass · walk and meet); one profile; Plan for later
 6. **Matching** — our own AI model: who I'd like to meet ↔ who they are, scored both ways; three steps; honest footer (synthetic training data, scores Now, plans use the explainable score)
-7. **Design choices** — choice · reason · gain · cost · mitigation (four rows, incl. Now: invisible until you search)
-8. **Risk** — risk · mitigation in the build · production path · validation
-9. **Reality** — known · assumed · to validate
+7. **Design choices · Risk** — choice · why · in the build · cost, and next (four rows: no photos, the app proposes, no one's position, unsafe users)
+8. **Reality** — known · assumed · to validate
+9. **Business · competition** — B2B2C go-to-market (universities, employers relocating staff, city loneliness programmes), one campus at a time, partner venues ~€39/month vs ~€820/month per city (our estimates); Timeleft · Bumble BFF · Meetup · happn vs JustMate
 10. **What's next** — real users in Kraków · measure what matters · learn from real meetings; team; full source links; AI-use disclosure
 
 Re-export after changing `deck.html`, `cover.html`, the screens or `badges/`:

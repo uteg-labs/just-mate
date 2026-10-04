@@ -18,6 +18,7 @@ import { useScheme } from "./scheme"
 export type CompassDialProps = {
   rotation: number
   bucket: Bucket
+  label: string
   waiting?: boolean
   size?: number
 }
@@ -28,7 +29,7 @@ const TICKS = Array.from({ length: 60 }, (_, i) => i)
 const SENSOR = { ...spring.sensor, reduceMotion: ReduceMotion.Never }
 
 // DESIGN.md §12.5 — rotation = bearing − heading, along the shortest arc
-export const CompassDial = ({ rotation, bucket, waiting, size = 280 }: CompassDialProps) => {
+export const CompassDial = ({ rotation, bucket, label, waiting, size = 280 }: CompassDialProps) => {
   const { c } = useScheme()
   const angle = useSharedValue(rotation)
   const color = c[BUCKET_COLOR[bucket]]
@@ -44,7 +45,12 @@ export const CompassDial = ({ rotation, bucket, waiting, size = 280 }: CompassDi
   const arrow = useAnimatedStyle(() => ({ transform: [{ rotate: `${angle.get()}deg` }] }))
 
   return (
-    <View style={{ width: size, height: size }}>
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={label}
+      style={{ width: size, height: size }}
+    >
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
         <Defs>
           <RadialGradient id="halo">

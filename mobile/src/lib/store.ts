@@ -15,7 +15,9 @@ import {
   type ServerMsg,
   type SessionEndReason,
 } from "@justmate/protocol"
+import { addNetworkStateListener } from "expo-network"
 import { useSyncExternalStore } from "react"
+import { AppState } from "react-native"
 
 import { authClient } from "./auth-client"
 import { metersBetween } from "./venues"
@@ -274,6 +276,20 @@ export async function connect() {
   set({ closedWith: undefined })
   next.send({ t: "hello", sessionCookie })
 }
+
+// back in the foreground or online again: try now instead of waiting out the back-off
+function reconnectNow() {
+  if (!isWanted || socket) return
+  retryMs = RETRY_MS
+  void connect()
+}
+
+AppState.addEventListener("change", (next) => {
+  if (next === "active") reconnectNow()
+})
+addNetworkStateListener(({ isConnected }) => {
+  if (isConnected) reconnectNow()
+})
 
 export function disconnect() {
   isWanted = false

@@ -53,7 +53,7 @@ Profile = {
 - `mode: "date"` requires `adult: true`.
 - Both `date` and `mate` preferences are always present, because the map switches mode at any time. `DEFAULT_PROFILE` in the package holds the prototype defaults.
 - `appearance`, `taste` and `character` feed matching later (`ML-MATCHING.md`); M0 stores them and never sends them in `match_offer`.
-- In development (`NODE_ENV` ≠ `production`) every `PUT` also writes the profile card (`docs/examples/profile_card.md` shape) to `temporary/<userId>.md` at the repo root, for the ML work.
+- In development (`NODE_ENV` ≠ `production`) every `PUT` also writes the profile card (`docs/examples/profile_card.md` shape) to `server/.cards/<userId>.md`, for the ML work.
 
 ## Onboarding helpers (HTTP)
 

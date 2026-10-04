@@ -44,7 +44,7 @@ bun run render          # all six
 
 ## Where things come from
 
-- Phone screens and vibe badges: captured from the design prototype (`video/Just-Mate App Prototype/`) at 2×, in `public/screens/` and `public/badges/`. Plan screens are in the prototype (`app/plans/`) but not captured; venue screens are not there at all. The plan offer, mini phones, day-of card and partner card are drawn in `src/scenes/` from the copy in `docs/STRUCTURE.md` › Plans. `badges/ola-name.webp` is `mia-name.webp` with the name swapped, so `mia-quote` is Ola's vibe side.
+- Phone screens and vibe badges: captured from the design prototype (`design/prototype/`) at 2×, in `public/screens/` and `public/badges/`. Plan screens are in the prototype (`app/plans/`) but not captured; venue screens are not there at all. The plan offer, mini phones, day-of card and partner card are drawn in `src/scenes/` from the copy in `docs/STRUCTURE.md` › Plans. `badges/ola-name.webp` is `mia-name.webp` with the name swapped, so `mia-quote` is Ola's vibe side.
 - Colours, type (Inter Variable), icons (Lucide): the just-mate design system export.
 - World map dots: `node scripts/world-dots.mjs` (world-atlas 110m land, Equal Earth projection).
 

@@ -1,6 +1,6 @@
 # T04 — Model architecture
 
-> **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../ML-MATCHING.md).
+> **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../../docs/ML-MATCHING.md).
 >
 > **As built (current code, summary — full detail in `docs/ML-MATCHING.md` §3):**
 > - `train_experiments_v3.py` defines the architecture inline (within the training script). There is no `model/encoder.py` / `model/head.py` / `model/siamese.py` module split; the encoder is `SharedEncoder` and the head is `MatchHead`, both as top-level classes in the training script.

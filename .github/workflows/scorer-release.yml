@@ -1,0 +1,57 @@
+# builds the ml scorer image for every ml-models release tag (pushed by ml/scripts/release_models.sh),
+# pushes it to ghcr and redeploys the dokploy app, which pulls :latest.
+# optional secret: DOKPLOY_SCORER_WEBHOOK (the app's deploy webhook url); without it the redeploy is skipped
+name: scorer-release
+run-name: "scorer — ${{ inputs.model_release_tag || github.ref_name }}"
+
+on:
+  push:
+    tags: [ "ml-models@*" ]
+  workflow_dispatch:
+    inputs:
+      model_release_tag:
+        description: ml-models release whose weights go into the image
+        required: true
+        default: ml-models@1.0.0
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/uteg-labs/just-mate-scorer
+  MODEL_RELEASE_TAG: ${{ inputs.model_release_tag || github.ref_name }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      WEBHOOK: ${{ secrets.DOKPLOY_SCORER_WEBHOOK }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: tags
+        run: echo "tags=$IMAGE:latest,$IMAGE:sha-${GITHUB_SHA::7},$IMAGE:${MODEL_RELEASE_TAG##*@}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ml
+          file: ml/Dockerfile.scorer
+          build-args: MODEL_RELEASE_TAG=${{ env.MODEL_RELEASE_TAG }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=scorer
+          cache-to: type=gha,scope=scorer,mode=max
+
+      # an empty body makes dokploy redeploy its configured image (:latest)
+      - if: env.WEBHOOK
+        run: |
+          curl -fsS -X POST -H "Content-Type: application/json" -d '{}' "$WEBHOOK"

@@ -247,10 +247,16 @@ export const sk = {
     loadFailed: "Profil sa nepodarilo načítať. Skontroluj pripojenie.",
     retry: "Skúsiť znova",
     refused: "Nepodarilo sa. Skús to o chvíľu.",
+    unsent: "Si offline, plán sa neodoslal. Skús to znova, keď budeš online.",
     refusedWhy: {
       adult_required: "Rande je od 18 rokov. Parťák je otvorený aj pre teba.",
       invalid_category: "Táto verzia aplikácie je zastaraná. Aktualizuj ju a skús znova.",
       invalid_intents: "Táto verzia aplikácie je zastaraná. Aktualizuj ju a skús znova.",
+      invalid_until:
+        "Tieto časy sú príliš skoro. Vyber neskoršie alebo nechaj pozvánku otvorenú do 2 h pred začiatkom.",
+      invalid_venue: "Toto miesto pre tento plán nejde. Vyber iné.",
+      invalid_slots: "S časmi niečo nesedí. Vyber ich znova.",
+      invalid_plan: "Tento plán už neexistuje.",
     },
     ended: {
       vanished: "Kompas sa zavrel. Znova ťa nikto nevidí.",

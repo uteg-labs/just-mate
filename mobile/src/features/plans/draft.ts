@@ -28,11 +28,18 @@ export const PLAN_TIMES = [
 
 export const PLAN_DAYS = 10
 
-// today keeps only times at least an hour away
+const LEAD_2H_MS = 2 * 60 * 60_000
+
+// today keeps only times the server can still offer: "2h" is the latest a time is offered
 export function timesFor(day: number): string[] {
   if (day > 0) return PLAN_TIMES
-  const soonest = Date.now() + 60 * 60_000
+  const soonest = Date.now() + LEAD_2H_MS
   return PLAN_TIMES.filter((time) => dayAt(0, time).getTime() > soonest)
+}
+
+// "the day before" is already over for a time today
+export function canHoldDay(draft: Draft): boolean {
+  return pickedDays(draft).some((day) => day > 0 && !!draft.slots[day]?.length)
 }
 
 export function pickedDays(draft: Draft): number[] {
@@ -41,9 +48,12 @@ export function pickedDays(draft: Draft): number[] {
     .sort((a, b) => a - b)
 }
 
+// a time picked today drops out once it is too soon to offer
 export function slotTimes(draft: Draft): number[] {
   return pickedDays(draft).flatMap((day) =>
-    (draft.slots[day] ?? []).map((time) => dayAt(day, time).getTime()),
+    (draft.slots[day] ?? [])
+      .filter((time) => timesFor(day).includes(time))
+      .map((time) => dayAt(day, time).getTime()),
   )
 }
 
@@ -56,7 +66,7 @@ export function inviteOf(draft: Draft): PlanInvite | undefined {
     slots: slotTimes(draft).map((ms) => new Date(ms).toISOString()),
     flex: draft.flex,
     venueId: draft.venueId,
-    until: draft.until,
+    until: canHoldDay(draft) ? draft.until : "2h",
   })
   return parsed.ok ? parsed.value : undefined
 }

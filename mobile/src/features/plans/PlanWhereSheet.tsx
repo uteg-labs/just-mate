@@ -22,7 +22,7 @@ export type PlanWhereSheetProps = {
 }
 
 // the map above this sheet shows the same venues: a tap there or a row here picks one
-const SHEET_SHARE = 0.6
+export const SHEET_SHARE = 0.6
 
 type RowProps = {
   venue: Venue

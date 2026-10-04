@@ -5,7 +5,7 @@
 
 ## 1. Elevator pitch (30 seconds)
 
-One in six people is lonely, and lonely people are twice as likely to become depressed (WHO, 2025). Apps solved matching; nobody solved the door. A lonely person rarely goes out on a whim: they need a reason, a time, a place, and proof that someone will actually be there. JustMate gives them exactly that, with no faces and no chat. **Plan:** the app proposes one small, concrete plan near you ("board games · Thu 19:00 · 9 min on foot · 2 of 4 going", with the vibe badges of who's coming); you only tap **I'm in**, and the plan goes ahead only when enough people confirm. **Now:** when you're already out, a compatible person who wants the same thing within walking range pings at the same moment, a compass unlocks, and finding each other becomes a ten-minute game. Both end the same way: two people talking face to face, first names unlocked, and one tap for *same again next week?*
+One in six people is lonely, and lonely people are twice as likely to become depressed (WHO, 2025). Apps solved matching; nobody solved the door. A lonely person rarely goes out on a whim: they need a reason, a time, a place, and proof that someone will actually be there. JustMate gives them exactly that, with no faces and no chat. **Plan:** the app proposes one small, concrete plan near you with one compatible person ("board games · Thu 19:00 · 9 min on foot", with the vibe badge of who you're meeting); you only tap **Accept plan**, and it's on only when you're both in. **Now:** when you're already out, a compatible person who wants the same thing within walking range pings at the same moment, a compass unlocks, and finding each other becomes a ten-minute game. Both end the same way: two people talking face to face, a first name unlocked ("Say hi to Ola."), the distance you walked to get there, and one tap for *same again next week?*
 
 ## 2. Problem & vision
 
@@ -38,7 +38,7 @@ One finding from Timeleft we build on: its co-founder saw that "the more informa
 ## 3. The three rules (product constitution)
 
 1. **No faces.** No profile photos anywhere. Attraction is a private compatibility signal, never a picture to be judged; the only faces in the app are generated sample photos in the taste swipe, never a user. Kills the appearance economy and the mirror-anxiety of profile curation.
-2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*. Plans coordinate with fixed status chips ("on my way", "5 min late", "I'm here · by the window"), never free text. Names unlock only after you've met; keeping in touch is a mutual save, not a chat.
+2. **No chat.** There is no messaging. The product's success event is a real conversation; every feature points at it. The match output is *legs, not thumbs*. A plan needs no messages: the card carries the time, the place and when the compass opens. Names unlock only after you've met.
 3. **No people pins.** A person's location is never a point — only zones (geohash cells) with anonymous density glow. Nobody can be found, followed, or looked up. Ever. Places can be pinned: a plan's venue is a public place. People never are.
 
 Every feature decision is tested against these three rules; anything that violates one is out by definition.
@@ -55,7 +55,7 @@ JustMate is built for loneliness, which overlaps with low mood and depression. I
 
 ## 4. Who it's for: target group, characters, use cases
 
-**Primary: the quietly lonely in a city, 18–35.** Newcomers who moved for work or study, remote workers, people after a breakup or a move, students who haven't found their people. They are on their phones anyway, they can walk, and cities give the density the product needs. Loneliness peaks among young people (WHO 2025). Date is 18+; Mate admits 16–17-year-olds, who are only ever matched or grouped with each other (§10).
+**Primary: the quietly lonely in a city, 18–35.** Newcomers who moved for work or study, remote workers, people after a breakup or a move, students who haven't found their people. They are on their phones anyway, they can walk, and cities give the density the product needs. Loneliness peaks among young people (WHO 2025). Date is 18+; Mate admits 16–17-year-olds, who are only ever matched with each other (§10).
 
 **Secondary:** solo travellers and tourists (the Now loop in an unfamiliar city), singles tired of swiping (Date mode), festival and conference crowds (launch markets, §15).
 
@@ -63,8 +63,8 @@ JustMate is built for loneliness, which overlaps with low mood and depression. I
 
 ### 4.1 Characters (the story we tell)
 
-- **Tomek, 28 — the hero.** Moved to Kraków for a job four months ago, works from home, evenings on the couch, weekends without saying a word out loud. Not "depressed", just flat and stuck: organising anything feels impossible and a big Meetup room feels worse. *Sunday night JustMate offers one plan: "board games · Thu 19:00 · 9 min on foot · 2 of 4 going", with two vibe badges. He taps **I'm in**; the app did the planning, he only had to say yes. On Thursday the plan is on, the card says "leave at 18:52", he walks there, three people are at the table with their badges up. Ninety minutes later: "Same again next week?" All four tap it. A month later it's "his Thursday".* The arc we show: **couch → yes → door → table → again.**
-- **Lucía, 27 — the tourist.** Three days alone in Kraków. On an evening walk through Kazimierz she opens Mate → Food and drink → beer. Two minutes later both phones ping: someone 300 m away also wants a beer, also new in town. Compass, ten minutes, a beer, keep in touch. *The Now loop: no planning, pure serendipity.*
+- **Tomek, 28 — the hero.** Moved to Kraków for a job four months ago, works from home, evenings on the couch, weekends without saying a word out loud. Not "depressed", just flat and stuck: organising anything feels impossible and a big Meetup room feels worse. *Sunday night JustMate offers one plan: "board games · Thu 19:00 · 9 min on foot", with one vibe badge, the person he'd be meeting. He taps **Accept plan**; the app did the planning, he only had to say yes. "You're both in." On Thursday the compass opens at 18:45 and he walks there. At the table: "Say hi to Ola.", and the card shows how far he walked. Ninety minutes later: "Same again next week?" A month later it's "his Thursday".* The arc we show: **couch → yes → door → table → again.**
+- **Lucía, 27 — the tourist.** Three days alone in Kraków. On an evening walk through Kazimierz she opens Mate → Food and drink → beer. Two minutes later both phones ping: someone 300 m away also wants a beer, also new in town. Compass, ten minutes, a first name, a beer. *The Now loop: no planning, pure serendipity.*
 - **Ania, 24 — the dater.** Deleted Tinder twice; tired of being judged on photos and of chats that die. *"When I'm at a festival, I switch on search — compatible people can find me without knowing who I am. If I like the vibe walking up, great; if not, I vanish."*
 - **Marta, 31 — the safety lens.** *"Serendipity without creepiness: no stranger ever knows where I am unless I said 'now, this person, yes' — and I can end that instantly."* She matches only with verified people, meets at a public spot first and joins women-only plans; when someone made her uncomfortable she reported him in two taps, he never appears for her again, and a second independent report paused him for review (M1 features, §10).
 - **Piotr, 38 — the partner.** Runs a board-game café with empty tables on Tuesday and Thursday evenings. He lists two table slots a week; JustMate fills them with people who wanted exactly that (M1, §16).
@@ -73,17 +73,17 @@ JustMate is built for loneliness, which overlaps with low mood and depression. I
 
 | Who | Situation | Loop | What JustMate does |
 |---|---|---|---|
-| Newcomer (Tomek) | Lonely, low energy, never initiates | Plan | Proposes one small plan in his "around" slots; social proof through badges; he only taps I'm in |
-| Shy person | Big groups and 1:1 dates both feel like too much | Plan (3–4 people) | Activity-first plan: something to do side by side, not an interview |
-| Remote worker | Lunch alone every day | Plan / Now | "lunch · 12:30 · 6 min away · 1 of 2 going" |
-| Tourist (Lucía) | Alone in a city, already out walking | Now | Ping with a compatible person who wants the same thing within 400 m |
+| Newcomer (Tomek) | Lonely, low energy, never initiates | Plan | Proposes one small plan in his "around" slots; social proof through a badge; he only taps Accept plan |
+| Shy person | Big groups feel like too much, a date like an interview | Plan | Activity-first plan for two: something to do side by side, not an interview |
+| Remote worker | Lunch alone every day | Plan / Now | "lunch · 12:30 · 6 min away" |
+| Tourist (Lucía) | Alone in a city, already out walking | Now | Ping with a compatible person who wants the same thing within a 10-minute walk (800 m) |
 | Single (Ania) | Wants to date without photos | Now (Date) | Faceless match, compass, names after meeting |
 | Festival-goer | Lost their friends, wants company for a gig | Now | Event zones, ping, compass |
 | Venue (Piotr) | Empty tables off-peak | Plan (hosted, M1) | Lists slots; JustMate fills them |
 
 ## 5. Two loops: Plan and Now
 
-One faceless profile, two speeds. **Plan** gets people out of the door: the app proposes something concrete and you only have to say yes, with time to get ready. **Now** is serendipity for when you are already out. Both end the same way: you meet, names unlock, keep in touch is mutual, and *same again?* is one tap.
+One faceless profile, two speeds. **Plan** gets people out of the door: the app proposes something concrete and you only have to say yes, with time to get ready. **Now** is serendipity for when you are already out. Both end the same way: you meet, the first name unlocks with the distance you walked, and *same again?* is one tap.
 
 ### 5.1 Getting out of the door (motivation design)
 
@@ -96,8 +96,8 @@ How do you get a lonely, maybe low person to actually go? That is the product's 
 | Fear of being stood up | **A plan is on only when both say yes.** Both accept a proposal, or you confirm whoever took your invitation. "Can't make it" reaches the other side before they leave. | M0 in-app · M1 push |
 | Talking is hard | **Activity-first plans:** board games, a walk, climbing, a quiz — something to do side by side, at a public venue picked for it. | M0 |
 | Commitment feels big | **Short and time-boxed:** every plan has a soft end; "Can't make it" is one tap, not an apology. | M0 |
-| Day-of hesitation | **"Compass opens at 18:45"** and a reminder 2 h before on the plan card; a push reminder in M1. | M0 · M1 push |
-| One meeting doesn't fix loneliness | **Same again next week?** after every plan and meeting; if everyone taps it, the same people get the same slot. Later: **circles**, the same 3–4 people weekly for four weeks, because friendship needs repeated time (§2). | M0 one tap · v1 circles |
+| Day-of hesitation | **"Compass opens at 18:45"** on the plan card, 15 minutes before the start. | M0 |
+| One meeting doesn't fix loneliness | **Same again next week?** after every plan and meeting; in M0 a local button, scheduling the same pair for the same slot is production path. Later: **circles**, the same 3–4 people weekly for four weeks, because friendship needs repeated time (§2). | M0 button · M1 scheduling · v1 circles |
 | A small push helps | **Venue perk on check-in** (e.g. first coffee −50%), paid by the partner venue. | M1 |
 | Spam kills trust | **At most one new invite a day, only in your "when are you around" slots**; declines are silent. | M1 (needs push) |
 
@@ -108,10 +108,10 @@ Step 1 (the profile) is shared by both loops; steps 7–8 are how both loops end
 1. **Profile once (about two minutes).** Pick a mode, **Date** or **Mate**. Then your first name (revealed only after you've met), interests (at least 3, each opening related ones), and four short questions written live from your answers. The answers become a one-line **vibe** on a lanyard **badge** whose colours and pattern are designed from your picks. That badge is all a match ever sees. Then who you're after, and either a swipe over generated sample photos that trains your taste (date) or when you're usually around (mate). Last, one selfie: described once (hair, face shape) for matching, then dropped; the liveness check is the production path. No photo of you is ever stored or shown to anyone.
 2. **Pick what you're up for and search, deliberately, per occasion.** Default is invisible. On the map you choose Date or Mate, open a category (Food and drink, Nightlife, Sports, Games…), pick one or more things inside it, and tap **Find people for {picks}**. Battery, privacy and intent in one action; what you picked is the session's context, not a profile attribute. This is the anti-Highlight: session-scoped, never ambient. (`STRUCTURE.md` §2–3.)
 3. **Watch the map warm up.** A soft heat field shows where compatible people are searching for the same thing. No list, no search field, no browsing. Scarcity of information is the feature.
-4. **The ping (the product's heartbeat).** Two compatible people, both searching, picks aligned, within walking range (400 m, see §7) → both phones ping at the same moment. Each sees the other's badge: "her vibe · wants: wine" and their vibe line, with a 45-second countdown.
+4. **The ping (the product's heartbeat).** Two compatible people, both searching, picks aligned, within walking range (800 m by default, see §7) → both phones ping at the same moment. Each sees the other's badge: "her vibe · wants: wine" and their vibe line, with a 45-second countdown.
 5. **Mutual accept → compass unlocks.** Only if both tap **Open compass**. Either alone sees nothing more ("waiting for them…").
 6. **The walk.** A directional arrow with hot/cold colour and haptics. Distance is a bucket (cold / warm / hot / burning), never a map pin of the other person. 10-minute window.
-7. **Meet. Talk.** At `burning` either taps **We met**. Names unlock ("Say hi to Mia."), an opener is offered if you need one, and **Keep in touch** saves the contact only if both tap it. Then the session ends and positions are discarded.
+7. **Meet. Talk.** At `burning` either taps **We met**. Names unlock ("Say hi to Ola.") and you see how far you walked. Then the session ends and positions are discarded.
 8. **Either can Vanish** at any moment, and the session is destroyed for both instantly.
 
 ### 5.3 The Plan loop (when you need a reason to go)
@@ -122,7 +122,7 @@ Plans are 1:1, in both modes, and come two ways: the app proposes one, or you pu
 2. **Accept, pass, or suggest a place.** **Accept plan** confirms only if they accept too ("waiting for them…" → "you're both in"). Picking another venue turns the button into **Suggest this place**; they see your pick and accept it, or it expires. **Pass** is silent: the other side only sees the proposal expire.
 3. **Or plan it yourself.** **Plan for later** (or a venue under **places for you**) puts the sheet into plan mode: what (the same bento), when (several days, several times each, optionally flexible by 30 min), where (a public venue on the map or from search), review, **Send invitation**. You don't pick who: it is offered to compatible people free at one of your times, one at a time, and stays open until 2 h before or the day before.
 4. **Someone's in.** The first person to take it picks one of your times. You see their vibe badge, the time and the place, then **Confirm plan** or **Pass** (it goes to someone else; they only see "plan filled").
-5. **Confirmed.** The plan card shows the reminder (T−2 h, push in M1) and when the compass opens (T−15 min). Names still unlock only when you meet.
+5. **Confirmed.** The plan card shows when the compass opens (T−15 min). Names still unlock only when you meet.
 6. **At the plan.** **Open compass** runs the same walk as Now (bearing + bucket, never a pin, up to 30 minutes), then **We met → post-meet**.
 7. **Can't make it.** One tap, no reason asked; the other side sees "plan cancelled".
 
@@ -177,14 +177,14 @@ Design intent: the whole funnel communicates "this is not a profile-picture app"
 
 ### 6.6 Post-meet
 
-- **Names unlock, nothing else does.** Both badges, now with first names; "Say hi to {name}."
-- An opener for the pair if the conversation needs a push (*"pineapple. defend your position."*).
-- **Keep in touch** is mutual: it only completes if both tap it ("{name} tapped it too. Saved on this phone."). Still no chat: it saves the other person on your phone, nothing more.
-- Post-meet (future): optional one-tap "how did it go?" to tune matching.
+- **Names unlock, nothing else does.** Both badges, now with first names; "Say hi to {name}." and the distance you walked ("You walked {m} m to say hi.").
+- **Same again next week?** is a local button in M0; scheduling the pair again is production path.
+- **Report** shows a notice in M0; block and report are M1 (§10.2). **Back to the map** ends it.
+- Production path: an opener for the pair if the conversation needs a push; a mutual **Keep in touch** that saves the other person on your phone, still no chat; an optional one-tap "how did it go?" to tune matching.
 
 ### 6.7 Settings
 
-Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min, auto-stop after 30 min), plans (invite me to plans, M1 with push), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, blocked people, download my data; M1: verified-only, meeting point first, women-only plans, trusted contact, my reports), help ("Need to talk to someone?" with local support lines, §3.1), account (email, log out, delete account).
+Profile (name, interests, questions and vibe, who you're after, appearance taste or when you're around: each reopens its onboarding step), the map (start mode, walk up to 5 / 10 / 15 min (10 by default), auto-stop after 30 min), plans (invite me to plans, M1 with push), feel (haptics, sounds, reduce motion), privacy and safety (taste is a line of traits and photos are never stored, download my data; M1: blocked people, verified-only, meeting point first, women-only plans, trusted contact, my reports), help ("Need to talk to someone?" with local support lines, §3.1), account (email, log out, delete account).
 
 ### 6.8 Plans (Date and Mate, M0)
 
@@ -195,9 +195,8 @@ Screens and exact copy are in `STRUCTURE.md` §8; the wire contract is `PROTOCOL
 - **Plan for later**: what → when → where → review, four steps. When takes several days with several times each and "Flexible by 30 min". Where is a public venue picked on the map or from search. Review: **Send invitation**, "You don't pick who."
 - **Someone's in** (ink card): their badge, the time they picked, the place, **Confirm plan** / **Pass** ("If you pass, it goes to someone else. They only see 'plan filled'.").
 - **Plans page**: proposed for you · upcoming · your invitations ("open" / "someone's in"), and **New plan**.
-- **Plan detail**: the venue on a map, title, venue meta, who you're meeting (their vibe) or "You don't pick who."; reminder, compass opens, names unlock; **Open compass** from T−15 and **Can't make it** → "They see 'plan cancelled'. No reason asked."
+- **Plan detail**: the venue on a map, title, venue meta, who you're meeting (their vibe) or "You don't pick who."; compass opens, names unlock; **Open compass** from T−15 and **Can't make it** → "They see 'plan cancelled'. No reason asked."
 - **Copy rules**: never "X declined" or "X passed". A passed proposal only expires; a passed taker only sees "plan filled", the same way a dismissed match only "expires" (§6.4).
-- **Copy rules**: never "X declined" or "X left". Counts change silently ("3 of 4 going" → "2 of 4 going"), the same way a dismissed match only "expires" (§6.4).
 
 ## 7. Matching system
 
@@ -207,17 +206,17 @@ Screens and exact copy are in `STRUCTURE.md` §8; the wire contract is `PROTOCOL
 
 ```
 compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
-match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
+match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (800 m by default) ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
 ```
 
 - **Mode and intents gate, interests score.** Both people must be searching in the same mode, and their picks must share at least one intent; that shared intent is the *context* of the match ("this is a running match"). Interests and answers set the compatibility score. The score gates the match but isn't shown on screen.
-- **Distance, not zone, is the match gate.** The server holds exact positions anyway; zones are a *display* abstraction (see §8). Matching on "same geohash cell" would (a) pair people up to 1.35 km apart — more than the ~830 m a person walks in the 10-minute window at 5 km/h — and (b) never pair two people 50 m apart on either side of a cell boundary. `R_MATCH = 400 m` ≈ 5 min on foot, leaving half the window for finding each other.
+- **Distance, not zone, is the match gate.** The server holds exact positions anyway; zones are a *display* abstraction (see §8). Matching on "same geohash cell" would (a) pair people up to 1.35 km apart — more than the ~830 m a person walks in the 10-minute window at 5 km/h — and (b) never pair two people 50 m apart on either side of a cell boundary. `R_MATCH` is 800 m by default (the 10-minute "walk up to"): walking toward each other that is ~400 m, ~5 min each, leaving half the window for finding each other.
 - **Offer TTL 45 s**, then the offer expires silently for both (see §6.4).
 - **Pair cooldown: 5 min** after any match/dismiss/expiry/vanish — no re-pinging the same person, no notification spam.
 - **One active session per user.**
 - **Ghost users never match.** Ghosts (server-spawned wanderers that add zone density) carry `ghost: true` and are excluded from candidate pairs — otherwise a demo phone can be offered a ghost instead of the other demo phone.
 
-**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (400 m, or the shorter of both "walk up to" settings: 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
+**Hard gates (server-side, NOT learned).** Whatever scores the pair — the formula above or the stretch model — only sees pairs that have already passed: both searching · same mode and category · `dist ≤ R_MATCH` (800 m by default: the shorter of both "walk up to" settings, 5 / 10 / 15 min → 400 / 800 / 1200 m) · shared active intent ≥ 1 · the age and safety rules below · K-anonymity of the *zone* (M0: K=1 demo, M1: K=3) · pair cooldown · one active session/offer · not self · not a ghost. The scorer focuses purely on "given shared intent X, how compatible are they on it". (Same table in `docs/ML-MATCHING.md` §7 and `docs/PROTOCOL.md`.)
 
 **Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese text-embedding model with a Match Head, custom-trained by the team. The pipeline:
 
@@ -227,7 +226,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 4. **Match Head.** Scores one person's target vector against the other's self vector from their difference, product and cosine (v3 also takes a soft-Jaccard of interests), `→ 32 → 1` logit. Exact heads in `docs/ML-MATCHING.md` §3.
 5. **Joint training.** Triplet loss (margin=1.0, p=2) + binary match loss (BCE for logit_ab→1 and logit_ac→0) trained jointly on synthetic profiles for M0 / on real outcomes for M1.
 
-- **Serving (planned, not wired in).** The ONNX model runs behind `ml/scripts/match_scorer.py`, an NDJSON scorer (Python or a PyInstaller binary). The server's `compat()` is synchronous and runs per pair on every tick, so integration means a precomputed pair-score cache with the explainable baseline as fallback (`ml/DEPLOYMENT.md`).
+- **Serving.** The ONNX model runs in an HTTP container (`ml/Dockerfile.scorer`). The server precomputes pair scores when a profile changes and Now matching reads them; plans and demo mode use the explainable score (`ml/DEPLOYMENT.md`).
 - **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
@@ -236,7 +235,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 
 **Description generation (LLM, M0 stretch).** — Today's version of the attraction vector. The user's photo is uploaded once at onboarding; an LLM produces a 2–3 sentence plain-prose description (`Appearance + personality + what they're looking for`) which becomes part of the profile. The matching model never sees the photo, only the text. In M0 we use a canned pool of descriptions for synthetic profiles; in M1 a real LLM call produces them per-user. **Privacy note:** photos go to the LLM API. Production needs a DPIA + explicit consent per §10; the demo uses test data only.
 
-**Vibe lines and badges.** One wry line in two lowercase clauses (*"quietly funny — will out-argue you about pizza"*), written from your onboarding answers, rerolled until you keep it. It hangs on a badge whose colours, pattern and icon are designed deterministically from your interests and answers (`DESIGN.md` §13.5). At the match moment you see *their* badge; after you've met, an opener written for the pair replaces "hey". Demo: canned lines and openers, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated.
+**Vibe lines and badges.** One wry line in two lowercase clauses (*"quietly funny — will out-argue you about pizza"*), written from your onboarding answers, rerolled until you keep it. It hangs on a badge whose colours, pattern and icon are designed deterministically from your interests and answers (`DESIGN.md` §13.5). At the match moment you see *their* badge. Demo: canned lines, deterministic per user. Production: generated (Bielik/LLM) from the profile, cached per user, moderated, plus an opener written for the pair after you've met.
 
 **Plan matching (M0, explainable).** Plans are 1:1 and reuse the gates and the score above, stretched over time instead of distance-right-now:
 
@@ -250,7 +249,7 @@ invite    → offered to the best-scoring compatible person free at one of its t
             (offer TTL, then the next person) until "open until" passes
 ```
 
-- **Venues.** M0 uses a seeded list of ~15 hand-tagged public venues in Kraków (modes, intents, opening hours); partner venues add their own in M1 (§16).
+- **Venues.** M0 uses a seeded list of 18 hand-tagged public venues in Kraków, at least one for every sport (modes, intents, opening hours); partner venues add their own in M1 (§16).
 - **One proposal at a time.** A person has at most one open proposal; passing or letting it expire frees the slot for the next one.
 - **Pairs who met once** (M1). Two people who met and didn't both tap Keep in touch are not proposed to each other again for 30 days; a block makes it permanent (§10.2).
 - **Age.** The age and safety rules from §10 apply to plans unchanged: a non-adult is only ever paired with non-adults, and date plans need both adults.
@@ -270,7 +269,7 @@ invite    → offered to the best-scoring compatible person free at one of its t
 ```
 idle (invisible) → searching → [match offered ⇉ both phones, offer TTL 45 s]
      → both accept ⇉ compass active (10 min TTL, positions relayed pairwise)
-     │                → we met → post-meet (names unlock · keep in touch if both tap) → idle
+     │                → we met → post-meet (name unlocks · distance walked) → idle
      │                → TTL expiry | either vanishes → idle
      └→ dismiss | offer expiry (either side; the other side sees only "expired")
           → cooldown (5 min per pair) → still searching
@@ -300,16 +299,16 @@ Safety is the architecture, but for women in particular architecture alone is no
 |---|---|
 | Stalker follows a specific person | No identity, no search, no browsing; zones not pins; glow is aggregate (k-anonymity); nothing discoverable when search is off; plans are proposed by the app, never browsable by person |
 | Compass abused to locate someone | Unlocks only after **mutual** accept; reveals a *bearing*, never a map position; 10-min TTL; partner sees the same compass (symmetry — they know you're walking too); M1: meeting point first (§10.3) |
-| Plan used to reach a specific person | Plans can't be searched or browsed; attendees see badges, not names, until they've met; public venues only; people who met and didn't both keep in touch aren't grouped again (§7); M1: women-only and verified-only plans |
+| Plan used to reach a specific person | Plans can't be searched or browsed; the other person sees your badge, not your name, until you've met; public venues only; M1: people who met aren't proposed to each other again for 30 days unless both kept in touch (§7), women-only and verified-only plans |
 | Harassment | No chat = no DM channel; exposure is session- or plan-scoped; block and report (§10.2) remove the person from matches and plans for good |
 | Serial abuser cycling through matches | M1 rate limits: at most 5 compass sessions a day and 3 open plans per person; repeated vanishes or reports from *different* people flag the account for review |
 | Fake or bot profiles | One-selfie liveness check, deleted after the check (production path in M0); M1: one account per phone number, optional ID check, a "verified" / "ID verified" tag on the badge |
 | Ban evasion | M1: a ban binds the phone number and the device (and the ID, for ID-verified accounts) |
 | Weaponised false reports | Auto-pause needs two independent reporters; reports from verified accounts weigh more; a human reviews before any ban; appeal path |
 | Data breach / subpoena | Positions never persisted — in-memory per socket only; plans hold who, never where; nothing to leak |
-| Notification fatigue / ambush pings | Both parties opted in *per occasion* (category + intent pick + Find people, or I'm in on a plan); pair cooldown; one active session; M1: at most one plan invite a day |
-| Being stood up | A plan goes ahead only above its minimum; still-in check; cancellations reach everyone before they leave (§5.3) |
-| Women's safety specifically | She is invisible unless she starts a search or joins a plan; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant; her name is only shown after she has met someone in person; M1: verified-only, meeting point first, women-only plans, trusted contact |
+| Notification fatigue / ambush pings | Both parties opted in *per occasion* (category + intent pick + Find people, or Accept plan); pair cooldown; one active session; M1: at most one plan invite a day |
+| Being stood up | A plan is on only when both say yes; "Can't make it" reaches the other side in the app before they leave (§5.3); M1: push |
+| Women's safety specifically | She is invisible unless she starts a search or accepts a plan; she can dismiss any match invisibly (offer simply "expires" on the other side); Vanish is one tap and instant; her name is only shown after she has met someone in person; M1: verified-only, meeting point first, women-only plans, trusted contact |
 | Minors | No photos and no identity means no implicit age signal → every profile states an age (16+), and the blocking **"I'm 18 or older"** check on the date verify step is "checked against your selfie" (selfie check is production path in M0). The 18+ gate is per mode, enforced server-side: date mode requires an adult; mate mode allows 16–17, but **a non-adult is only ever matched with another non-adult, in mate mode, and an adult is never offered a non-adult** (`PROTOCOL.md` › Server-side rules). Production: age assurance appropriate to a dating product (M1) |
 
 GDPR/RODO posture: location is personal data → processed solely inside explicit, session-scoped consent; no storage; production path includes a DPIA (data protection impact assessment). No mood or health data is collected (§3.1). Demo runs on test data only.
@@ -321,18 +320,18 @@ GDPR/RODO posture: location is personal data → processed solely inside explici
 | 1 · Account | Email + password, or a magic link | ~€0 | M0 (real) | Mate, plans |
 | 2 · Phone | SMS code, one account per number | ~€0.05–0.10 a check | M1 | Plans in production |
 | 3 · Liveness | One selfie, deleted after the check | per provider | M0 simulated → M1 | "verified" tag, Date mode |
-| 4 · ID | Document + selfie via an ID provider (Veriff self-serve: $0.80–1.89 a check, $49–209 monthly minimum) | ~€0.70 a check | M1, optional | "ID verified" tag; hosting plans; counts as verified for verified-only filters |
+| 4 · ID | Document + selfie via an ID provider (Veriff self-serve: $0.80–1.89 a check, $49–209 monthly minimum) | ~€0.70 a check | M1, optional | "ID verified" tag; counts as verified for verified-only filters |
 
 The user never pays for a level. Verified-only is a filter anyone can switch on: "only match me with verified people".
 
 ### 10.2 Block and report
 
-- **Block** from the post-meet screen, a plan's attendee row, or **Recent**: the last 7 days of matches and plans as opaque badges, the only "history" the app keeps, so you can act after the fact (no positions, no times beyond the day). A block is instant, permanent and two-way: never matched, never in the same plan again. The blocked person is never told.
+- **Block** from the post-meet screen, a plan's detail, or **Recent**: the last 7 days of matches and plans as opaque badges, the only "history" the app keeps, so you can act after the fact (no positions, no times beyond the day). A block is instant, permanent and two-way: never matched, never in the same plan again. The blocked person is never told.
 - **Report = block + flag.** One flow: a reason (made me uncomfortable · followed me · didn't take no · fake · looks under 18 · other) and an optional note to the safety team, the only free text in the app; it goes to people who review it, never to the other person. Reporting always blocks.
 - **Auto-pause.** Two independent reports within 30 days pause the account from matching and plans until a human review: warning, or ban (§10 table: ban evasion).
 - **Vanish, then report**: Vanish stays one tap with no confirmation; a 10-second prompt after it offers Report.
-- **Met but not kept** (M1). If two people met and didn't both tap Keep in touch, they aren't matched or grouped again for 30 days (§7) — a soft block nobody has to ask for.
-- M0: only Vanish exists; block, report and Recent are M1.
+- **Met but not kept** (M1). If two people met and didn't both tap Keep in touch, they aren't matched or proposed to each other again for 30 days (§7) — a soft block nobody has to ask for.
+- M0: Vanish, and Report as a local notice; block, report and Recent are M1.
 
 ### 10.3 Meet in public
 
@@ -344,7 +343,7 @@ The user never pays for a level. Verified-only is a filter anyone can switch on:
 
 ## 11. Gamification layer
 
-**Core (hackathon):** the compass walk itself — hot/cold buckets, haptic escalation, the 10-minute window creating urgency, the vibe badge as loot (designed from your picks, no two alike, dropping in on a lanyard), the plan's attendee row filling up ("3 of 4 going"), and the reveal at the end: first names and an opener.
+**Core (hackathon):** the compass walk itself — hot/cold buckets, haptic escalation, the 10-minute window creating urgency, the vibe badge as loot (designed from your picks, no two alike, dropping in on a lanyard), the plan's "you're both in", and the reveal at the end: a first name and the distance you walked.
 
 **Planned (post-hackathon, in priority order):**
 - **Brave log** (replaces the earlier streak idea): a private collection of the badges of people you've met, one per meeting. It only grows; there is no streak to lose. Losing a streak is guilt, and guilt is the wrong tool for people who already feel low (§3.1).
@@ -375,16 +374,16 @@ Chat. Photo profiles. Browsing/searching people. Followers, likes, feeds. Ads in
 ## 14. Success metrics
 
 - **North star:** completed real-world meetings per active user per week (Now and Plan).
-- **Mission metric (loneliness):** repeat meetings — the share of active users who met the same person or group at least twice in 30 days. One meeting is an event; repetition is how a friendship starts (§2).
+- **Mission metric (loneliness):** repeat meetings — the share of active users who met the same person at least twice in 30 days. One meeting is an event; repetition is how a friendship starts (§2).
 - **Activation:** the share of new users who attend a first plan or meeting within 7 days of signing up.
-- **Plan health:** fill rate (proposed → on), show-up rate (target ≥ 80% of confirmed attendees), and **stood-up rate** (checked in, nobody else came) as a guardrail under 2%.
+- **Plan health:** fill rate (proposed → on), show-up rate (target ≥ 80% of confirmed attendees), and **stood-up rate** (checked in, the other person never came) as a guardrail under 2%.
 - **Safety guardrails:** vanish rate (<10% — safety/quality signal), reports per 1,000 meetings, median time to review a report under 24 h, notification opt-out rate.
 - **Outcome (research only):** an opt-in, anonymous 3-item loneliness scale (UCLA short form) at sign-up and after 8 weeks, aggregated, never stored on a profile (§3.1).
 - **Anti-metric watched on purpose:** time-in-app should *not* grow — engagement is measured on the street, not the screen.
 
 ## 15. Launch & density strategy (the cold-start answer)
 
-**Plans lower the density bar.** Now needs two compatible people searching *in the same minute* within 400 m. A plan needs 3–4 compatible people within a 10-minute walk *over a day or two*. Rough illustration for a district with 500 active users: if each searches 30 min a week, spread over evening hours (4 h × 7 days = 1,680 min), about 9 people are searching at any evening minute, split across modes and a dozen intents — a Now match is rare. If 40% are open to plans, that's 200 people over the next 48 h, ~16 per intent — a group of four fills easily. Plans work at an order of magnitude lower density than Now, so **a new city opens with plans; the Now loop lights up as density grows.**
+**Plans lower the density bar.** Now needs two compatible people searching *in the same minute* within a 10-minute walk (800 m). A plan needs one compatible person within 15 minutes on foot of a venue *over a day or two*. Rough illustration for a district with 500 active users: if each searches 30 min a week, spread over evening hours (4 h × 7 days = 1,680 min), about 9 people are searching at any evening minute, split across modes and a dozen intents — a Now match is rare. If 40% are open to plans, that's 200 people over the next 48 h, ~16 per intent — a pair is easy to find. Plans work at an order of magnitude lower density than Now, so **a new city opens with plans; the Now loop lights up as density grows.**
 
 1. **Single-density launches:** one campus, one festival, one city district — anywhere the zone glow is genuinely populated from day one.
 2. **Event mode:** festivals/conferences pre-seed official zones and plans (a known, opt-in crowd — the perfect first market).
@@ -402,14 +401,14 @@ Four principles: **meeting is never paywalled; safety is never paywalled; those 
 | Option | Verdict | Why |
 |---|---|---|
 | Partners create plans (cafés, restaurants, cinemas, climbing gyms) | ✅ **primary revenue** | They gain customers in off-peak hours, and their slots seed density. Rules: public venues only; partners see counts and check-ins, never identities; a partner plan looks like any plan, labelled "hosted by {venue}"; venues that attendees rate badly are delisted. |
-| Premium users can create plans | ✅ with a change | Everyone joins any plan for free and app-made plans stay free. *Hosting* your own plan is the paid power feature: one hosted plan a month free, unlimited with JustMate+. Hosts must be ID-verified; public venues only. |
+| Premium users can create plans | ✅ with a change | Everyone accepts any plan for free, app-made plans stay free, and putting out your own invitation is free (it ships in M0). JustMate+ sells reach instead: several open invitations at once, travel mode, private plans. Public venues only. |
 | X connections free, more for money | ❌ rejected | It paywalls the north-star event and charges lonely people for the one thing they came for; it rewards rationing meetings, the swipe-app model we position against (§13). Limits exist, but for safety (§10), not revenue. |
 
 ### 16.2 Revenue streams
 
 1. **Partner venues (B2B, primary):** ~€39/month per venue to list plan slots, plus venue-funded perks on check-in (M1).
 2. **Prepaid first round (M1):** at partner venues you can prepay a €5 voucher redeemable on site; JustMate keeps 15%. It doubles as a commitment device (prepaid people show up). Always optional: free plans at public places stay. Paid by card through a payment provider, not through app-store in-app purchase (store rules allow outside payment for goods and services consumed outside the app).
-3. **JustMate+ (B2C, secondary):** €4.99/month — host unlimited plans, travel mode (join plans in another city before you arrive), private plans for your existing friends, themed icebreaker packs.
+3. **JustMate+ (B2C, secondary):** €4.99/month — several open invitations at once, travel mode (join plans in another city before you arrive), private plans for your existing friends, themed icebreaker packs.
 4. **Events and festivals:** licensing official zones and plans for an event (€500–2,000 per event).
 5. **Later (B2B2C — a partner pays, the user uses it free):** employers onboarding relocated staff, universities onboarding international students, city wellbeing programmes. Loneliness is now on the WHO policy agenda.
 
@@ -441,9 +440,9 @@ Readout: ~21 partner venues cover a city's running costs on their own (820 ÷ 39
 
 | Stage | Scope |
 |---|---|
-| **M0 — HackYeah 2026** (this repo) | Expo dev-client app (Mate / Date modes, Mate first, category picks, vibe badge, WebSocket events, compass from the device heading, haptics, 18+ gate, post-meet with the partner's first name, distance walked and a local *same again next week?*), Bun/Elysia backend (ws, distance-gated matching, offer/session TTLs, ghosts, position plausibility checks), explainable scoring, demo mode; **Plans, 1:1** (app-made plans from profiles and a seeded list of public venues, activities first; accept on both sides; your own invitation offered to one compatible person at a time; compass for the pair), a help row with local support lines; the learned model trained in `ml/` but not in the matching path |
-| **M1 — production MVP** | group plans for 2–4 with attendee badges, go-ahead minimum, still-in check, leave-at time, status chips, I'm here; keep in touch and a mutual repeat plan; remote push (background search, plan invites and reminders), block / report / auto-pause and Recent, phone and ID verification, verified-only and women-only filters, meeting point first, trusted contact, rate limits, usual area, partner venues (slots, perks), prepaid first round, Date plans (1:1, verified, public venues), k-anonymity (K≥3), age assurance, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
-| **v1** | Circles, user-hosted plans (ID-verified hosts), JustMate+ (travel mode, private plans), brave log, on-device attraction vector (train-on-phone), production generated vibe lines and openers (Bielik/LLM, moderated) |
+| **M0 — HackYeah 2026** (this repo) | Expo dev-client app (Mate / Date modes, Mate first, category picks, vibe badge, WebSocket events, compass from the device heading, haptics, 18+ gate, post-meet with the partner's first name, distance walked and a local *same again next week?*), Bun/Elysia backend (ws, distance-gated matching, offer/session TTLs, ghosts, position plausibility checks), explainable scoring, demo mode; **Plans, 1:1, Date and Mate** (app-made plans from profiles and 18 seeded public venues in Kraków, activities first; accept on both sides; your own invitation offered to one compatible person at a time; compass for the pair from T−15), Report as a local notice, a help row with local support lines; the learned model trained in `ml/` but not in the matching path |
+| **M1 — production MVP** | group plans for 2–4 with attendee badges, go-ahead minimum, still-in check, leave-at time, status chips, I'm here; keep in touch and a mutual repeat plan; remote push (background search, plan invites and reminders), block / report / auto-pause and Recent, phone and ID verification, verified-only and women-only filters, meeting point first, trusted contact, rate limits, usual area, partner venues (slots, perks), prepaid first round, k-anonymity (K≥3), age assurance, persistence-free audit, DPIA, E2E position encryption between paired sessions, model v1 (real interaction data) |
+| **v1** | Circles, JustMate+ (travel mode, private plans), brave log, on-device attraction vector (train-on-phone), production generated vibe lines and openers (Bielik/LLM, moderated) |
 | **v2** | Venue/event platform (official zones, analytics), city heat events, employer and university programmes |
 
 ## 18. Demo scope & honesty

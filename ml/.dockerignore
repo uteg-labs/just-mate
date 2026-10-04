@@ -1,6 +1,10 @@
-# Keep the scorer image small. Only the runtime bits and the ONNX model
-# need to land in /app; training, notebooks, .venv, source trees for
-# building triplets, etc. all stay on the build host.
+# Keep the scorer image small. Only the runtime bits and the source tree
+# need to land in /app; training, notebooks, .venv, local checkpoints, etc.
+# all stay on the build host.
+#
+# ONNX weights, JSON model cards and the interest vocabulary are pulled
+# from the GitHub release at build time (see Dockerfile.scorer), not from
+# the build context — that's why these patterns are not whitelisted.
 *
 */*/.DS_Store
 !scripts
@@ -9,10 +13,6 @@
 !scripts/run_servers.py
 !pyproject.toml
 !uv.lock
-!checkpoints
-!data
-!data/interest_embeddings.npz
-!data/interest_index.json
 !src
 !src/just_mate_ml
 !src/just_mate_ml/models

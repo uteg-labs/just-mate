@@ -99,7 +99,6 @@ export const AuthSheet = ({ onLoggedIn, onRegistered, initialTab = "login" }: Au
       <TextField
         label={t("auth.password")}
         kind="password"
-        textContentType={isLogin ? "password" : "newPassword"}
         autoComplete={isLogin ? "current-password" : "new-password"}
         value={password}
         onChangeText={setPassword}

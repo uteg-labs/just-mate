@@ -26,6 +26,7 @@ type Of<T extends ServerMsg["t"]> = Extract<ServerMsg, { t: T }>
 // Monday 5 Oct 2026, 10:00 in Kraków
 const MONDAY_10 = Date.UTC(2026, 9, 5, 8, 0)
 const MONDAY_17 = "2026-10-05T15:00:00.000Z"
+const MONDAY_19 = "2026-10-05T17:00:00.000Z"
 const TUESDAY_19 = "2026-10-06T17:00:00.000Z"
 
 const RYNEK = { lat: 50.0617, lng: 19.9373 }
@@ -348,6 +349,51 @@ describe("invitations", () => {
     await send(b, { t: "plan_accept", planId })
     await send(a, { t: "plan_cancel", planId })
     expect(lastOf(b, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "cancelled" })
+  })
+})
+
+// the app's draft: flexible, and times on a Bratislava phone, the same zone as the city
+describe("invitations as the app sends them", () => {
+  const fromApp = (slots: string[], until: string) => ({ slots, until, flex: true })
+
+  test("a time later today can't stay open until the day before", async () => {
+    const { a } = await invited(fromApp([MONDAY_19], "day"))
+    expect(lastOf(a, "error")?.code).toBe("invalid_until")
+  })
+
+  test("a time later today stays open until 2 h before", async () => {
+    const { a, planId } = await invited(fromApp([MONDAY_19], "2h"))
+    expect(lastOf(a, "error")).toBeUndefined()
+    expect(planOf(a, planId)).toMatchObject({ state: "open", until: "2h", flex: true })
+  })
+
+  test("a time today less than 2 h away is refused", async () => {
+    const { a } = await invited(fromApp(["2026-10-05T09:30:00.000Z"], "2h"))
+    expect(lastOf(a, "error")?.code).toBe("invalid_until")
+  })
+
+  test("a time today goes along with tomorrow's until the day before", async () => {
+    const { a, planId } = await invited(fromApp([MONDAY_19, TUESDAY_19], "day"))
+    expect(planOf(a, planId)?.slots).toEqual([MONDAY_19, TUESDAY_19])
+  })
+
+  test("tomorrow morning sent just before midnight is still open", async () => {
+    now = Date.parse("2026-10-05T21:45:00.000Z")
+    const { a, planId } = await invited(fromApp(["2026-10-06T07:00:00.000Z"], "day"))
+    expect(planOf(a, planId)?.state).toBe("open")
+
+    jump(20 * MIN)
+    expect(lastOf(a, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "expired" })
+  })
+
+  test("the day before ends at the city's midnight across the clock change", async () => {
+    // Sunday 25 Oct 2026 starts at 22:00 UTC the evening before, still in summer time
+    now = Date.parse("2026-10-24T21:30:00.000Z")
+    const { a, planId } = await invited(fromApp(["2026-10-25T18:00:00.000Z"], "day"))
+    expect(planOf(a, planId)?.state).toBe("open")
+
+    jump(31 * MIN)
+    expect(lastOf(a, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "expired" })
   })
 })
 

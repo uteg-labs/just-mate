@@ -677,12 +677,13 @@ Caption under your own badge: "Colours from {three interests}. Pattern from your
 - **Your badge**: the lanyard badge drops in; a `tertiary` md **Reroll** (`shuffle`) rewrites the line in place.
 - **Fields**: lowercase labels above the control ("first name", "interested in", "age" with its value right-aligned, "a hangout usually lasts"). Single choices are `Segmented`, multi choices are chips, age is a two-thumb range slider 18–60 ("60+").
 - **Swipe** (date): sample cards, never real people. A generated sample photo (`cover`) with its description in `footnote`, or, without samples, a striped placeholder with mono "sample photo 01" and a traits line ("tall · dark hair · beard"); mono "n of 6 · a sample, not a user". Stamps "into it" (`heart`) and "not for me" (`x`) as the card leaves. Two 60 round buttons under it: `x` (`tint`) and `heart` (`solid`), with "n / 6". The done card shows a `success` check, "Taste saved", "{n} into it · {m} not for me".
-- **Verify**: a `.dark` ink panel, radius 32, with an oval face guide and a progress ring that fills in `glow` and turns `success` when done; `scan-face` becomes `shield-check`. Mono status under it: "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds a `CheckRow` for 18+. Mono footer "production path · simulated in this build".
+- **Verify**: a `.dark` ink panel, radius 32, with an oval face guide and a progress ring that fills in `glow` and turns `success` when done. Once taken, the selfie shows round inside the ring (in memory only); without one, `scan-face` becomes `shield-check`. Mono status under it: "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds a `CheckRow` for 18+. Mono footer "production path · simulated in this build".
 
 ### 13.7 Settings
 
 - *Page* tone. Ghost back "Back to the map" (`arrow-left`), then "Settings" in `largeTitle`.
-- **Profile card** first: your badge swatch, name, mono "{mode} · verified · no. 0000", your vibe line in italics.
+- **Profile** first: your lanyard badge (224, strap 64; eyebrow "{name} · wants: {first interest}", your vibe line, the verified tag), then a centred mono "{mode} · verified · no. 0000".
+- Android back returns to the map (an edited step returns to Settings).
 - **Groups**: a mono label above each group ("your profile", "the map", "feel", "privacy and safety", "account"), rows inside a `Card` at level 2.
 - **Rows**: min height 52, a 20 icon (stroke 1.5, 2 on hover), label, value in `fg-2` on the right, `chevron-right` for rows that open something. Inset separators between rows, never a full-width line. Choice rows use `Segmented`; on/off rows use `Switch`.
 - Footer: ghost **Delete account**, then mono "just-mate · prototype · production path simulated".

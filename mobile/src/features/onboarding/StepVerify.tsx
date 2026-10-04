@@ -2,7 +2,7 @@ import * as Device from "expo-device"
 import * as ImagePicker from "expo-image-picker"
 import { useEffect, useEffectEvent, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Platform, StyleSheet, Text, View } from "react-native"
+import { Image, Platform, StyleSheet, Text, View } from "react-native"
 import Animated, {
   Easing,
   type SharedValue,
@@ -27,13 +27,14 @@ const SCAN_MS = 2400
 const SIZE = 236
 const RING_R = 110
 const RING = 2 * Math.PI * RING_R
+const PHOTO = 2 * RING_R - 12
 
 type Phase = "idle" | "scanning" | "done"
 
 const STATUS = { idle: "center", scanning: "hold", done: "done" } as const
 
 // one front-camera photo, kept in memory only; undefined = cancelled, null = no camera or no access
-async function takeSelfie(): Promise<string | null | undefined> {
+async function takeSelfie(): Promise<ImagePicker.ImagePickerAsset | null | undefined> {
   // the iOS simulator has no camera and the picker raises a native exception there, not a JS error
   if (!Device.isDevice && Platform.OS === "ios") return null
   try {
@@ -45,20 +46,20 @@ async function takeSelfie(): Promise<string | null | undefined> {
       quality: 0.4,
     })
     if (shot.canceled) return
-    return shot.assets[0]?.base64 ?? null
+    return shot.assets[0] ?? null
   } catch {
     return null
   }
 }
 
 // android may kill the app while the system camera is open; the photo it took waits here
-async function pendingSelfie(): Promise<string | null | undefined> {
+async function pendingSelfie(): Promise<ImagePicker.ImagePickerAsset | null | undefined> {
   const shot = await ImagePicker.getPendingResultAsync().catch(() => null)
   if (!shot || "code" in shot || shot.canceled) return
-  return shot.assets[0]?.base64 ?? null
+  return shot.assets[0] ?? null
 }
 
-async function describe(photo: string | null) {
+async function describe(photo?: string | null) {
   if (!photo) return ""
   return api
     .appearance({ photo })
@@ -68,7 +69,9 @@ async function describe(photo: string | null) {
 
 // the liveness check is simulated in this build: the photo is only described (hair, face shape),
 // and a phone without a camera still passes with the timed scan
-const Scanner = ({ phase, progress }: { phase: Phase; progress: SharedValue<number> }) => {
+type ScannerProps = { phase: Phase; progress: SharedValue<number>; photo?: string }
+
+const Scanner = ({ phase, progress, photo }: ScannerProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const isDone = phase === "done"
@@ -77,6 +80,7 @@ const Scanner = ({ phase, progress }: { phase: Phase; progress: SharedValue<numb
   return (
     <View style={[styles.panel, { backgroundColor: c.ink }]}>
       <View style={styles.scanner}>
+        {photo && <Image source={{ uri: photo }} style={styles.photo} />}
         <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
           <Ellipse
             cx={SIZE / 2}
@@ -110,12 +114,14 @@ const Scanner = ({ phase, progress }: { phase: Phase; progress: SharedValue<numb
             animatedProps={ring}
           />
         </Svg>
-        <Icon
-          name={isDone ? "shield-check" : "scan-face"}
-          size={40}
-          color={isDone ? c.success : c.fg2}
-          strokeWidth={1.5}
-        />
+        {!photo && (
+          <Icon
+            name={isDone ? "shield-check" : "scan-face"}
+            size={40}
+            color={isDone ? c.success : c.fg2}
+            strokeWidth={1.5}
+          />
+        )}
       </View>
       <Text
         accessibilityLiveRegion="polite"
@@ -132,6 +138,7 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
   const { c } = useScheme()
   const [phase, setPhase] = useState<Phase>(profile.verified ? "done" : "idle")
   const [isAdult, setIsAdult] = useState(false)
+  const [photo, setPhoto] = useState<string>()
   const progress = useSharedValue(profile.verified ? 1 : 0)
   const isDate = profile.mode === "date"
   const isDone = phase === "done"
@@ -145,23 +152,24 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
       ),
     )
 
-  const check = async (photo: string | null) => {
+  const check = async (shot: ImagePicker.ImagePickerAsset | null) => {
     setPhase("scanning")
-    const [appearance] = await Promise.all([describe(photo), sweep()])
+    setPhoto(shot?.uri)
+    const [appearance] = await Promise.all([describe(shot?.base64), sweep()])
     set({ verified: true, appearance })
     setPhase("done")
   }
 
   const scan = async () => {
     setPhase("scanning")
-    const photo = await takeSelfie()
-    if (photo === undefined) return setPhase("idle")
-    await check(photo)
+    const shot = await takeSelfie()
+    if (shot === undefined) return setPhase("idle")
+    await check(shot)
   }
 
   const resume = useEffectEvent(async () => {
-    const photo = await pendingSelfie()
-    if (photo !== undefined) await check(photo)
+    const shot = await pendingSelfie()
+    if (shot !== undefined) await check(shot)
   })
 
   useEffect(() => {
@@ -199,7 +207,7 @@ export const StepVerify = ({ profile, set, next, eyebrow }: StepProps) => {
       }
     >
       <Scope scheme="dark">
-        <Scanner phase={phase} progress={progress} />
+        <Scanner phase={phase} progress={progress} photo={photo} />
       </Scope>
       {isDate && (
         <CheckRow
@@ -222,5 +230,6 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
   },
   scanner: { width: SIZE, height: SIZE, alignItems: "center", justifyContent: "center" },
+  photo: { position: "absolute", width: PHOTO, height: PHOTO, borderRadius: radius.full },
   center: { textAlign: "center" },
 })

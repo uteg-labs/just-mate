@@ -1,0 +1,236 @@
+/* shared by deck.html and cover.html — tokens mirror docs/DESIGN.md */
+
+@font-face {
+  font-family: "Inter";
+  src: url("../../mobile/assets/fonts/InterVariable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-display: block;
+}
+
+:root {
+  --paper: #fafafa;
+  --ink: #0a0a0d;
+  --fg-1: #171717;
+  --fg-2: #737373;
+  --fg-3: #a3a3a3;
+  --on-ink-1: #f5f5f7;
+  --on-ink-2: #a1a1aa;
+  --glow: #ffb23f;
+  --glow-core: #ffd9a0;
+  --on-glow: #1a1205;
+  --link: #b86e00;
+  --self: #14b8a6;
+  --danger: #ff3b30;
+  --success: #28c840;
+  --cold: #3b8fdb;
+  --warm: #f5a524;
+  --hot: #ff7a1a;
+  --burning: #ffe2b8;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-ink: rgba(255, 255, 255, 0.1);
+
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  background: var(--paper);
+  color: var(--fg-1);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.slide {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  padding: 112px 136px 96px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  break-after: page;
+  background: var(--paper);
+}
+
+.slide.ink {
+  background: var(--ink);
+  color: var(--on-ink-1);
+}
+
+.slide > * {
+  position: relative;
+  z-index: 1;
+}
+
+.glow {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 190, 90, 0.85),
+    rgba(255, 160, 40, 0.42) 35%,
+    rgba(255, 160, 40, 0.1) 70%,
+    transparent
+  );
+}
+
+.glow.mint {
+  background: radial-gradient(
+    closest-side,
+    rgba(55, 194, 179, 0.5),
+    rgba(55, 194, 179, 0.12) 60%,
+    transparent
+  );
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+
+.ink .eyebrow {
+  color: var(--on-ink-2);
+}
+
+.display {
+  font-size: 132px;
+  line-height: 0.98;
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-size: 76px;
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+h3 {
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+p,
+li {
+  font-size: 30px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.muted {
+  color: var(--fg-2);
+}
+
+.ink .muted {
+  color: var(--on-ink-2);
+}
+
+.vibe {
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.mono {
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+}
+
+.foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 48px;
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+
+.ink .foot {
+  color: var(--on-ink-2);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.phone {
+  width: 380px;
+  aspect-ratio: 1206 / 2622;
+  border-radius: 58px;
+  border: 11px solid #0a0a0d;
+  background: #0a0a0d;
+  overflow: hidden;
+  box-shadow:
+    0 40px 80px -30px rgba(10, 10, 13, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  flex: none;
+}
+
+.phone img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 46px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 24px;
+  border-radius: 26px;
+  font-size: 24px;
+  font-weight: 550;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ink .chip {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.prod {
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1.5px solid currentColor;
+  color: var(--link);
+  white-space: nowrap;
+}
+
+.ink .prod {
+  color: var(--glow);
+}

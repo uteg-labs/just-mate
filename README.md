@@ -1,14 +1,16 @@
 # JustMate
 
-**Meet for real.** A faceless, walk-to-meet app that gets lonely people out of the door: it proposes one concrete plan nearby, or pings two compatible people who are already out, and a compass walks them to each other.
+**Meet for real.** Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate proposes one concrete plan nearby with a compatible person, or pings two compatible people who are already out, and a compass walks them to each other.
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków) for the OPEN: Sport & Healthcare task.
 
+**Submission:** [deck (PDF)](docs/submission/JustMate-Deck.pdf) · [whitepaper (PDF)](docs/submission/JustMate-Whitepaper.pdf) · [cover image](docs/submission/cover.png) · [website](site/) · [submission pack and sources](docs/SUBMISSION.md)
+
 ## The problem
 
-Loneliness touches one in six people and is linked to about 871,000 deaths a year; lonely people are twice as likely to become depressed (WHO Commission on Social Connection, 2025). Apps solved matching. Nobody solved the door: a lonely person rarely goes out on a whim. They need a reason, a time, a place, and proof that someone will be there.
+Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed ([WHO, 2025](https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death)). In the EU, 13% feel lonely most or all of the time ([JRC, EU Loneliness Survey 2022](https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en)). The hard part is not meeting someone online. It is the step out of the door: no reason to go, no one sure to be there, and a fear of being judged.
 
-JustMate is not therapy and makes no health claims. It is a reason to go out, and someone waiting when you get there.
+JustMate is not therapy and makes no health claims. It creates the contact: a plan, and someone waiting when you get there.
 
 ## Three rules
 
@@ -50,14 +52,17 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 - **Data** — Better Auth (email + password, magic links) and PostgreSQL via Drizzle for accounts, profiles and plans. Live positions stay in memory per socket.
 - **AI** — `gpt-4o-mini` writes onboarding questions, the vibe line, related interests and the character; OpenAI moderation screens profiles. Without `OPENAI_API_KEY` everything falls back to fixed samples.
 - **Matching** — explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7), geohash-6 zones for display, a walking-distance gate for matching.
-- **ML (research, not wired into the server)** — `ml/` holds a PyTorch Siamese matching model trained on synthetic profiles and exported to ONNX. See [`ml/README.md`](ml/README.md) and [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
+- **ML** — `ml/` holds a PyTorch Siamese matching model trained on synthetic profiles and exported to ONNX, served over HTTP. The server scores Now matches for real accounts with it; plans and demo mode use the explainable score. See [`ml/README.md`](ml/README.md) and [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ```
-docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching, submission pack
+docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching
+docs/submission/ deck, whitepaper, cover and app screens for the submission
 mobile/          Expo dev-client app — auth, onboarding, map, plans, match card, compass, post-meet, settings
 server/          Bun + Elysia + Drizzle — auth, profile, onboarding LLM helpers, zones, matching, plans, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), standalone
+site/            public web page on Vercel — the film, use-case clips, waitlist
+video/           Remotion film and clips (motion/), app design prototype
 ```
 
 ## Run
@@ -114,11 +119,11 @@ bun run lint && bun run typecheck && bun run test
 | LLM onboarding: questions, vibe line, character (with `OPENAI_API_KEY`) | Fixed sample questions and vibe lines when no key is set |
 | Zone glow from live positions | Demo-mode scripted positions (indoor GPS) |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | The seeded venue list for Kraków |
-| Plans proposed from real profiles and free times, Accept plan, the go-ahead on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
+| Plans proposed from real profiles and free times, Accept plan, "you're both in" on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
 | Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
 
-Not in the build by decision: remote push (the app is in the foreground whenever you are searching) and the ML model in the live matching path (it runs standalone in `ml/`, trained on synthetic data).
+Not in the build by decision: remote push (the app is in the foreground whenever you are searching). The ML model scores Now matches for real accounts; it is trained on synthetic data, so plans and the stage demo use the explainable score.
 
 ## License
 

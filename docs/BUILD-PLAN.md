@@ -1,5 +1,7 @@
 # JustMate — 24h build plan (HackYeah 2026)
 
+> The plan as written before the hackathon, kept for history. What was built is in `README.md` and `docs/SUBMISSION.md`.
+
 Window: Sat 11:00 → Sun 11:00. Submission via HackTribe (Discord account required).
 
 Stack: Expo (React Native) dev-client app · Bun + Elysia backend (WebSocket per `docs/PROTOCOL.md`) · explainable compatibility scoring (learned model as stretch) · **`match_scorer`**: Python ONNX Runtime scorer (`ml/scripts/match_scorer.py`, optionally frozen into a standalone binary with PyInstaller) speaking newline-delimited JSON over stdin/stdout, to be **spawned by the Bun server as a subprocess** (**no FastAPI / no HTTP between server and model**) — M1 roadmap for the scoring source, **not wired into the server yet** · OpenAI `text-embedding-3-small` (M1) · custom Siamese model (Shared Encoder + Match Head, triplet + match-loss joint training, M1), **exported to ONNX** and loaded by `match_scorer` · native maps via `expo-maps` (Apple Maps / Google Maps).

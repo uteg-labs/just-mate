@@ -5,68 +5,111 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 | Item | Value |
 |---|---|
 | Task | OPEN: Sport & Healthcare — loneliness and social connection |
-| Story | Loneliness first: hero Tomek, arc couch → yes → door → table → again (`PRODUCT.md` §4.1) |
-| Video | The motion launch (Remotion `Launch55`, ~54 s), no filmed video; updated to the new story separately (`DEMO.md` › Launch video) |
+| Pitch structure | Problem → User → Value → Solution → Reality → Next (after the HackYeah workshop "Pitch Like an Architect") |
+| One-liner | A plan near you, a person who fits, and someone waiting when you get there. |
+| Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
+| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
+| Images | [`submission/cover.png`](submission/cover.png) first, then app screens in [`submission/screens/`](submission/screens/) |
+| Website | [`site/`](../site/) — Vercel, with the launch film, use-case clips and a waitlist |
+| Video | [`video/motion`](../video/motion) — Remotion launch film; script in `DEMO.md` › Launch video |
+| Repo | https://github.com/uteg-labs/just-mate |
 
 ## Title
 
-`JustMate: Meet For Real`
+`JustMate: Meet For Real` (4 words)
 
-## Description (draft, ~355 words — fill team members)
+## Description (final, 486 words incl. team and sources)
 
-> Loneliness touches one in six people and is linked to about 871,000 deaths a year; lonely people are twice as likely to become depressed (WHO, 2025). Apps solved matching. Nobody solved the door: a lonely person rarely goes out on a whim. They need a reason, a time, a place, and proof that someone will be there.
+> Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
-> JustMate is a faceless, walk-to-meet app with three rules: no faces, no chat, no people pins. Users pick Mate or Date and build a faceless profile from interests and a few short questions; an LLM turns the answers into a vibe on a badge, the only thing anyone else sees.
+> We build for young adults new to a city, like Tomek (persona): 28, moved to Kraków for work, works from home, and spends weekends without speaking to anyone. Apps can match him with people. What stops him is the step out of the door: organising anything feels like too much, he fears nobody will come, and photo-first apps make meeting feel like an audition.
 >
-> **Plans** get people out of the door. The app proposes one concrete, active plan nearby — a run on Thursday at 19:00 in a park ten minutes away — and shows who it's with as a vibe badge. You only accept. The plan is on once both say yes, and a cancel tells the other side at once. Near the start a compass unlocks for the two of you to find each other. After meeting, first names unlock, the app shows how far you walked to say hi, and one tap asks "same again next week?", because friendships grow from repeat meetings.
+> JustMate takes those steps off him. He builds a profile once: Mate (friends, a running or climbing partner) or Date, his interests, and four short questions an LLM writes from his picks. Others see the one-line vibe it writes, never a photo. The app then proposes one concrete plan with a compatible person: an activity they both picked, a public venue within a 15-minute walk of both, a time they are both free, and the walking time for each. He only taps Accept plan. The plan is on only when both accept, and both phones show "you're both in" at the same moment. Fifteen minutes before the start, a compass guides them to each other with a bearing and a distance bucket, never a position. When they meet, first names unlock and the app shows how far he walked. He can also put out his own plan, offered to compatible people one at a time. When he is already out, Now pings two compatible people nearby who want the same thing at the same moment.
 >
-> **Now** is serendipity for when you're already out. When two compatible people who want the same thing are within walking range, both phones ping at the same moment; if both accept, a hot/cold compass guides them to each other within ten minutes.
+> Health value comes from repeated, active, in-person contact: every meeting starts on foot, 16 of 44 Mate activities are sport or outdoors, and friendship takes about 50 hours together [3]. We will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
 >
-> Safety is the architecture, not a feature: mutual consent before anything unlocks, zones instead of locations, plans only at public venues, a compass that reveals a bearing and never a pin, 10-minute sessions, no stored location history, and a one-tap Vanish that ends the session for both. Production path: phone and ID verification, report-and-block with an automatic pause, and women-only plans.
+> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 134 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
 >
-> JustMate is not therapy and makes no health claims. It is a reason to go out, and someone waiting when you get there. Venues pay to fill off-peak tables; meeting people and staying safe stay free.
+> Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
-> Team: [Name Surname — email], [Name Surname — email], [Name Surname — email]
+> Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Nikita Orlov, Serhii Vielkin.
+>
+> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md
 
-## 10-slide deck outline
+## Sources
 
-1. **Title** — JustMate: Meet For Real + team names
-2. **Problem** — loneliness, with sourced numbers only: 1 in 6 lonely, ~871,000 deaths a year, lonely people twice as likely to become depressed (WHO Commission on Social Connection, 2025). Line: "Apps solved matching. Nobody solved the door."
-3. **Meet Tomek** — the hero (28, new in Kraków, works from home) + the three barriers: initiative · the empty table · judgment
-4. **The idea** — three rules (no faces, no chat, no people pins) + two speeds (Plan / Now) + the badge screenshot
-5. **How Plan gets you out** — the app proposes an active plan, you say yes · who it's with as a badge · on once both confirm · *same again next week?* (friendship ≈ 40–60 hours together, Hall 2018); labelled production path: group plans with a go-ahead minimum, leave-at, status chips
-6. **Demo** — live: Plans → Accept plan → "you're both in" on both phones → compass → We met → "Say hi to Ola" + distance walked → same again; screenshot strip as the fallback
-7. **Safety by design** — mutual / no people pins / public venues / 10-min / Vanish; labelled production path: verification ladder, report = block + automatic pause, meeting point first, women-only plans
-8. **Business** — venues fill off-peak tables (primary), JustMate+ (host plans, travel mode), event licensing; never paywall a meeting or safety; one-city estimate at 5,000 monthly active users: ~€820 costs vs ~€2,200 revenue a month
-9. **Launch & tech** — plans need an order of magnitude less density than real-time matching, so a city opens with plans; WebSocket session, 400 m distance gate, bearing-only relay, explainable scoring, seeded public venues, Expo app, Bun + Elysia; real-vs-canned honesty line
-10. **Credits & licenses** — AI use credited, Apple Maps / Google Maps attribution (shown by the native map), sources (WHO 2025, Hall 2018), test data only
+Every number in the description, deck and website comes from one of these, or is labelled as our estimate.
 
-## Screenshots to capture (for gallery + deck)
+| # | Claim we use | Source |
+|---|---|---|
+| 1 | 1 in 6 people affected by loneliness; 871,000+ deaths a year (~100 an hour); lonely people twice as likely to get depressed; 17–21% of 13–29-year-olds lonely | WHO, *Social connection linked to improved health and reduced risk of early death*, 30 June 2025 — https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death (report: https://www.who.int/groups/commission-on-social-connection/report) |
+| 2 | 13% of EU respondents lonely most or all of the time | European Commission JRC, EU Loneliness Survey 2022 — https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en |
+| 3 | ~50 hours together from acquaintance to casual friend, ~90 to friend, 200+ to close friend | Hall (2018), Journal of Social and Personal Relationships — https://doi.org/10.1177/0265407518761225 |
+| 4 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
+| 5 | 31% of adults (~1.8 billion) don't meet recommended physical activity | WHO, *Nearly 1.8 billion adults at risk of disease from not doing enough physical activity*, 26 June 2024 — https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity |
 
-1. Your badge (onboarding, no photo)
-2. Map — Mate select sheet with the **Plans** tile and category bento
-3. Plan card: *running · Błonia Meadow · walk time* with the badge
-4. The plan turning **on** on two phones side by side (the money shot)
-5. Plan page: the venue as the only pin, **Open compass**
-6. Compass full-screen (arrow + distance bucket + countdown)
-7. Post-meet: *Say hi to Ola* + distance walked + **Same again next week?**
-8. Now loop: match card with the vibe badge on two phones (for the Now slide)
-9. Vanish button close-up
+From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 134 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
+
+Our own estimates (labelled on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
+
+## Deck (10 slides)
+
+1. **Title** — Meet for real. + decision opening + team; home and "you're both in" screens
+2. **Problem** — 1 in 6 · 871,000 · 2× [1] · 31% inactive [5]; the friction is the step out of the door
+3. **User** — young adults new to a city; Tomek (persona); 17–21% [1], 13% EU [2]; initiative · uncertainty · judgment
+4. **Value** — capability → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
+5. **Solution** — profile → match → plan → both in → walk and meet; Plan for later and Now
+6. **Demo** — real app screens: vibe, a plan for you, you're both in, confirmed, home; compass and "Say hi to Ola." live
+7. **Design choices** — choice · reason · gain · cost · mitigation
+8. **Risk** — risk · mitigation in the build · production path · validation
+9. **Reality** — known · assumed · to validate
+10. **What's next** — real users in Kraków · measure what matters · learn from real meetings; team; full source links; AI-use disclosure
+
+Re-export after changing `deck.html`, `cover.html` or the screens:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=6000 --print-to-pdf=docs/submission/JustMate-Deck.pdf "file://$PWD/docs/submission/deck.html"
+```
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --hide-scrollbars --force-device-scale-factor=1 --window-size=1920,1080 --virtual-time-budget=6000 --screenshot=docs/submission/cover.png "file://$PWD/docs/submission/cover.html"
+```
+
+## Images
+
+Upload `submission/cover.png` first. App screens in `submission/screens/` (iPhone):
+
+| File | Shows |
+|---|---|
+| `home-places.jpg` | Home: your plans, Plan for later, places for you |
+| `plan-proposal.jpg` | A plan for you: their vibe, place, time, minutes on foot |
+| `plan-bothin.jpg` | you're both in |
+| `plan-confirmed.jpg` | Confirmed: compass opens, names unlock when you meet |
+| `plan-home.jpg`, `plan-list.jpg` | Your plans · Plans page |
+| `plan-what.jpg`, `plan-when.jpg`, `plan-where.jpg`, `plan-review.jpg`, `plan-taker.jpg` | Plan for later, end to end |
+| `plan-proposal-date.jpg` | A Date plan |
+| `profile-vibe.jpg` | Your vibe line, no photo |
+| `now-sports.jpg`, `now-searching.jpg` | Now: sports picker, searching |
+
+Compass and post-meet screens in `video/motion/public/screens/` come from the design prototype; use them only for the film, not as app screenshots.
+
+## What is real and what is production path
+
+Real in the build: LLM onboarding and vibe line; Plans (proposed from profiles and free times, Accept plan, you're both in, Suggest this place, Plan for later offered one person at a time); 18 seeded public venues in Kraków; Now pings on both phones; bearing-only compass with buckets and haptics; post-meet first name and distance walked; Vanish; moderation; age gates; support lines in Settings; Now matches scored by the Siamese model for real accounts; demo mode (Tomek and Ola, scripted positions, plans starting in 2 minutes); en/pl/sk.
+
+Production path (say it out loud): "same again next week?" scheduling (today a button with a local reply), report and block (today a local notice), verification, women-only plans, group plans, push reminders, UCLA-3 outcome survey, retraining the matching model on real meetings.
 
 ## AI-use disclosure (required by rules)
 
-"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. The product itself uses AI: an LLM interviews the user and writes their vibe, and an automated service moderates profiles. Matching and plan proposals use an explainable compatibility score. Profiles are also embedded (OpenAI text-embedding-3-small) for a compatibility model the team trained on synthetic data; that model is not yet used for matching."
+"AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. The product itself uses AI: an LLM (gpt-4o-mini) writes the onboarding questions and turns the answers into the user's vibe line, and OpenAI moderation screens profile answers. A Siamese model trained on synthetic profiles scores Now matches for real accounts; plan proposals and the stage demo use an explainable compatibility score."
 
 ## Pre-submit checklist (Sun 10:30)
 
-- [ ] Title/description final, team members' names+emails included, description ≤500 words
-- [ ] ≥1 image uploaded (money shot first)
-- [ ] Deck exported to PDF, ≤10 slides, English
-- [ ] Repo public/judge-accessible, README run instructions work from clean clone
-- [ ] Every sentence in description + deck describes the demo or is labelled "production path" (AI claims only for parts that run in the build; bracketed parts above resolved)
-- [ ] Every Plans sentence matches what's built; anything not built is retagged in `PRODUCT.md` §17–§18 and said as production path
-- [ ] No health claims anywhere: "loneliness" and "social connection", never "treats depression" (`PRODUCT.md` §3.1)
-- [ ] Stats on slides each have a named source, or were cut
-- [ ] Motion launch updated to the new story, or every line in it still true for the demo
-- [ ] Demo link (if included) + credentials
+- [x] Title ≤5 words, description ≤500 words with team members
+- [ ] ≥1 image uploaded (`cover.png` first)
+- [x] Deck exported to PDF, 10 slides, English
+- [ ] Repo public/judge-accessible, README run instructions work from a clean clone
+- [x] Every sentence describes the build or says "production path"
+- [x] No health claims: "loneliness" and "social connection", never "treats depression" (`PRODUCT.md` §3.1)
+- [x] Every number has a linked source (table above) or is labelled as our estimate
 - [ ] Submitted by 10:30 — screenshot the confirmation

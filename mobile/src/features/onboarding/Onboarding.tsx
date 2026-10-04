@@ -18,6 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { IconButton, StepDots, useScheme } from "@/components/ui"
+import { useBack } from "@/lib/back"
 import { saveProfile } from "@/lib/profile"
 import { layout } from "@/theme/layout"
 import { duration, spring } from "@/theme/motion"
@@ -140,6 +141,8 @@ export const Onboarding = ({
     clearProgress()
     onExit()
   }
+
+  useBack(back, single)
 
   const set = useCallback(
     (patch: Partial<Profile>) => setProfile((p) => ({ ...p, ...patch })),

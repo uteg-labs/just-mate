@@ -206,6 +206,7 @@ export const en = {
     helpBody: "Free support lines in Poland. Tap one to call.",
     helpAdults: "116 123 · adults",
     helpYoung: "116 111 · children and teens",
+    blocked: "Blocked people",
     download: "Download my data",
     downloadError: "couldn't fetch your data. try again in a moment.",
     email: "Email",
@@ -219,7 +220,11 @@ export const en = {
     footer: "just-mate · prototype · production path simulated",
   },
   home: {
-    brand: { tagline: "Meet for real.", rules: "no faces · no chat · no pins" },
+    brand: {
+      tagline: "Meet for real.",
+      line: "For when you'd rather not spend another evening alone.",
+      rules: "no faces · no chat · no pins",
+    },
     invisible: "invisible",
     searching: "searching",
     searchingFor: ": {{picks}}",
@@ -254,6 +259,7 @@ export const en = {
       plan_expired: "A plan expired. It's off your list.",
       plan_filled: "That invitation went to someone else.",
       plan_cancelled: "A plan was called off.",
+      reported: "Reported. You won't be matched with them again. Feeling unsafe? Call 112.",
     },
   },
   picks: {
@@ -385,6 +391,7 @@ export const en = {
     finding: "finding signal…",
     lookingFor: "you're looking for",
     vanish: "Vanish",
+    report: "Report",
     met: "We met",
     buckets: {
       cold: "cold",
@@ -406,7 +413,7 @@ export const en = {
     again: "Same again next week?",
     againNoted: "Glad it clicked.",
     report: "Report",
-    reported: "Reports reach our team in the next version. Feeling unsafe? Call 112.",
+    reported: "Reported. You won't be matched with them again. Feeling unsafe? Call 112.",
   },
   reset: {
     back: "Back",

@@ -6,6 +6,7 @@ import {
   parseProfile,
   parseQuestionRequest,
   parseRelatedRequest,
+  parseReport,
   parseSearchOn,
   parseVibeRequest,
 } from "@justmate/protocol"
@@ -176,6 +177,21 @@ describe("parsePlansGet", () => {
       value: { lat: 50, lng: 19.9 },
     })
     expect(parsePlansGet({ lat: 50 })).toEqual({ ok: false, error: "invalid_position" })
+  })
+})
+
+describe("parseReport", () => {
+  test("needs a session id; the reason is optional but must be known", () => {
+    expect(parseReport({ t: "report", sessionId: "s_1", junk: 1 })).toEqual({
+      ok: true,
+      value: { t: "report", sessionId: "s_1", reason: undefined },
+    })
+    expect(parseReport({ sessionId: "s_1", reason: "no_show" }).ok).toBe(true)
+    expect(parseReport({ sessionId: "" })).toEqual({ ok: false, error: "invalid_session" })
+    expect(parseReport({ sessionId: "s_1", reason: "rude" })).toEqual({
+      ok: false,
+      error: "invalid_reason",
+    })
   })
 })
 

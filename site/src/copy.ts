@@ -36,7 +36,7 @@ const en = {
   meta: {
     title: "just-mate · Meet for real",
     description:
-      "No faces, no chat, no people pins. just-mate gets you out of the door and in front of someone compatible: right now, or at a small plan the app makes for you.",
+      "For anyone lonely in a city. just-mate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
   },
   nav: { how: "How it works", safety: "Safety", venues: "Venues", join: "Join the waitlist" },
   clip: {
@@ -49,7 +49,7 @@ const en = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Meet for real.",
-    lead: "just-mate gets you out of the door and in front of someone compatible. No faces, no chat, no people pins. Right now, or at a small plan the app makes for you.",
+    lead: "For anyone lonely in a city. just-mate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
     join: "Join the waitlist",
     watch: "Watch with sound · 54 s",
   },
@@ -260,7 +260,7 @@ const pl: Copy = {
   meta: {
     title: "just-mate · Spotkaj kogoś naprawdę",
     description:
-      "Bez zdjęć, bez czatu, bez pinezek z ludźmi. just-mate wyciąga cię z domu i stawia przed kimś, kto do ciebie pasuje: teraz albo na małym planie, który aplikacja ułoży za ciebie.",
+      "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
   },
   nav: {
     how: "Jak to działa",
@@ -278,7 +278,7 @@ const pl: Copy = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Spotkaj kogoś naprawdę.",
-    lead: "just-mate wyciąga cię z domu i stawia przed kimś, kto do ciebie pasuje. Bez zdjęć, bez czatu, bez pinezek z ludźmi. Teraz albo na małym planie, który aplikacja ułoży za ciebie.",
+    lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
     join: "Zapisz się na listę",
     watch: "Obejrzyj z dźwiękiem · 54 s",
   },
@@ -496,16 +496,16 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "turn-0": "Aplikacje rozwiązały dopasowanie.",
     "turn-1": "Nikt nie rozwiązał drzwi.",
     plan: "W niedzielę wieczorem just-mate proponuje mu jeden mały plan. Wystarczy, że powie tak.",
-    on: "Plan rusza tylko wtedy, gdy zbierze się dość osób. I właśnie ruszył.",
-    table: "Jestem. Plakietki w górę. Coś do robienia, ramię w ramię.",
-    again: "To samo za tydzień? Wszyscy klikają tak. Tak zaczynają się przyjaźnie.",
+    on: "Plan rusza tylko wtedy, gdy oboje powiecie tak. I teraz oboje jesteście na tak.",
+    table: "Kompas otwiera się. Idą sobie naprzeciw. Spotkaliśmy się.",
+    again: "Przywitaj się z Olą. Powtórka za tydzień? Tak zaczynają się przyjaźnie.",
     safety: "Wzajemna zgoda. Publiczne miejsca. Jedno stuknięcie, by zniknąć.",
     "logo-0": "To nie terapia. To powód, żeby wyjść.",
     "logo-1": "just-mate. Spotkaj kogoś naprawdę.",
     "speeds-0": "just-mate wyciąga cię z domu w dwóch tempach.",
     "speeds-1": "Plan, gdy potrzebujesz powodu, żeby wyjść.",
     "speeds-2": "Teraz, gdy już jesteś na mieście.",
-    "m-table": "Plakietki w górę, bez twarzy. I jedno stuknięcie: to samo za tydzień.",
+    "m-table": "Dwie plakietki, bez twarzy. I jedno stuknięcie: powtórka za tydzień.",
     "m-now": "Teraz: ktoś w pobliżu chce tego samego. Oba telefony odzywają się naraz.",
     "m-walk": "Kompas prowadzi was do siebie. Cieplej. Cieplej.",
     "m-meet": "Wtedy odblokowują się imiona. Nic więcej.",
@@ -528,7 +528,7 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "p-list": "Wystawia dwa stoliki. just-mate wypełnia je ludźmi, którzy chcieli dokładnie tego.",
     "p-full": "Lokale płacą za wypełnienie pustych wieczorów. Poznawanie ludzi zostaje darmowe.",
     "m-plan-0": "Plan: aplikacja proponuje jeden mały plan. Ty tylko mówisz tak.",
-    "m-plan-1": "Rusza, gdy zbierze się dość osób.",
+    "m-plan-1": "Rusza, gdy oboje jesteście na tak.",
     "rules-0": "Znajdziemy twoich ludzi. Nasza własna AI jest wytrenowana, by znaleźć ludzi, z którymi naprawdę pogadasz.",
     "rules-1": "Robimy plan za ciebie. Ty tylko mówisz tak.",
     "rules-2": "Już jesteś na mieście? Poznaj kogoś teraz.",

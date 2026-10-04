@@ -388,6 +388,7 @@ export const Surface = () => {
           profile && (
             <Settings
               profile={profile}
+              blockedCount={live.blockedCount}
               setProfile={updateProfile}
               onBack={() => setPlace(MAP)}
               onEdit={edit}
@@ -553,6 +554,9 @@ export const Surface = () => {
                 haptic.vanish()
                 if (live.session) send({ t: "vanish", sessionId: live.session.id })
               }}
+              onReport={() =>
+                live.session && send({ t: "report", sessionId: live.session.id, reason: "unsafe" })
+              }
               onMet={() => live.session && send({ t: "met", sessionId: live.session.id })}
             />
           )
@@ -568,6 +572,11 @@ export const Surface = () => {
               pronoun={pronounOf(profile, live.match.mode)}
               partnerName={live.partnerName}
               walkedM={live.walkedM}
+              isReported={!!live.metSessionId && live.reportedId === live.metSessionId}
+              onReport={() =>
+                live.metSessionId &&
+                send({ t: "report", sessionId: live.metSessionId, reason: "other" })
+              }
               onBack={leavePostMeet}
             />
           )

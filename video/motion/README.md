@@ -5,13 +5,13 @@ Remotion (React → MP4) project for the launch video and the use-case clips. St
 | Composition | Length | Use case | Who |
 |---|---|---|---|
 | `Main` | ~54 s | Loneliness → one app, two speeds (Plan + Now) → safety | HackYeah submission (limit 60 s), web hero |
-| `Tomek` | ~26 s | **Plan**: the app proposes, he only says yes → on → walk to the venue → group table with status chips → same again | newcomer, works from home |
+| `Tomek` | ~26 s | **Plan**: the app proposes one plan with one person, he only says yes → you're both in → compass opens 18:45 → two badges at one table, We met → Say hi to Ola → same again next week? | newcomer, works from home |
 | `Lucia` | ~18 s | **Now**: already out, both phones ping, compass, beer | tourist, three days alone |
 | `Ania` | ~20 s | **Date**: no photos, a vibe badge instead of a face, names after you meet | tired of swipe apps |
 | `Marta` | ~18 s | **Safety**: invisible, zones not pins, mutual consent, Vanish; next steps labelled production path | safety lens |
 | `Piotr` | ~19 s | **Venues**: a café lists quiet-night tables, the app fills them; venues pay, meeting stays free | partner venue (M1) |
 
-Plan scenes with a group table, status chips, a go-ahead minimum or a leave-at time are product vision, not the current build: plans in the app are 1:1.
+Plans are 1:1, as in the build. The venue scenes (`Piotr`) and the safety next steps are production path (M1), not the current build.
 
 Characters and rules come from `docs/PRODUCT.md` §4.1, §10 and §16. No health claims (§3.1).
 
@@ -44,12 +44,12 @@ bun run render          # all six
 
 ## Where things come from
 
-- Phone screens and vibe badges: captured from the design prototype (`video/Just-Mate App Prototype/`) at 2×, in `public/screens/` and `public/badges/`. Plan screens are in the prototype (`app/plans/`) but not captured; venue screens are not there at all. The plan card, mini phones, day-of card and partner card are drawn in `src/scenes/` from the copy in `docs/STRUCTURE.md` › Plans.
+- Phone screens and vibe badges: captured from the design prototype (`design/prototype/`) at 2×, in `public/screens/` and `public/badges/`. Plan screens are in the prototype (`app/plans/`) but not captured; venue screens are not there at all. The plan offer, mini phones, day-of card and partner card are drawn in `src/scenes/` from the copy in `docs/STRUCTURE.md` › Plans. `badges/ola-name.webp` is `mia-name.webp` with the name swapped, so `mia-quote` is Ola's vibe side.
 - Colours, type (Inter Variable), icons (Lucide): the just-mate design system export.
 - World map dots: `node scripts/world-dots.mjs` (world-atlas 110m land, Equal Earth projection).
 
 ## Code map
 
 - `src/timeline.tsx`: every piece as a list of scenes with VO and SFX cues (frame offsets). Edit lengths and order here.
-- `src/scenes/cold.tsx` (hook, door), `src/scenes/warm.tsx` (rules, plan, on, leave, table, again, safety, outro), `src/scenes/kit.tsx` (persona, two speeds, ping pair, walk, met, safety beats, venue scenes).
+- `src/scenes/cold.tsx` (hook, door), `src/scenes/warm.tsx` (rules, plan, on, opens, table, again, safety, outro), `src/scenes/kit.tsx` (persona, two speeds, ping pair, walk, met, safety beats, venue scenes).
 - `preview/`: the browser player page.

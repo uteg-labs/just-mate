@@ -4,7 +4,7 @@
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków) for the OPEN: Sport & Healthcare task.
 
-**Submission:** [deck (PDF)](docs/submission/JustMate-Deck.pdf) · [whitepaper (PDF)](docs/submission/JustMate-Whitepaper.pdf) · [cover image](docs/submission/cover.png) · [website](site/) · [submission pack and sources](docs/SUBMISSION.md)
+**Submission:** [deck (PDF)](docs/submission/JustMate-Deck.pdf) · [whitepaper (PDF)](docs/submission/JustMate-Whitepaper.pdf) · [cover image](docs/submission/cover.png) · [website](https://just-mate-site.vercel.app) · [submission pack and sources](docs/SUBMISSION.md)
 
 ## The problem
 
@@ -38,8 +38,9 @@ After meeting: **We met** unlocks the other person's first name, shows how far y
 - **Vanish** — one tap ends the session for both, instantly.
 - **No triangulation** — the server refuses implausible position jumps and coarsens bearings, so a modified client can't turn the compass into a pin.
 - **Moderation** — free-text profile answers run through the OpenAI moderation model; a flagged user silently never sees or is seen by anyone.
+- **Report** — on the compass or after meeting: blocks that person for you and ends the session; two independent reports pause the account.
 
-Production path (not in the build): phone and ID verification, report-and-block with an automatic pause, women-only plans.
+Production path (not in the build): phone and ID verification, women-only plans.
 
 ## Why now (the wedge: *consented serendipity*)
 
@@ -56,13 +57,15 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ```
 docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching
+docs/archive/    the pre-hackathon build plan, kept for history
 docs/submission/ deck, whitepaper, cover and app screens for the submission
 mobile/          Expo dev-client app — auth, onboarding, map, plans, match card, compass, post-meet, settings
 server/          Bun + Elysia + Drizzle — auth, profile, onboarding LLM helpers, zones, matching, plans, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
-ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), standalone
+ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), HTTP scorer; task specs in ml/docs/
 site/            public web page on Vercel — the film, use-case clips, waitlist
-video/           Remotion film and clips (motion/), app design prototype
+video/motion/    Remotion film and use-case clips
+design/prototype/ HTML design prototype the film's screens were captured from
 ```
 
 ## Run
@@ -121,7 +124,7 @@ bun run lint && bun run typecheck && bun run test
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | The seeded venue list for Kraków |
 | Plans proposed from real profiles and free times, Accept plan, "you're both in" on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
-| Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
+| Compass (device heading via expo-location), haptics, vanish, post-meet name and distance, Report → block, two reports → pause | "Same again next week?" is a local acknowledgement, labelled production path |
 
 Not in the build by decision: remote push (the app is in the foreground whenever you are searching). The ML model scores Now matches for real accounts; it is trained on synthetic data, so plans and the stage demo use the explainable score.
 

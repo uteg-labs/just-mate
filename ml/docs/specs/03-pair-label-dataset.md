@@ -1,6 +1,6 @@
 # T03 — Pair-label dataset
 
-> **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../ML-MATCHING.md).
+> **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../../docs/ML-MATCHING.md).
 
 **Goal:** balanced labelled pair dataset (good/bad match) with OpenAI `text-embedding-3-small` text vectors.
 

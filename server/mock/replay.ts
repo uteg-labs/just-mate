@@ -295,7 +295,7 @@ Bun.serve<State>({
 
       switch (msg.t) {
         case "hello":
-          send(ws, { t: "ready", userId: "u_mock", config })
+          send(ws, { t: "ready", userId: "u_mock", config, blockedCount: 0 })
           return send(ws, { t: "plans", plans: ws.data.plans })
 
         case "search_on": {
@@ -332,6 +332,11 @@ Bun.serve<State>({
           if (msg.t === "met") endPlan(ws)
           ws.data.planId = undefined
           return
+
+        case "report":
+          stop(ws)
+          ws.data.planId = undefined
+          return send(ws, { t: "reported", sessionId: msg.sessionId, blockedCount: 1 })
 
         case "position":
           return

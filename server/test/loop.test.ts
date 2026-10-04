@@ -155,7 +155,7 @@ describe("pairing", () => {
     expect(finished).toEqual(["met"])
   })
 
-  test("real clients are not paired before their score matrix row exists", async () => {
+  test("real clients fall back to the rules-based score before their ML row exists", async () => {
     const store: MatchStore = {
       create: async () => {},
       activate: async () => {},
@@ -169,7 +169,7 @@ describe("pairing", () => {
     await search(b, 50)
     tick()
 
-    expect(all(a, "match_offer")).toEqual([])
+    expect(lastOf(a, "match_offer")?.offerId).toBe(lastOf(b, "match_offer")?.offerId ?? "")
   })
 
   test("two compatible searchers in range get the same offer in the same tick", async () => {

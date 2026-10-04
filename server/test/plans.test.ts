@@ -3,6 +3,7 @@ import type { Plan, Profile, ServerMsg } from "@justmate/protocol"
 
 import { partnerCard } from "../src/matching/compat"
 import { anchors, plans, resetPlans } from "../src/plans/plans"
+import { setVenues } from "../src/plans/venues"
 import {
   type Client,
   clients,
@@ -15,6 +16,7 @@ import {
   tick,
 } from "../src/realtime/session"
 import { makeProfile } from "./fixtures"
+import { KRAKOW_VENUES } from "./venues"
 
 type User = { client: Client; sent: ServerMsg[] }
 
@@ -34,6 +36,7 @@ let now = 0
 
 beforeEach(() => {
   resetPlans()
+  setVenues(KRAKOW_VENUES)
   now = MONDAY_10
   clock.now = () => now
 })

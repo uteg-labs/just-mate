@@ -1,5 +1,5 @@
 import { Elysia } from "elysia"
 
-import { VENUES } from "./venues"
+import { venues } from "./venues"
 
-export const venuesPlugin = new Elysia({ name: "venues" }).get("/api/venues", () => VENUES)
+export const venuesPlugin = new Elysia({ name: "venues" }).get("/api/venues", () => venues)

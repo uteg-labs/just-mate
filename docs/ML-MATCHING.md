@@ -1,217 +1,149 @@
 # JustMate — ML matching process
 
-> Source of truth for the compatibility scoring pipeline. Read `PRODUCT.md` §7 first for the high-level framing; this doc specifies the model, training loop, data flow, and decisions we locked in.
+> Source of truth for the learned compatibility model: what the code in `ml/` trains, how it is served, and how it would plug into the server. Read `PRODUCT.md` §7 first for the high-level framing. Run-it-yourself commands are in [`ml/README.md`](../ml/README.md); the planned server integration in [`ml/DEPLOYMENT.md`](../ml/DEPLOYMENT.md).
 
 ## 1. TL;DR
 
-- **What it does:** given two profiles (intents + interests + LLM-generated description), output a pairwise compatibility score in `[0, 1]`.
-- **Stack:** `text-embedding-3-small` → custom PyTorch model (Shared Encoder + Match Head) trained in Python. **At inference**, the model runs **in-process inside the Bun/Elysia server** (PyTorch or ONNX Runtime — whichever starts faster on the demo box); **no separate inference binary, no subprocess protocol, no FastAPI**. Vectors cached in **PostgreSQL with pgvector** in production (M1). Photo → text description is done at onboarding via `gpt-4o-mini` (vision); only the description text reaches the matching model.
-- **Training objective:** triplet loss + binary match loss, jointly, on synthetic profiles for M0 / HackYeah 2026; on real meeting outcomes for M1.
-- **Hard rules (zones, cooldown, session limit, K-anonymity, intent gate) are NOT learned.** Model is one of several gates; everyone else is server-side logic.
+- **What it does:** given two profiles, output a pairwise compatibility score: one directional score in `[0, 1]` per direction, summed into a symmetric `pair_score` in `[0, 2]`.
+- **Stack:** OpenAI `text-embedding-3-small` (two embeddings per profile: *self* and *target*) → custom PyTorch model (Shared Encoder + asymmetric Match Head) trained in Python → exported to ONNX → served by **`match_scorer`**, a long-lived process speaking newline-delimited JSON (NDJSON) over stdin/stdout (`ml/scripts/match_scorer.py`, run as a Python script or as a PyInstaller-frozen binary). That is the only serving path: no FastAPI, no HTTP, no in-process model in Bun, no C++ binary.
+- **Status: not wired into the server.** Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × Jaccard(interests) + 0.3 × min(1, shared intents)`, threshold `0.45`). `compat()` runs per candidate pair on every matching tick, so the planned integration precomputes model scores into a cache that `compat()` reads, with the rules as fallback (§6).
+- **Training objective:** triplet loss + binary match loss (+ a bidirectional BCE term in v3), jointly, on synthetic profiles; real meeting outcomes in M1.
+- **Hard rules (zones, cooldown, session limit, K-anonymity, intent gate) are NOT learned.** The model is one of several gates; everything else is server-side logic.
 
 ## 2. Why a Siamese / Triplet + Match Head
 
-The match problem is pairwise: given two profile embeddings, output a probability that they should meet. Two heads work better than one:
+The match problem is pairwise and directional: does A's idea of a partner fit who B is, and the other way round? Two parts work better than one:
 
-- **Shared Encoder** learns a **compatibility space** — a 128-d vector where compatible profiles are close and incompatible ones are far. Triplet loss drives this.
-- **Match Head** sits on top, takes `[|zA−zB|, zA⊙zB, cos(zA, zB)]` (257-d) and outputs the final probability.
+- **Shared Encoder** learns a **compatibility space** — a 128-d vector where a profile's *target* ("what I want") lands near the *self* ("who I am") of profiles that fit it. Triplet loss drives this.
+- **Match Head** sits on top, takes pair features of `(z_target_A, z_self_B)` and outputs the directional probability.
 
 Why two heads (not just cosine similarity on OpenAI embeddings, not just a single classifier):
 - Raw OpenAI embeddings encode general semantic similarity, not compatibility. A 128-d projector learned on triplets refocuses them.
 - The match head learns the *decision boundary*, not just the geometry — handles calibration and class imbalance cleanly.
-- Joint training makes both heads cooperate: encoder optimizes for "this pair is close" geometry, head optimizes for "this pair should match" decision. Either alone is weaker.
+- Joint training makes both cooperate: the encoder optimizes geometry, the head optimizes the decision.
+
+Why separate *self* and *target* texts: with one embedding per profile, "I'm redheaded" and "I'm looking for a redhead" collapse to a falsely high cosine. Comparing A's *target* with B's *self* keeps the direction.
 
 ## 3. Architecture
 
+As implemented in `ml/scripts/train_experiments_v2.py` and `train_experiments_v3.py` (defaults shown; the sweeps also try other widths).
+
 ```
-                ┌────────────────────┐
-                │  Profile text      │
-                │  (intents +        │
-                │   interests +      │
-                │   vibe card)       │
-                └────────┬───────────┘
-                         │
-                         ▼
-              ┌────────────────────┐
-              │ OpenAI embed       │
-              │ text-embedding-     │
-              │   3-small · 1536d  │   (cached per user)
-              └────────┬───────────┘
-                       e_A · e_B
-                         │
-                         ▼
-              ┌────────────────────┐
-              │  Shared Encoder    │
-              │  1536 → 512 →      │   (MLP, trained per
-              │  512 → 256 →       │    user via triplet
-              │  256 → 128         │    + match head)
-              └────────┬───────────┘
-                       z_A · z_B  (128d)
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-              ▼                     ▼
-       ┌────────────┐        ┌─────────────┐
-       │  Triplet   │        │ Match Head  │
-       │   Loss     │        │  [|zA−zB|,  │  (analytic on
-       │  (training │        │   zA⊙zB,    │   inference)
-       │   only)    │        │   cos(zA,zB)│
-       └────────────┘        │   ] → 257d  │
-                             │   → logit   │
-                             └──────┬──────┘
-                                    ▼
-                              sigmoid → score ∈ [0, 1]
+   profile A                                   profile B
+   target text                                 self text
+   ([Target] Character/Appearance)             (Interests + [Self] Character/Appearance)
+        │                                           │
+        ▼                                           ▼
+   OpenAI text-embedding-3-small · 1536-d · frozen, cached per profile
+        │ target_emb_A                              │ self_emb_B
+        ▼                                           ▼
+   ┌──────────────────────── Shared Encoder (same weights) ────────────────────────┐
+   │ Linear(1536, 256) → LayerNorm → ReLU → Linear(256, 128) → LayerNorm → L2-norm │
+   └───────────────────────────────────────────────────────────────────────────────┘
+        │ z_t (128)                                 │ z_s (128)
+        └──────────────────┬────────────────────────┘
+                           ▼
+        Match Head: [z_t − z_s, z_t ⊙ z_s, cos(z_t, z_s)] (257) + soft_jacc (1, v3)
+                    → Linear(·, 128) → ReLU → Linear(128, 32) → ReLU → Linear(32, 1)
+                           ▼
+                 sigmoid → score(A→B) ∈ [0, 1]
+
+   pair_score(A, B) = score(A→B) + score(B→A) ∈ [0, 2]
 ```
 
-### 3.1 OpenAI embedding (`text-embedding-3-small`)
+### 3.1 OpenAI embeddings (`text-embedding-3-small`)
 
 - Frozen. Not fine-tuned (cost, stability, vendor lock-in avoidance).
-- Cached per user: `user_id → e[1536]`. Recomputed only on profile change. For hackathon we can pre-compute the whole canned population once.
+- Two per profile, built by `build_self_text` / `build_target_text` in `ml/src/just_mate_ml/data/embed.py`:
+  - **self**: `Interests: …` + `[Self] Character: …` + `[Self] Appearance: …`
+  - **target**: `[Target] Character: …` + `[Target] Appearance: …`
+- Cached per profile; recomputed only on profile change.
 
 ### 3.2 Shared Encoder
 
-MLP, ReLU activations, LayerNorm between layers:
-
-```
-Linear(1536, 512) → LayerNorm → ReLU
-Linear( 512, 256) → LayerNorm → ReLU
-Linear( 256, 128) → LayerNorm (no ReLU at the end)
-```
-
-Output `z` is L2-normalized before the head sees it (stable cosine, stable match head).
+One MLP applied to both inputs: `Linear(1536, 256) → LayerNorm → ReLU → Linear(256, 128) → LayerNorm`, then L2-normalized. The sweeps also try `(512, 256)`, `(128,)`, `(192,)`, `(320,)` hidden layers and dropout.
 
 ### 3.3 Match Head
 
-```
-features = concat([
-    |z_a − z_b|,         # 128
-    z_a ⊙ z_b,           # 128
-    cos(z_a, z_b),       # 1
-])                       # → 257d
+| | v2 (`model_v0`, published) | v3 (`model_v3`, not published) |
+|---|---|---|
+| Pair features | `[abs(z_t − z_s), z_t ⊙ z_s, cos]` → 257 | `[z_t − z_s, z_t ⊙ z_s, cos]` → 257, plus `soft_jacc` → 258 |
+| MLP | `→ 128 → 32 → 1`, ReLU | same |
+| ONNX inputs | `target_emb`, `self_emb` | `target_emb`, `self_emb`, `soft_jacc` |
 
-Linear(257, 128) → ReLU
-Linear(128,  32) → ReLU
-Linear( 32,   1)        # → logit
+v3's signed difference makes the head itself asymmetric. `soft_jacc` is the semantic interest overlap of the pair, from per-interest embeddings (`ml/data/interest_embeddings.npz`):
+
+```
+s_ab      = mean over a ∈ A.interests of max over b ∈ B.interests of cos(a, b)
+s_ba      = mean over b ∈ B.interests of max over a ∈ A.interests of cos(a, b)
+soft_jacc = (s_ab + s_ba) / 2
 ```
 
-Output is `score = sigmoid(logit)`. The three input feature groups are not redundant: `|·|` measures coordinate-wise disagreement, `⊙` measures coordinate-wise agreement, `cos` measures overall direction.
+(`compute_full_soft_jaccard()` in `train_experiments_v3.py`, cached as `ml/data/soft_jaccard.npy`.)
 
 ## 4. Joint training loop
 
-One triplet `(A, B, C)` produces **two** training examples for the head and **one** for the encoder.
+One triplet `(A, B, C)` — anchor, bidirectional positive, negative — trains both parts. Simplified from `train_one()` in `train_experiments_v3.py`:
 
 ```python
-for batch in dataloader:           # batch = (A, B, C) triplets
-    # 1. Embedding (frozen)
-    e_a = openai_embed(batch["a"])   # [B, 1536]
-    e_b = openai_embed(batch["b"])
-    e_c = openai_embed(batch["c"])
+z_t = encoder(target_emb[A])
+z_p = encoder(self_emb[B])
+z_n = encoder(self_emb[C])
 
-    # 2. Shared encoder (trainable)
-    z_a = encoder(e_a)               # [B, 128]
-    z_b = encoder(e_b)
-    z_c = encoder(e_c)
+loss_triplet = triplet_margin_loss(z_t, z_p, z_n, margin=1.0, p=2)
 
-    # 3. Triplet loss — encoder only
-    loss_triplet = triplet_margin_loss(
-        anchor=z_a, positive=z_b, negative=z_c,
-        margin=1.0, p=2
-    )
+logit_p = head(z_t, z_p, soft_jacc_AB)       # target 1
+logit_n = head(z_t, z_n, soft_jacc_AC)       # target 0
+loss_bce = bce(logit_p, 1) + bce(logit_n, 0)
 
-    # 4. Match head — two examples per triplet
-    logit_ab = match_head(z_a, z_b)  # target 1
-    logit_ac = match_head(z_a, z_c)  # target 0
+# v3 only: the reverse direction must agree
+logit_p_rev = head(z_p, z_t, soft_jacc_AB)   # target 1
+logit_n_rev = head(z_n, z_t, soft_jacc_AC)   # target 0
+loss_bidir = bce(logit_p, 1) + bce(logit_p_rev, 1) + bce(logit_n, 0) + bce(logit_n_rev, 0)
 
-    loss_match = (
-        bce_with_logits(logit_ab, torch.ones_like(logit_ab))
-        + bce_with_logits(logit_ac, torch.zeros_like(logit_ac))
-    )
-
-    # 5. Total loss — both tasks backprop through encoder
-    loss = loss_triplet + 0.5 * loss_match
-
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+loss = loss_triplet + 0.5 * loss_bce + lam_bidir * loss_bidir   # v2: no loss_bidir
 ```
 
-`λ = 0.5` is a starting point; tune on a held-out synthetic validation set.
+That is the default loss; both sweeps also try ranking-only and triplet-only variants. AdamW (lr 1e-3, weight decay 1e-4), batch 256, cosine LR schedule, Gaussian input noise σ = 0.01, optional hard-negative mining, early stopping on val AUC of the symmetric `pair_score` (80/20 split by anchor, seed 42). Each script sweeps a list of configs and saves the best: v2 → `ml/checkpoints/model_v0.pt`, v3 → `ml/checkpoints/model_v3.pt`.
 
-## 5. Synthetic training data (M0 / HackYeah 2026)
+## 5. Synthetic training data (M0)
 
 Real meeting outcomes don't exist before launch. Strategy is honest-proxy training.
 
-**Step 1.** Generate ~5,000 synthetic profiles programmatically:
-- Random combination of `intents ⊂ {date, friends, beer, coffee, walking, sports, music}`
-- Random combination of `interests ⊂ {beer, coffee, boardgames, rock, techno, hiking, cinema, books, travel, tech, dogs, climbing, photography, food}`
-- Vibe card from a canned template pool (deterministic per profile id)
+1. **Profiles.** `just_mate_ml.data.profile_descriptions_v2` generates 25k deterministic profiles: interests plus self/target character and appearance text.
+2. **Embeddings.** `just_mate_ml.data.embed` writes the self and target embedding matrices.
+3. **Triplets.** `just_mate_ml.data.triplets_v2` / `triplets_v3` pick, per anchor, K = 5 positives and negatives by hard rules: a positive needs interest Jaccard ≥ 0.4 and `cos(target, self) ≥ 0.5` in **both** directions (v3 adds `soft_jacc ≥ 0.55`); negatives come from typed buckets (no shared interests, low overlap, both reject, one-sided, …). Output: `data/triplets.npz` + `data/triplets_ids.json`.
 
-**Step 2.** Define ground-truth compatibility as the explainable baseline + noise:
+The model learns to reproduce these rules with a non-trivial nonlinearity. With synthetic data only, it is a demonstration of the pipeline, not evidence of real-world matching quality.
 
-```
-gt_compat(A, B) = clip(
-    0.7 * jaccard(A.interests, B.interests)
-    + 0.3 * min(1.0, |A.intents ∩ B.intents|)
-    + ε,
-    0, 1
-)
-where ε ~ N(0, 0.05)
-```
+## 6. Inference (planned server integration)
 
-**Step 3.** Sample triplets:
-- For each anchor `A`:
-  - Positive `B`: high `gt_compat` (≥ 0.7) — strong overlap of interests + shared intent
-  - Negative `C`: low `gt_compat` (< 0.2) — disjoint interests, no shared intent
-
-Random negatives are fine for demo; M1 can use semi-hard mining (C closer than the margin but still negative).
-
-**Step 4.** Train 5–10 epochs, batch size 64, AdamW, lr 1e-3.
-
-The model learns to reproduce `gt_compat` with a non-trivial nonlinearity. It's not a trivial lookup of the rule — the encoder compresses, the head generalizes.
-
-## 6. Inference pipeline
-
-For every position update from a searching user (every ~2s):
+**Not implemented.** Nothing in `server/` calls the model today. The intended shape (details in `ml/DEPLOYMENT.md`):
 
 ```
-1. client → server: { user_id, lat, lon, ts, session_state }
-2. server → db:    SELECT user_embedding WHERE user_id = ?     -- e (cached)
-3. server → db:    SELECT user_z WHERE user_id IN (?, ?)       -- z (cached, 128d)
-4. server → in-process SiameseCompatModel:
-                   for each (z_a, z_b) candidate pair:
-                       z_a, z_b = load from pgvector (cached)
-                       features = build_pair_features(z_a, z_b)        # 257d
-                       logit = match_head(features)                      # PyTorch or ONNX Runtime
-                       score = sigmoid(logit)
-5. server:         apply hard gates (distance ≤ 400 m, active intent, cooldown, K-anon)
-                   for each surviving candidate:
-                       if score_i >= threshold_calibrated:
-                           offer mutual match
+profile create / change (background, off the matching tick)
+  1. server: embed self + target text with OpenAI, store per profile
+  2. server: for each relevant counterpart B, compute soft_jacc(A, B)
+  3. server → match_scorer (NDJSON over stdin/stdout, long-lived process pool):
+        {"id", "target_emb": A.target, "self_emb": B.self, "soft_jacc"} → score(A→B)
+        {"id", "target_emb": B.target, "self_emb": A.self, "soft_jacc"} → score(B→A)
+  4. server: pair_score = score(A→B) + score(B→A) → score cache
+
+matching tick (every sessionIntervalMs)
+  5. canMatch(a, b) hard gates, distance, cooldown, offer state (unchanged)
+  6. compat(a, b): synchronous cache read; rules-based score on a miss
 ```
 
-**Key point: per-pair encoders are NOT re-encoded on each candidate. `z` is cached per user, keyed by `user_id`. The inference-time model is the Match Head only — the Shared Encoder exists in the Python training project, is applied once per user to populate `users.z`, and never runs in the inference path.** Inference happens **in-process inside the Bun/Elysia server**, not as a separate binary.
+`compat()` is synchronous and runs per pair per tick, so the scorer is never called inline. The ONNX graph contains encoder + head and takes raw 1536-d embeddings, so every directional score is one full forward pass (sub-millisecond on CPU; one scorer process per core).
 
-### 6.1 Inference integration
+### 6.1 Cache strategy
 
-The trained Siamese model runs in-process inside the Bun server. Two practical options:
-
-- **PyTorch in-process** — simplest, no extra runtime; server imports `SiameseCompatModel`, loads `checkpoints/model_v0.pt`, calls `model.score(z_a, z_b)`. Cold start: ~1–3 sec.
-- **ONNX Runtime in-process** — export Match Head to `.onnx`, load via `onnxruntime` (the encoder is responsible only for populating `users.z`, which is the same step in both options). Cold start: ~0.5 sec.
-
-We pick whichever starts faster on the demo box. Either way: **no subprocess, no IPC, no separate binary**.
-
-**Why in-process:** the demo runs on a single machine, request volume is small (hundreds of zones × handful of users), and per-pair inference is sub-millisecond. The complexity of an out-of-process binary + IPC protocol is not worth the marginal latency win for M0. M1 production may revisit this if request volume justifies it.
-
-### 6.2 Cache strategy
-
-| Stage | Cache layer | Key | Value | Recomputed on |
+| Stage | Cache | Key | Value | Recomputed on |
 |---|---|---|---|---|
-| Photo description (LLM) | profile JSON (in PostgreSQL or file) | `user_id` | text string (2–3 sentences) | photo change |
-| OpenAI embedding | PostgreSQL `users.embedding` (pgvector) | `user_id` | `vector(1536)` | profile change |
-| Shared encoder z | PostgreSQL `users.z` (pgvector) | `user_id` | `vector(128)` | encoder retrain / profile change |
-| Match Head | in-process (server memory) | — | weights | server restart with new checkpoint |
-
-`pgvector` lets us do approximate nearest-neighbour over `z` for fast candidate selection (production: HNSW index, M=16, ef_construction=64). For hackathon: brute-force cosine over all searching users within `R_MATCH` (fine at small scale).
+| Profile texts (LLM onboarding) | profile in PostgreSQL | `user_id` | interests, character/appearance text | profile change |
+| OpenAI embeddings (planned) | per profile | `user_id` | self + target `float[1536]` | profile change |
+| Pair score (planned) | server memory | pair of `user_id`s | `pair_score` | either profile changes, new model |
+| Model | `match_scorer` process memory | — | ONNX weights | process restart |
 
 ## 7. Hard gates (server-side, NOT in model)
 
@@ -234,45 +166,38 @@ Match Head is called only when ALL gates pass. This is important:
 
 ## 8. Calibration & threshold
 
-`compat ≥ 0.45` in PRODUCT.md §7 is the **explainable baseline threshold** for the `0.7 × Jaccard + 0.3 × shared_intents` formula. The neural model output is on a **different scale** and needs a separately calibrated threshold.
+`compat ≥ 0.45` (`COMPAT_THRESHOLD` in `server/src/matching/compat.ts`) is the threshold of the explainable formula. The model's `pair_score` ∈ [0, 2] is on a different scale with its own, model-specific threshold, picked as the F1-best value on the held-out val split:
 
-Calibration procedure (post-training):
-1. Hold out 20% of synthetic profiles as a calibration set.
-2. Generate all positive pairs (gt_compat ≥ 0.7) and all negative pairs (gt_compat < 0.2).
-3. Run inference, collect raw scores.
-4. Plot two distributions. Pick threshold so:
-   - False-positive rate (negative pair scoring above) ≤ 5%
-   - True-positive rate (positive pair scoring above) ≥ 80%
-5. Document the calibrated threshold in the model card.
+| Threshold | Applies to |
+|---|---|
+| **0.78** | Published v2 `model_v0` — default of `score_pair.py` and `benchmark_val.py`; `threshold_sweep.py` sweeps around it |
+| 0.85 | Same v2 config, from the training sweep's coarse 0.05 grid (quoted in the eval notebook) |
+| **0.40** | v3 run (val AUC 0.9637), only for a v3 model |
 
-For M0 hackathon demo: a single `MATCH_THRESHOLD = 0.65` constant, tuned manually.
+Re-run `ml/scripts/threshold_sweep.py` (2-input models) or `gate_sweep.py` (any model) after every retrain; the threshold moves with the data.
 
 ## 9. Fallback path
 
-The Siamese model is **not** on the critical path of the demo. If anything fails (checkpoint file missing, model fails to load, per-pair inference raises, or latency exceeds 200 ms), the server falls back to the explainable baseline:
+The model is **not** on the critical path. In the planned integration a missing cache entry, a scorer that is down, errors or times out all leave `compat()` on the rules-based score:
 
-```python
-def compat(a, b):
-    try:
-        score = model.score(z_a, z_b, timeout_ms=200)   # in-process SiameseCompatModel
-        return score
-    except (ModelNotLoaded, NetFailed, TimeoutError):
-        return baseline_compat(a, b)   # 0.7 * jaccard + 0.3 * shared_intents
+```ts
+function compat(a: Seeker, b: Seeker): number {
+  return modelScores.get(pairKey(a, b)) ?? rulesCompat(a, b)   // 0.7 × Jaccard + 0.3 × shared intent
+}
 ```
 
-Inference is in-process — no subprocess, no IPC, no separate binary. If `model.score` fails for any reason, the rule-based baseline takes over. The demo never breaks if the ML service has a hiccup, and the explainable baseline stays as a transparent sanity check (and as the actual scoring algorithm if the model is disabled).
+The demo never breaks if the scorer has a hiccup, and the explainable formula stays as a transparent sanity check (and as the actual scoring algorithm while the model is disabled). The model score and the formula have different thresholds (§8), so the planned code compares each against its own.
 
 ## 10. M0 vs M1 differences
 
 | | M0 (HackYeah 2026) | M1 (production MVP) |
 |---|---|---|
-| Training data | Synthetic profiles + rule-based ground truth | Real outcomes: mutual accept + met → 1; dismissed/vanished → 0 |
-| Negative sampling | Random from population | Semi-hard (margin-aware) + easy mix |
+| Training data | Synthetic profiles + rule-based labels | Real outcomes: mutual accept + met → 1; dismissed/vanished → 0 |
+| Negative sampling | Rule-typed buckets + optional hard-negative mining | Semi-hard (margin-aware) + easy mix |
 | k-anonymity gate | K=1 (demo shows all zones) | K=3 (zones <3 stay dark) |
-| Cache backend | PostgreSQL + pgvector (small) | PostgreSQL + pgvector + HNSW index |
-| Embedding | OpenAI `text-embedding-3-small` cached | Same, with TTL + user-side regeneration on profile change |
-| Position crypto | Plaintext (in-process) | E2E position encryption between matched session |
-| Model serving | In-process PyTorch (or ONNX Runtime) inside the Bun server, cold start <3 sec, explainable baseline as transparent fallback | Same in-process, optionally run as a sidecar if request volume grows. Adds DPIA + extended audit. |
+| Embedding | OpenAI `text-embedding-3-small`, self + target | Same, regenerated on profile change |
+| Position crypto | Plaintext | E2E position encryption between matched session |
+| Model serving | Not wired: rules-based `compat()` only; `match_scorer` exists in `ml/` | `match_scorer` pool next to the server feeding a pair-score cache, rules as fallback. Adds DPIA + extended audit. |
 | Audit | None | Persistence-free audit log (decision-only, no positions) |
 | DPIA | None | RODO DPIA filed; data subject rights delegated |
 
@@ -281,67 +206,44 @@ Inference is in-process — no subprocess, no IPC, no separate binary. If `model
 | Real | Canned (labelled) |
 |---|---|
 | OpenAI embedding API calls | Synthetic profile generation (deterministic per id) |
-| Shared Encoder architecture + weights | Training labels (rule-based ground truth, not real interactions) |
-| Match Head architecture + weights | Profile descriptions (canned pool for synthetic profiles; live `gpt-4o-mini` calls in M1) |
-| Joint training loop (triplet + match) | Negative sampling strategy (random for demo) |
-| pgvector cache | HNSW index (planned for M1) |
-| Calibration procedure | Real calibration metrics on held-out real interactions |
+| Shared Encoder architecture + weights | Training labels (rule-based, not real interactions) |
+| Match Head architecture + weights | Profile texts for synthetic profiles |
+| Joint training loop (triplet + match) | Negative buckets (rule-typed) |
+| `match_scorer` NDJSON serving, PyInstaller builds | Server integration (planned, §6) |
+| Threshold sweeps on held-out synthetic data | Calibration on real interactions |
 
-## 12. Open questions (to resolve during build)
+## 12. Open questions
 
-- **λ value.** Start at 0.5; tune on synthetic validation.
-- **Encoder width.** Current 512→256→128. Could go narrower (256→128) for fewer params; current is fine for hackathon.
-- **Vibe card as input.** Should vibe-card text be concatenated to the profile text fed to OpenAI? Recommendation: yes — it carries personality signal.
-- **Attraction vector.** M0 uses simulated deterministic scalar; M1 will train on-device. Model input should accept it as a one-dim side feature `cat([features, abs(attr_a − attr_b), attr_a * attr_b])` → 259d. Optional for M0.
-- **Calibration data size.** Need at least 1000 positive + 1000 negative pairs for stable calibration; generate from ~5000 synthetic profiles.
-- **Where is the model file?** Two checkpoints in `ml/checkpoints/`: `encoder_v0.pt` (Shared Encoder) and `head_v0.pt` (Match Head). Optionally a single combined `model_v0.pt` containing both. The Bun server loads the checkpoint(s) once at startup and runs the Match Head in-process per pair; the Shared Encoder is only used at training/population time to fill `users.z`. If the checkpoint is missing or fails to load, the server logs and falls back to the explainable baseline (see §9).
-- **Latency budget.** End-to-end score for one candidate pair (cached z) should be <5ms on CPU. Encoder step (proxy) cached; only Match Head runs.
+- **λ values.** `0.5` for BCE, `lam_bidir` swept over 0.25 / 0.5 / 1.0 in v3.
+- **ONNX export.** The export step is not in the repo; the training scripts save only the PyTorch state dict. The published `model_v0.onnx` was exported outside it. The graph contract the scorer needs is in `ml/README.md` §5.6.
+- **Score cache invalidation.** Pairs are `O(n²)`; score only counterparts that can pass the hard gates (same mode/category, nearby, active recently).
+- **Attraction vector.** M1 may add it as an extra side feature next to `soft_jacc`.
+- **Latency budget.** One directional score is one forward pass (encoder + head) on CPU; scores are computed off the matching tick, so tick latency is unaffected.
 
 ## 13. File layout
 
-Training lives in Python (PyTorch). Inference lives **in-process inside the Bun/Elysia server** (PyTorch or ONNX Runtime — both supported). No subprocess, no IPC, no separate binary. The only Python process on the demo box is the Bun server's Python embedded runtime (if PyTorch is used) — there is no second Python interpreter.
-
 ```
 ml/
-├── pyproject.toml                 # Python training project (uv / poetry)
-├── src/
-│   └── just_mate_ml/
-│       ├── __init__.py
-│       ├── data/
-│       │   ├── profiles.py        # synthetic profile generator
-│       │   └── triplets.py        # triplet sampler (random for M0)
-│       ├── model/
-│       │   ├── encoder.py         # Shared Encoder (1536 → 128)
-│       │   ├── head.py            # Match Head (257 → 1)
-│       │   └── losses.py          # triplet + bce
-│       ├── train.py               # training loop
-│       ├── calibrate.py           # threshold calibration on hold-out
-│       └── describe.py            # T07: photo → LLM → text description (NEW)
-├── data/                 # single-machine M0: in-memory only; M1: PostgreSQL
-└── tests/
-    ├── test_encoder_shape.py
-    ├── test_match_head_shape.py
-    ├── test_training_step.py
-    └── test_describe.py            # T07 LLM description extractor
+├── pyproject.toml                    # uv project; installs src/just_mate_ml (hatchling)
+├── README.md                         # run-it-yourself guide
+├── DEPLOYMENT.md                     # planned server integration
+├── src/just_mate_ml/data/
+│   ├── profile_descriptions_v2.py    # synthetic profile generator
+│   ├── embed.py                      # profile parser + self/target texts + OpenAI embeddings
+│   ├── triplets_v2.py                # rule-based triplets
+│   └── triplets_v3.py                # + soft-Jaccard gate and extra negative buckets
+├── scripts/
+│   ├── build_interest_embeddings.py  # per-interest embeddings for soft_jacc
+│   ├── train_experiments_v2.py       # v2 sweep → checkpoints/model_v0.pt
+│   ├── train_experiments_v3.py       # v3 sweep → checkpoints/model_v3.pt
+│   ├── benchmark_val.py, threshold_sweep.py, gate_sweep.py, build_eval_notebook.py
+│   ├── match_scorer.py               # NDJSON ONNX scorer
+│   ├── score_pair.py                 # CLI pair scoring through match_scorer
+│   └── build_match_scorer.sh, build_local_mac_and_linux.sh   # PyInstaller builds
+├── notebooks/evaluate_matching_model.ipynb
+├── tests/test_bootstrap.py
+├── data/                             # generated, gitignored
+└── checkpoints/                      # model_v0.{pt,onnx} from Releases, gitignored
 ```
 
-**Deployment (single server, all on one box):**
-
-```
-┌─────────────────────────────────────────────────┐
-│  one machine                                    │
-│                                                 │
-│   ┌──────────────┐                               │
-│   │  Bun server  │  in-process SiameseCompatModel│
-│   │  (Elysia)    │  (PyTorch or ONNX Runtime)   │
-│   └──────┬───────┘                               │
-│          │                                      │
-│          ▼                                      │
-│   ┌──────────────┐                               │
-│   │  PostgreSQL  │                               │
-│   │  + pgvector  │                               │
-│   └──────────────┘                               │
-└─────────────────────────────────────────────────┘
-```
-
-No HTTP between Bun and the model — there is no separate model at all. Inference is in-process inside the Bun server. The compiled-binary and FastAPI paths from earlier versions are **not** used here; the only model-serving surface is the Siamese model's `forward()` method called directly from the Bun process (or via ONNX Runtime if the model was exported).
+**Deployment (planned):** the server and a pool of `match_scorer` processes on one box, talking NDJSON over pipes. The server image (`server/Dockerfile`) is Bun-only today, so this needs either the PyInstaller binary copied in or a Python runtime added — see `ml/DEPLOYMENT.md`.

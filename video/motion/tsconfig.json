@@ -1,10 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": [
-      "ES2023",
-      "DOM"
-    ],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -13,8 +10,5 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": [
-    "src",
-    "preview"
-  ]
+  "include": ["src", "preview"]
 }

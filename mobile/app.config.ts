@@ -2,7 +2,7 @@ import type { ExpoConfig } from "expo/config"
 import pkg from "./package.json"
 
 const LOCATION_COPY =
-  "JustMate uses your location only while you search, to light up zones and point the compass."
+  "JustMate uses your location while the map is open to show your spot, and shares it only while you search, to light up zones and point the compass. Nobody else ever sees where you are."
 
 const CAMERA_COPY =
   "JustMate uses the front camera once for the selfie check. The photo is described once to match you, then dropped: never stored or shown."
@@ -70,7 +70,10 @@ export default (): ExpoConfig => ({
     ],
     ["expo-maps", { requestLocationPermission: true, locationPermission: LOCATION_COPY }],
     ["expo-location", { locationWhenInUsePermission: LOCATION_COPY }],
-    ["expo-image-picker", { cameraPermission: CAMERA_COPY }],
+    [
+      "expo-image-picker",
+      { cameraPermission: CAMERA_COPY, photosPermission: false, microphonePermission: false },
+    ],
   ],
   web: {
     name: "just-mate · Meet for real.",

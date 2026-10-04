@@ -674,8 +674,8 @@ def main() -> None:
     print(f"  margin={best['best_extras']['pos_minus_neg_margin']:.3f}")
     print(f"  F1={best['best_extras']['best_f1']:.4f}  @ thr={best['best_extras']['best_threshold']:.2f}")
     if best["state"] is not None:
-        torch.save(best["state"], CKPT_DIR / "model_v0.pt")
-        print(f"saved {CKPT_DIR / 'model_v0.pt'}")
+        torch.save(best["state"], CKPT_DIR / "model_v3.pt")
+        print(f"saved {CKPT_DIR / 'model_v3.pt'}")
     report = [{
         "cfg": r["cfg"], "best_auc": r["best_auc"], "best_extras": r["best_extras"],
         "epochs_run": r["epochs_run"], "wall_time_sec": r["wall_time_sec"],

@@ -1,7 +1,7 @@
 /** Wire contract from `docs/PROTOCOL.md`. Change the doc first, then this file. */
 
 /** Every profile, search and match lives in exactly one mode. */
-export const MODES = ["date", "mate"] as const
+export const MODES = ["mate", "date"] as const
 export type Mode = (typeof MODES)[number]
 
 /** "something else": a valid pick in every category; it only matches another `"other"`. */
@@ -61,11 +61,6 @@ export const CATEGORIES = {
   ],
   mate: [
     {
-      id: "food",
-      label: "Food and drink",
-      intents: ["beer", "coffee", "lunch", "street food", "pizza", "brunch", "wine", "ramen"],
-    },
-    {
       id: "sports",
       label: "Sports",
       intents: [
@@ -81,6 +76,16 @@ export const CATEGORIES = {
       ],
     },
     {
+      id: "out",
+      label: "Outdoors",
+      intents: ["hike", "cycling", "walk", "frisbee", "skate", "kayak", "picnic"],
+    },
+    {
+      id: "food",
+      label: "Food and drink",
+      intents: ["coffee", "beer", "lunch", "street food", "pizza", "brunch", "wine", "ramen"],
+    },
+    {
       id: "games",
       label: "Games",
       intents: [
@@ -93,11 +98,6 @@ export const CATEGORIES = {
         "cards",
         "video games",
       ],
-    },
-    {
-      id: "out",
-      label: "Outdoors",
-      intents: ["hike", "cycling", "walk", "frisbee", "skate", "kayak", "picnic"],
     },
     {
       id: "music",
@@ -258,7 +258,7 @@ export type Profile = {
 
 /** Prototype defaults for a fresh onboarding draft. Not a valid profile until filled in. */
 export const DEFAULT_PROFILE: Profile = {
-  mode: "date",
+  mode: "mate",
   name: "",
   gender: "woman",
   age: 25,
@@ -573,6 +573,8 @@ export const VENUE_KINDS = [
   "bowling",
   "museum",
   "jazz_club",
+  "sports_centre",
+  "pool",
 ] as const
 export type VenueKind = (typeof VENUE_KINDS)[number]
 
@@ -722,17 +724,20 @@ export type ServerMsg =
   | {
       t: "partner_position"
       sessionId: string
+      /** a multiple of 10°; in `cold`, towards the centre of the partner's geohash-7 cell */
       bearing: number
       bucket: Bucket
       /** dev/demo builds only, never rendered */
       distanceM?: number
     }
-  | { t: "session_end"; sessionId: string; reason: SessionEndReason }
+  | { t: "session_end"; sessionId: string; reason: SessionEndReason; partnerName?: string }
   | { t: "plans"; plans: Plan[] }
   | { t: "plan_update"; plan: Plan }
   | { t: "plan_removed"; planId: string; reason: PlanRemovedReason }
 
 export const CloseCode = {
+  /** the server failed while handling `hello`; reconnect */
+  ServerError: 1011,
   NoProfile: 4002,
   ProtocolViolation: 4003,
   Unauthorized: 4004,

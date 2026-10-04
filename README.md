@@ -20,11 +20,11 @@ JustMate is not therapy and makes no health claims. It is a reason to go out, an
 
 Build a faceless profile once: Mate or Date, interests and a few short questions. An LLM turns the answers into the vibe on your badge.
 
-**Plan** gets you out of the door. The app proposes one concrete plan nearby — chess on Thursday at 19:00 in a café nine minutes away — and shows who's going as a vibe badge. You only tap **I'm in**; the plan goes ahead when both confirm. You can also put out your own invitation with a few times, and it is offered to one compatible person at a time. On the day, the compass opens shortly before the start.
+**Plan** gets you out of the door. The app proposes one concrete plan nearby, activities first — a run on Thursday at 19:00 in a park ten minutes away — and shows who it's with as a vibe badge. You only tap **Accept plan**; the plan is on once both confirm. You can also put out your own invitation with a few times, and it is offered to one compatible person at a time. On the day, the compass opens shortly before the start.
 
-**Now** is serendipity for when you're already out. Pick what you want right now (a beer, coffee, a board game…) and tap **Find people**. When two compatible people who want the same thing are within walking range, both phones buzz at the same moment with each other's badge. If both accept, a hot/cold compass guides them together within ten minutes.
+**Now** is serendipity for when you're already out. Pick what you want right now (a run, a walk, coffee, a board game…) and tap **Find people**. When two compatible people who want the same thing are within walking range, both phones buzz at the same moment with each other's badge. If both accept, a hot/cold compass guides them together within ten minutes.
 
-After meeting: **We met**, and a note of how far you walked.
+After meeting: **We met** unlocks the other person's first name, shows how far you walked to say hi, and asks *same again next week?* Settings has a "Need to talk to someone?" row with free support lines.
 
 ## Safety by design
 
@@ -34,6 +34,7 @@ After meeting: **We met**, and a note of how far you walked.
 - **Ephemeral** — live positions exist only inside an active session; no location history is stored.
 - **10-minute window** — the compass expires automatically.
 - **Vanish** — one tap ends the session for both, instantly.
+- **No triangulation** — the server refuses implausible position jumps and coarsens bearings, so a modified client can't turn the compass into a pin.
 - **Moderation** — free-text profile answers run through the OpenAI moderation model; a flagged user silently never sees or is seen by anyone.
 
 Production path (not in the build): phone and ID verification, report-and-block with an automatic pause, women-only plans.
@@ -113,9 +114,9 @@ bun run lint && bun run typecheck && bun run test
 | LLM onboarding: questions, vibe line, character (with `OPENAI_API_KEY`) | Fixed sample questions and vibe lines when no key is set |
 | Zone glow from live positions | Demo-mode scripted positions (indoor GPS) |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | The seeded venue list for Kraków |
-| Plans proposed from real profiles and free times, I'm in, the go-ahead on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
+| Plans proposed from real profiles and free times, Accept plan, the go-ahead on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
-| Compass (magnetometer bearing), haptics, vanish, post-meet distance | |
+| Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
 
 Not in the build by decision: remote push (the app is in the foreground whenever you are searching) and the ML model in the live matching path (it runs standalone in `ml/`, trained on synthetic data).
 

@@ -8,7 +8,7 @@ import { venueIcon, walkMin } from "@/lib/venues"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
-import { IconDisc, venueHours, venueMeta } from "./parts"
+import { IconDisc, VenueLine } from "./parts"
 
 export type PlanWhereSheetProps = {
   venues: Venue[]
@@ -33,7 +33,6 @@ type RowProps = {
 }
 
 const VenueRow = ({ venue, walk, selected, last, onPress }: RowProps) => {
-  const { t } = useTranslation()
   const { c } = useScheme()
 
   return (
@@ -47,9 +46,7 @@ const VenueRow = ({ venue, walk, selected, last, onPress }: RowProps) => {
       <IconDisc icon={venueIcon(venue.kind)} solid={selected} />
       <View style={styles.grow}>
         <Text style={[type.headline, { color: c.fg1 }]}>{venue.name}</Text>
-        <Text numberOfLines={1} style={[type.footnote, { color: c.fg2 }]}>
-          {`${venueMeta(t, venue, walk)} · ${venueHours(t, venue)}`}
-        </Text>
+        <VenueLine venue={venue} walk={walk} />
       </View>
       <View
         style={[

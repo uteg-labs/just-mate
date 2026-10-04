@@ -7,6 +7,7 @@ import {
   parseSearchOn,
 } from "@justmate/protocol"
 import * as Linking from "expo-linking"
+import { useNetworkState } from "expo-network"
 import { StatusBar } from "expo-status-bar"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -26,7 +27,6 @@ import { isPick } from "@/features/plans/PlanRows"
 import { PlansPage } from "@/features/plans/PlansPage"
 import { PlanWhereSheet } from "@/features/plans/PlanWhereSheet"
 import { Settings } from "@/features/settings/Settings"
-import { authCookieOf, storeAuthCookie } from "@/lib/auth-callback"
 import { authClient } from "@/lib/auth-client"
 import { lastPosition, useLastPosition, usePositionReports } from "@/lib/location"
 import { clearProfile, loadProfile, updateProfile, useProfile } from "@/lib/profile"
@@ -120,7 +120,7 @@ function pronounOf(profile: Profile, mode: Mode): Pronoun {
 
 export const Surface = () => {
   const { t } = useTranslation()
-  const { data: auth, isPending, refetch } = authClient.useSession()
+  const { data: auth, isPending } = authClient.useSession()
   const profile = useProfile()
   const live = useLive()
   const url = Linking.useURL()
@@ -134,22 +134,23 @@ export const Surface = () => {
   const [isPlanning, setIsPlanning] = useState(false)
   const [startVenue, setStartVenue] = useState<string | null>(null)
   const [isEditingWhat, setIsEditingWhat] = useState(false)
+  const [isProfileFailed, setIsProfileFailed] = useState(false)
   const [planDraft, setPlanDraft] = useState<Draft>({
     ...NEW_DRAFT,
-    mode: "date",
+    mode: DEFAULT_PROFILE.mode,
     category: "",
     intents: [],
   })
   const venues = useVenues()
   const here = useLastPosition()
+  const isOnline = !!useNetworkState().isConnected
 
   const userId = auth?.user.id
   const hasProfile = !!profile
   const resetToken = url === handledUrl ? undefined : resetTokenOf(url)
-  const authCookie = url === handledUrl ? undefined : authCookieOf(url)
   const signedIn = userId ? shapeOf(profile, place, live) : "auth"
   const shape = resetToken ? "auth" : isPending ? null : signedIn
-  const mode = tab ?? profile?.settings.startMode ?? profile?.mode ?? "date"
+  const mode = tab ?? profile?.settings.startMode ?? profile?.mode ?? DEFAULT_PROFILE.mode
   const lift = useKeyboardLift(!!shape && SHAPES[shape].kind === "sheet")
   const { config } = live
   const plan = planAt(place, live.plans)
@@ -175,19 +176,28 @@ export const Surface = () => {
   }, [isPlanGone])
 
   useEffect(() => {
-    if (!authCookie) return
-    setHandledUrl(url)
-    storeAuthCookie(authCookie)
-      .then(() => {
-        clearProfile()
-        return refetch()
-      })
-      .catch(() => Alert.alert(t("auth.errors.link")))
-  }, [authCookie, url, refetch, t])
+    if (!userId || profile !== undefined || isProfileFailed) return
+    loadProfile().catch(() => setIsProfileFailed(true))
+  }, [userId, profile, isProfileFailed])
+
+  // a failed profile load leaves nothing to draw, so it says so and retries on tap or reconnect
+  useEffect(() => {
+    if (isOnline) setIsProfileFailed(false)
+  }, [isOnline])
 
   useEffect(() => {
-    if (userId && profile === undefined) loadProfile().catch(() => {})
-  }, [userId, profile])
+    if (!isProfileFailed) return
+    Alert.alert(
+      t("home.loadFailed"),
+      undefined,
+      [{ text: t("home.retry"), onPress: () => setIsProfileFailed(false) }],
+      { cancelable: false },
+    )
+  }, [isProfileFailed, t])
+
+  useEffect(() => {
+    if (live.refused) Alert.alert(t("home.refused"))
+  }, [live.refused, t])
 
   useEffect(() => {
     if (!userId || !hasProfile) return
@@ -298,7 +308,7 @@ export const Surface = () => {
 
   const sendInvite = () => {
     const msg = inviteOf(planDraft)
-    if (!msg) return
+    if (!msg) return Alert.alert(t("home.refused"))
     haptic.find()
     send(msg)
     planning(false)
@@ -533,8 +543,7 @@ export const Surface = () => {
 
       case "compass":
         return (
-          live.session &&
-          live.match && (
+          live.session && (
             <CompassView
               session={live.session}
               match={live.match}
@@ -557,6 +566,8 @@ export const Surface = () => {
               profile={profile}
               match={live.match}
               pronoun={pronounOf(profile, live.match.mode)}
+              partnerName={live.partnerName}
+              walkedM={live.walkedM}
               onBack={leavePostMeet}
             />
           )

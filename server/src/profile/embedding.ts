@@ -2,6 +2,7 @@ import type { Profile } from "@justmate/protocol"
 
 import { db } from "../db"
 import { profileEmbedding } from "../db/schema"
+import { buildSelfText, buildTargetText } from "./embedding-text"
 
 const apiKey = process.env.OPENAI_API_KEY
 
@@ -10,22 +11,6 @@ const DIMENSIONS = 1536
 const TIMEOUT_MS = 10_000
 
 type Embeddings = { data: { embedding: number[] }[] }
-
-export function buildSelfText(p: Profile): string {
-  return `Interests: ${p.interests.join(", ")}.\n[Self] Character: ${p.character}\n[Self] Appearance: ${p.appearance}`
-}
-
-export function buildTargetText(p: Profile): string {
-  return `[Target] Character: ${p.partnerCharacter}\n[Target] Appearance: ${p.taste}`
-}
-
-export function embeddingInputsChanged(before: Profile | undefined, after: Profile): boolean {
-  if (!before) return true
-  return (
-    buildSelfText(before) !== buildSelfText(after) ||
-    buildTargetText(before) !== buildTargetText(after)
-  )
-}
 
 export async function saveEmbeddings(userId: string, profile: Profile): Promise<void> {
   if (!apiKey) return
@@ -45,5 +30,11 @@ export async function saveEmbeddings(userId: string, profile: Profile): Promise<
   if (self?.length !== DIMENSIONS || target?.length !== DIMENSIONS)
     throw new Error("unexpected embedding size")
 
-  await db.insert(profileEmbedding).values({ userId, selfEmb: self, targetEmb: target })
+  await db
+    .insert(profileEmbedding)
+    .values({ userId, selfEmb: self, targetEmb: target })
+    .onConflictDoUpdate({
+      target: profileEmbedding.userId,
+      set: { selfEmb: self, targetEmb: target, softJacc: null, updatedAt: new Date() },
+    })
 }

@@ -4,6 +4,8 @@ import { apiURL } from "./auth-client"
 
 const url = process.env.EXPO_PUBLIC_WS_URL ?? `${apiURL.replace(/^http/, "ws")}/ws`
 
+const ABNORMAL = 1006
+
 export type Demo = "a" | "b"
 
 export type Socket = {
@@ -26,7 +28,18 @@ export function openSocket({ onMessage, onClose }: Handlers, demo?: Demo): Socke
     if (msg) onMessage(msg)
   }
 
-  ws.onclose = (event) => onClose(event.code)
+  // react native may report a failed connect through onerror alone
+  let isClosed = false
+  function close(code: number) {
+    if (isClosed) return
+    isClosed = true
+    onClose(code)
+  }
+  ws.onerror = () => {
+    ws.close()
+    close(ABNORMAL)
+  }
+  ws.onclose = (event) => close(event.code)
 
   return {
     send(msg) {

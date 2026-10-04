@@ -51,7 +51,7 @@ export const PlansPage = ({ plans, venues, leadMs, onBack, onOpen, onNew }: Plan
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Section
           label={t("plans.page.proposed", { n: picks.length })}
-          right={t("plans.page.byModel")}
+          right={t("plans.page.byCompatibility")}
         >
           {picks.length ? (
             picks.map((p) => (
@@ -91,6 +91,11 @@ export const PlansPage = ({ plans, venues, leadMs, onBack, onOpen, onNew }: Plan
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space.xxl) }]}>
+        {!plans.length && (
+          <Text style={[type.footnote, styles.center, { color: c.fg2 }]}>
+            {t("plans.page.empty")}
+          </Text>
+        )}
         <Button title={t("plans.page.new")} leadingIcon="calendar-plus" fullWidth onPress={onNew} />
       </View>
     </View>
@@ -101,5 +106,6 @@ const styles = StyleSheet.create({
   page: { flex: 1 },
   head: { paddingHorizontal: layout.gutter, paddingBottom: space.s, gap: space.xs },
   scroll: { padding: layout.gutter, paddingBottom: space.xl, gap: 26 },
-  footer: { paddingHorizontal: layout.gutter, paddingTop: space.s },
+  footer: { paddingHorizontal: layout.gutter, paddingTop: space.s, gap: space.m },
+  center: { textAlign: "center" },
 })

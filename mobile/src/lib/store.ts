@@ -240,18 +240,22 @@ function reduce(msg: ServerMsg) {
 function closed(from: Socket, code: number) {
   if (socket !== from) return
   socket = undefined
+  const isFinal = code === 1000 || code >= 4000
   const wasLive = !!state.search || !!state.session
+  const isOffered = state.offer?.state === "offered" || state.offer?.state === "accepted"
+  // the close ended any offer or session on the server; a plain search is asked for again on `ready`
+  const resumes = isWanted && !isFinal && !!state.search && !isOffered && !state.session
   set({
     ...ENDED,
+    ...(resumes && { search: state.search }),
     link: "lost",
     closedWith: code,
     plans: [],
-    ...(wasLive && { note: "disconnected" as const }),
+    ...(wasLive && !resumes && { note: "disconnected" as const }),
   })
 
   // no profile may be a stale read: the surface reloads it and drops the socket if it is truly gone
-  const isFinal = code === 1000 || (code >= 4000 && code !== CloseCode.NoProfile)
-  if (!isWanted || isFinal) return
+  if (!isWanted || (isFinal && code !== CloseCode.NoProfile)) return
   setTimeout(() => isWanted && !socket && connect(), retryMs)
   retryMs = Math.min(retryMs * 2, RETRY_MAX_MS)
 }
@@ -275,6 +279,7 @@ export function disconnect() {
   isWanted = false
   socket?.close()
   socket = undefined
+  lastSearch = undefined
   state = IDLE
   for (const listener of listeners) listener()
 }

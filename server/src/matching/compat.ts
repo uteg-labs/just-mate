@@ -4,6 +4,7 @@ import {
   findCategory,
   type Intent,
   type MatchPartner,
+  type Mode,
   OTHER_INTENT,
   type Profile,
   type Search,
@@ -31,23 +32,31 @@ export function sharedIntents(a: Search, b: Search): Intent[] {
 
 // hard gates from PROTOCOL.md rules 1–2; distance, cooldown and offer state live in the loop
 export function canMatch(a: Seeker, b: Seeker): boolean {
-  if (a.search.mode !== b.search.mode || a.search.category !== b.search.category) return false
-  if (!sharedIntents(a.search, b.search).length) return false
-  if (a.profile.adult !== b.profile.adult) return false
-
-  if (a.search.mode === "date")
-    return datesWith(a.profile, b.profile) && datesWith(b.profile, a.profile)
-  return matesWith(a.profile, b.profile) && matesWith(b.profile, a.profile)
+  return !gateMiss(a, b)
 }
 
-function datesWith(me: Profile, them: Profile): boolean {
+// the first hard gate the pair fails, named for the log; relaxed keeps only mode and age safety
+export function gateMiss(a: Seeker, b: Seeker, relaxed = false): string | undefined {
+  const { mode } = a.search
+  if (mode !== b.search.mode) return "mode"
+  if (a.profile.adult !== b.profile.adult) return "adult"
+  if (mode === "date" && !a.profile.adult) return "adult"
+  if (relaxed) return
+
+  if (a.search.category !== b.search.category) return "category"
+  if (!sharedIntents(a.search, b.search).length) return "intents"
+  return prefsMiss(a.profile, b.profile, mode) ?? prefsMiss(b.profile, a.profile, mode)
+}
+
+function prefsMiss(me: Profile, them: Profile, mode: Mode): string | undefined {
+  if (!acceptsGender(me, them, mode)) return "gender"
+  return inRange(me[mode], them.age) ? undefined : "age range"
+}
+
+function acceptsGender(me: Profile, them: Profile, mode: Mode): boolean {
+  if (mode === "mate") return me.mate.who === "anyone" || me.gender === them.gender
   const seeks = SEEK_GENDER[me.date.seek]
-  return me.adult && (!seeks || seeks === them.gender) && inRange(me.date, them.age)
-}
-
-function matesWith(me: Profile, them: Profile): boolean {
-  const isSameGenderOk = me.mate.who === "anyone" || me.gender === them.gender
-  return isSameGenderOk && inRange(me.mate, them.age)
+  return !seeks || seeks === them.gender
 }
 
 function inRange(range: AgeRange, age: number): boolean {

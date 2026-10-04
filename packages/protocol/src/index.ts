@@ -193,6 +193,14 @@ export const AGE_MIN = 16
 export const ADULT_AGE = 18
 /** Oldest age; as a range bound it reads "60+". */
 export const AGE_MAX = 99
+/** Highest age range bound picked one by one; a top bound at or above it is stored as `AGE_MAX`. */
+export const AGE_RANGE_TOP = 60
+
+/** An inclusive age range, as held by `DatePrefs` and `MatePrefs`. */
+export type AgeRange = { ageMin: number; ageMax: number }
+
+/** The range `DEFAULT_PROFILE` starts both modes with, before the age is known. */
+export const START_AGE_RANGE: AgeRange = { ageMin: 24, ageMax: 35 }
 
 export type QA = { q: string; a: string }
 
@@ -265,13 +273,12 @@ export const DEFAULT_PROFILE: Profile = {
   interests: [],
   qa: [],
   vibe: "",
-  date: { seek: "everyone", ageMin: 24, ageMax: 35, looking: "see where it goes" },
+  date: { seek: "everyone", ...START_AGE_RANGE, looking: "see where it goes" },
   mate: {
     who: "anyone",
     group: "small",
     energy: "both",
-    ageMin: 24,
-    ageMax: 35,
+    ...START_AGE_RANGE,
     when: [],
     length: "few",
   },
@@ -289,6 +296,40 @@ export const DEFAULT_PROFILE: Profile = {
     sounds: false,
     reduceMotion: false,
   },
+}
+
+/**
+ * The age range a mode defaults to: the user's own age ± 5, never below `ADULT_AGE` in date mode
+ * or for an adult, never below `AGE_MIN`; a top at or past `AGE_RANGE_TOP` becomes `AGE_MAX` ("60+").
+ */
+export function defaultAgeRange(age: number, mode: Mode): AgeRange {
+  const floor = mode === "date" || age >= ADULT_AGE ? ADULT_AGE : AGE_MIN
+  const top = age + 5
+  return {
+    ageMin: Math.min(Math.max(floor, age - 5), AGE_RANGE_TOP),
+    ageMax: top >= AGE_RANGE_TOP ? AGE_MAX : top,
+  }
+}
+
+/** True when both ranges have the same bounds. */
+export function isSameAgeRange(a: AgeRange, b: AgeRange): boolean {
+  return a.ageMin === b.ageMin && a.ageMax === b.ageMax
+}
+
+/**
+ * Sets each mode's range for which `isUnset` holds to `defaultAgeRange(profile.age, mode)`;
+ * the other ranges are kept as they are.
+ */
+export function anchorAgeRanges(
+  profile: Profile,
+  isUnset: (range: AgeRange, mode: Mode) => boolean,
+): Profile {
+  const { age, date, mate } = profile
+  return {
+    ...profile,
+    date: isUnset(date, "date") ? { ...date, ...defaultAgeRange(age, "date") } : date,
+    mate: isUnset(mate, "mate") ? { ...mate, ...defaultAgeRange(age, "mate") } : mate,
+  }
 }
 
 /** Result of every `parse*` function: the cleaned value, or an `invalid_<field>` error code. */

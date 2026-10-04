@@ -129,7 +129,7 @@ Each interest has 3 related ones (coffee → flat white · café hopping · spec
 
 **Behind the badge** (never shown to anyone):
 
-- When the badge appears, the server also writes the **character** from the answers: five lines shaped "Trait — concrete detail." (`PROTOCOL.md` › Onboarding helpers). **Keep this vibe** waits for it (fallback: the answers, one per line). It and the vibe feed the dev profile card in `temporary/` (`docs/examples/profile_card.md`), the ML input.
+- When the badge appears, the server also writes the **character** from the answers: five lines shaped "Trait — concrete detail." (`PROTOCOL.md` › Onboarding helpers). **Keep this vibe** waits for it (fallback: the answers, one per line). It and the vibe feed the dev profile card in `server/.cards/` (`docs/examples/profile_card.md`), the ML input.
 
 **Swipe and selfie, what is real:**
 

@@ -28,7 +28,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Health value comes from repeated, active, in-person contact: every meeting starts on foot, 16 of 44 Mate activities are sport or outdoors, and friendship takes about 50 hours together [3]. We will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
 >
-> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 132 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
+> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 134 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
 >
 > Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
@@ -48,7 +48,7 @@ Every number in the description, deck and website comes from one of these, or is
 | 4 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
 | 5 | 31% of adults (~1.8 billion) don't meet recommended physical activity | WHO, *Nearly 1.8 billion adults at risk of disease from not doing enough physical activity*, 26 June 2024 — https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity |
 
-From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 132 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
+From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 134 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
 
 Our own estimates (labelled on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
 

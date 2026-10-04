@@ -38,6 +38,7 @@ export type SettingsProps = {
   setProfile: (next: SetStateAction<Profile>) => void
   onBack: () => void
   onEdit: (step: OnboardingStep) => void
+  onStartMode: (mode: Mode) => void
   onLogout: () => void
 }
 
@@ -135,7 +136,14 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => {
   )
 }
 
-export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: SettingsProps) => {
+export const Settings = ({
+  profile,
+  setProfile,
+  onBack,
+  onEdit,
+  onStartMode,
+  onLogout,
+}: SettingsProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
@@ -282,7 +290,7 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
             <Segmented
               items={MODES.map((m) => ({ value: m, label: t(`modes.${m}`) }))}
               value={settings.startMode ?? profile.mode}
-              onChange={(startMode: Mode) => setSettings({ startMode })}
+              onChange={onStartMode}
               fullWidth={false}
             />
           </Row>

@@ -129,7 +129,8 @@ export const en = {
       done: "Taste saved",
       tally: "{{into}} into it · {{not}} not for me",
       cta: "Verify me",
-      ctaLeft: "{{count}} left to swipe",
+      confirm: "Confirm · {{count}} liked",
+      skip: "Skip",
       traits: [
         "tall · dark hair · beard",
         "petite · freckles · curly red hair",
@@ -224,6 +225,7 @@ export const en = {
     searchingFor: ": {{picks}}",
     offline: "offline",
     openSettings: "Open settings",
+    recenter: "Center on me",
     zone: "~{{n}} compatible around here",
     headlines: {
       date: ["What are you up for?", "Where to tonight?", "What's the plan?", "Try something new?"],

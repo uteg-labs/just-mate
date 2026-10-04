@@ -118,7 +118,7 @@ export const MapChrome = ({
       <ZoneMap
         track={isTracking}
         zones={live.search ? live.zones : []}
-        hasDummy={hasActivity && isHome}
+        hasDummy={hasActivity && shape === "select"}
         canRecenter={isHome}
         onZone={isSearch ? setZone : undefined}
         venues={isHome ? places.filter((v) => v.modes.includes(mode)) : venues}

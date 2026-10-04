@@ -2,11 +2,11 @@ import type { Bucket, Config } from "@justmate/protocol"
 import type { TFunction } from "i18next"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
-import { StyleSheet, Text, View } from "react-native"
+import { Linking, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { BucketLabel, Button, CompassDial, Countdown, useScheme, VibeCard } from "@/components/ui"
-import { useHeading } from "@/lib/location"
+import { useHeading, useLocationDenied } from "@/lib/location"
 import type { Match, Session } from "@/lib/store"
 import { layout, space } from "@/theme/layout"
 import { type } from "@/theme/type"
@@ -29,6 +29,11 @@ export type CompassViewProps = {
 
 const DIAL = 290
 const WARN_S = 60
+const SIDES = ["ahead", "right", "behind", "left"] as const
+
+function sideOf(rotation: number) {
+  return SIDES[Math.round((((rotation % 360) + 360) % 360) / 90) % SIDES.length]
+}
 
 function rangeOf(t: TFunction, bucket: Bucket, buckets: Config["buckets"]) {
   if (bucket === "cold") return t("compass.over", { m: buckets.warm })
@@ -65,11 +70,16 @@ export const CompassView = ({
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
   const heading = useHeading()
+  const isDenied = useLocationDenied()
   const now = useNow()
   const left = secondsUntil(session.endsAt, now)
   const { bearing, bucket } = session
   const isWaiting = !bucket
   const isBurning = bucket === "burning"
+  const rotation = (bearing ?? 0) - heading
+  const dialLabel = bucket
+    ? `${t(`compass.buckets.${bucket}`)}, ${t(`compass.sides.${sideOf(rotation)}`)}`
+    : t("compass.finding")
   const label = [match && intentLabel(t, match.sharedIntent), place].filter(Boolean).join(" · ")
 
   useBucketHaptics(bucket)
@@ -86,14 +96,30 @@ export const CompassView = ({
 
       <View style={styles.center}>
         <CompassDial
-          rotation={(bearing ?? 0) - heading}
+          rotation={rotation}
           bucket={bucket ?? "cold"}
+          label={dialLabel}
           waiting={isWaiting}
           size={DIAL}
         />
-        {isWaiting ? (
+        {isWaiting && !isDenied && (
           <Text style={[type.title, { color: c.fg2 }]}>{t("compass.finding")}</Text>
-        ) : (
+        )}
+        {isWaiting && isDenied && (
+          <>
+            <Text style={[type.title, { color: c.fg1 }]}>{t("location.off")}</Text>
+            <Text style={[type.footnote, styles.denied, { color: c.fg2 }]}>
+              {t("location.denied")}
+            </Text>
+            <Button
+              title={t("location.openSettings")}
+              variant="secondary"
+              size="sm"
+              onPress={() => void Linking.openSettings()}
+            />
+          </>
+        )}
+        {bucket && (
           <BucketLabel
             bucket={bucket}
             label={t(`compass.buckets.${bucket}`)}
@@ -140,5 +166,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 20 },
   buttons: { flexDirection: "row", gap: 10, marginTop: 14 },
   grow: { flex: 1 },
+  denied: { textAlign: "center" },
   report: { alignSelf: "center", marginTop: space.s },
 })

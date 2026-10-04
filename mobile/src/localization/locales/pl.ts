@@ -192,6 +192,8 @@ export const pl = {
     neverShown: "niewidoczny dla innych",
     when: "Kiedy masz czas",
     startMode: "Otwieraj mapę w trybie",
+    language: "Język",
+    languageSystem: "Auto",
     walk: "Dojście do",
     minutes: "{{count}} min",
     autoStop: "Przestań szukać po 30 min",

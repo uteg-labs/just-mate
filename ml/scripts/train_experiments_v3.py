@@ -53,54 +53,6 @@ def load_interest_table():
     return vec / norms, name_to_row, interests
 
 
-def compute_soft_jaccard_matrix(self) -> np.ndarray:
-    """Returns (n, n) symmetric soft jaccard matrix for ALL profile pairs."""
-    n_profiles = self.shape[0] // ENCODER_INPUT_DIM if False else None  # placeholder
-    # Actually we'll use the global profile count
-    profiles = json.loads((DATA_DIR / "profile_ids.json").read_text())
-    n = len(profiles)
-    interests_data = np.array([
-        [name_to_row[k] for k in p["interests"] if k in name_to_row]
-        for p in __import__("just_mate_ml.data.embed", fromlist=["parse_profiles"])
-            .parse_profiles(DATA_DIR / "profiles_descriptions.txt")
-    ])
-    # Build (n, MAX_INT) padded index array
-    MAX_INT = 10
-    int_idx_arr = np.full((n, MAX_INT), -1, dtype=np.int32)
-    int_count_arr = np.zeros(n, dtype=np.int32)
-    for i, ints in enumerate(interests_data):
-        for k, idx in enumerate(ints[:MAX_INT]):
-            int_idx_arr[i, k] = idx
-        int_count_arr[i] = min(len(ints), MAX_INT)
-
-    print(f"computing soft-jaccard matrix ({n}x{n})...")
-    soft = np.zeros((n, n), dtype=np.float32)
-    for i in range(n):
-        a = self_emb_cache[int_idx_arr[i, :int_count_arr[i]]] if int_count_arr[i] > 0 else None
-        if a is None or len(a) == 0:
-            continue
-        sims = a @ self_emb_cache.T  # (|A|, n)
-        s_ab = sims.max(axis=0)  # best match for each j
-        s_ba_row = sims.max(axis=1)  # best match for each i_int
-        soft[i] = (s_ab + s_ba_row.mean()) / 2 if False else s_ab
-        # Actually need s_ba too — best match for each B from A's perspective
-    # Simpler: full approach
-    out = np.zeros((n, n), dtype=np.float32)
-    for i in range(n):
-        if int_count_arr[i] == 0:
-            continue
-        a = self_emb_cache[int_idx_arr[i, :int_count_arr[i]]]
-        sims = a @ self_emb_cache.T  # (|A|, N)
-        # For each j: best A -> j match = sims.max(axis=0)[j]
-        s_ab = sims.max(axis=0)
-        # For each j: best j's interests matched by A's interests
-        # = need to compute sims for each j's interests too
-        # This is expensive. Approximate with just s_ab:
-        soft[i, :] = s_ab  # not quite right but OK
-    return soft
-
-
-# Better: compute full soft_jaccard in chunks
 def compute_full_soft_jaccard() -> np.ndarray:
     """Bidirectional soft jaccard for all (i, j) profile pairs.
 
@@ -342,7 +294,7 @@ def load_soft_jaccard_lazy():
 # --- Eval -----------------------------------------------------------------
 
 @torch.no_grad()
-def eval_symmetric_auc(model, data) -> tuple[float, dict]:
+def eval_symmetric_auc(model, data, use_soft: bool) -> tuple[float, dict]:
     """Symmetric pair score, augmented with soft_jaccard gate."""
     z = data["triplets_z"]
     sel = data["val_sel"]
@@ -361,10 +313,12 @@ def eval_symmetric_auc(model, data) -> tuple[float, dict]:
             (soft_jacc_cache[a_idx, n_idx] + soft_jacc_cache[n_idx, a_idx]) / 2
         ).float().unsqueeze(-1)
 
-    pos = model.score(target_emb[a_idx], self_emb[p_idx], soft_ab).numpy() \
-        + model.score(target_emb[p_idx], self_emb[a_idx], soft_ab).numpy()
-    neg = model.score(target_emb[a_idx], self_emb[n_idx], soft_an).numpy() \
-        + model.score(target_emb[n_idx], self_emb[a_idx], soft_an).numpy()
+    ab = (soft_ab,) if use_soft else ()
+    an = (soft_an,) if use_soft else ()
+    pos = model.score(target_emb[a_idx], self_emb[p_idx], *ab).numpy() \
+        + model.score(target_emb[p_idx], self_emb[a_idx], *ab).numpy()
+    neg = model.score(target_emb[a_idx], self_emb[n_idx], *an).numpy() \
+        + model.score(target_emb[n_idx], self_emb[a_idx], *an).numpy()
     y_true = np.concatenate([np.ones(len(pos)), np.zeros(len(neg))])
     y_score = np.concatenate([pos, neg])
     auc = float(roc_auc_score(y_true, y_score))
@@ -563,7 +517,7 @@ def train_one(cfg: TrainCfg, data: dict, total_configs: int, config_idx: int) ->
         if scheduler is not None:
             scheduler.step()
 
-        auc, extras = eval_symmetric_auc(model, data)
+        auc, extras = eval_symmetric_auc(model, data, cfg.use_soft_jaccard)
         history.append({"epoch": epoch, "train_loss": train_loss, **extras})
 
         epoch_t = time.time() - epoch_t0
@@ -603,27 +557,21 @@ def train_one(cfg: TrainCfg, data: dict, total_configs: int, config_idx: int) ->
 # --- Sweep ----------------------------------------------------------------
 
 CONFIGS: list[TrainCfg] = [
-    # baseline: v2-style (symmetric) for comparison
-    TrainCfg(name="v3-baseline-sym", encoder_hidden=(256,)),  # sym features, no soft
+    # the head is always asymmetric; the symmetric v2 baseline is train_experiments_v2.py.
+    # "bidir" = joint loss with the bidirectional BCE term; without it lam_bidir=0.
+    TrainCfg(name="v3-asym", use_soft_jaccard=False, lam_bidir=0.0),
+    TrainCfg(name="v3-asym-bidir", use_soft_jaccard=False),
+    TrainCfg(name="v3-asym-soft", lam_bidir=0.0),
+    TrainCfg(name="v3-asym-soft-bidir"),
 
-    # asymmetric head on baseline config
-    TrainCfg(name="v3-asym-bidir", loss_kind="joint_bidir"),
-    TrainCfg(name="v3-asym-soft", use_soft_jaccard=True),
-    TrainCfg(name="v3-asym-soft-bidir", loss_kind="joint_bidir", use_soft_jaccard=True),
-
-    # Bigger encoder with dropout
     TrainCfg(name="v3-bigger-512x256", encoder_hidden=(512, 256), encoder_dropout=0.1,
-             loss_kind="joint_bidir"),
+             use_soft_jaccard=False, lam_bidir=0.0),
     TrainCfg(name="v3-bigger-512x256-soft", encoder_hidden=(512, 256), encoder_dropout=0.1,
-             use_soft_jaccard=True),
-    TrainCfg(name="v3-bigger-512x256-soft-bidir", encoder_hidden=(512, 256), encoder_dropout=0.1,
-             loss_kind="joint_bidir", use_soft_jaccard=True),
+             lam_bidir=0.0),
+    TrainCfg(name="v3-bigger-512x256-soft-bidir", encoder_hidden=(512, 256), encoder_dropout=0.1),
 
-    # Hard negative mining combinations
-    TrainCfg(name="v3-hardneg-asym", hard_neg_mining=True, hard_neg_every=2,
-             use_soft_jaccard=True),
-    TrainCfg(name="v3-hardneg-asym-bidir", hard_neg_mining=True, hard_neg_every=2,
-             loss_kind="joint_bidir", use_soft_jaccard=True),
+    TrainCfg(name="v3-hardneg-soft", hard_neg_mining=True, hard_neg_every=2, lam_bidir=0.0),
+    TrainCfg(name="v3-hardneg-soft-bidir", hard_neg_mining=True, hard_neg_every=2),
 
     # Loss variants
     TrainCfg(name="v3-ranking-only", loss_kind="ranking", use_soft_jaccard=True),

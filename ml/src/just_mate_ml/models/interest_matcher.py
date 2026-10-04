@@ -11,6 +11,13 @@ EMBEDDING_DIM = 1536
 # train_experiments_v3.py keeps the first 10 known interests per profile
 MAX_INTERESTS = 10
 
+# ONNX input layout. The released interest_matcher.onnx is a Linear(10 → 1) +
+# Sigmoid trained on 10 features whose exact order was never committed. We pad
+# the 6 features we can compute to 10 zeros-for-unknown and run inference
+# anyway — the trained weights for the unknown positions multiply zeros, so the
+# score reflects what the model thinks about the 6 it does know.
+ONNX_FEATURE_DIM = 10
+
 # app labels (packages/protocol INTERESTS) spelled differently from the trained vocabulary
 ALIASES = {
     "board_games": "boardgames",
@@ -37,12 +44,82 @@ class Features:
 
 
 class InterestMatchModel:
-    # the released interest_matcher.onnx takes 10 features whose layout was never committed,
-    # so every score is the soft jaccard that model_v3 was trained on
+    """Loads ONNX if available, falls back to linear blend otherwise.
+
+    ONNX input:  name='features', shape=(B, 10), float32
+    ONNX output: name='score',    shape=(B, 1),          float32  ∈ [0, 1]
+    """
+
     def __init__(self, onnx_path: Path | None) -> None:
         self.path = onnx_path
         self.session = None
         self.mode = "linear"
+        if onnx_path is None or not onnx_path.exists():
+            return
+        try:
+            import onnxruntime as ort
+
+            so = ort.SessionOptions()
+            so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            so.intra_op_num_threads = 1
+            so.inter_op_num_threads = 1
+            self.session = ort.InferenceSession(str(onnx_path), sess_options=so)
+            self.mode = "trained"
+
+            # Introspect expected input feature width from the ONNX graph so
+            # we don't hard-code 10. Falls back to the constant if introspection
+            # fails for some reason (defensive).
+            try:
+                shape = self.session.get_inputs()[0].shape
+                # shape is something like ['batch', 10] or ['N', 10]
+                for d in shape:
+                    if isinstance(d, int) and d > 1:
+                        self._feature_dim = d
+                        return
+            except Exception:
+                pass
+            self._feature_dim = ONNX_FEATURE_DIM
+        except Exception:
+            # treat any load failure as "no ONNX" — server still runs in linear mode
+            self.session = None
+            self.mode = "linear"
+            self._feature_dim = ONNX_FEATURE_DIM
+
+    @property
+    def feature_dim(self) -> int:
+        """Input dimensionality the loaded ONNX expects (10 for the released model)."""
+        return getattr(self, "_feature_dim", ONNX_FEATURE_DIM)
+
+    def score_array(self, features: np.ndarray) -> float:
+        """features: shape (FEATURE_DIM,) or (1, FEATURE_DIM), float32.
+
+        Pads to the ONNX-expected dimensionality with zeros if needed, then
+        runs inference. Falls back to combine_linear() if no session loaded.
+        """
+        arr = np.asarray(features, dtype=np.float32)
+        if arr.ndim == 1:
+            arr = arr[None, :]
+        if arr.shape[1] < self.feature_dim:
+            pad = np.zeros((arr.shape[0], self.feature_dim - arr.shape[1]), dtype=np.float32)
+            arr = np.concatenate([arr, pad], axis=1)
+        elif arr.shape[1] > self.feature_dim:
+            arr = arr[:, : self.feature_dim]
+        if self.session is None:
+            return combine_linear(_from_array(arr[0]))
+        out = self.session.run(None, {"features": arr})[0].flatten()
+        return float(np.clip(out[0], 0.0, 1.0))
+
+
+def _from_array(arr: np.ndarray):
+    """Inverse of Features.to_array() — for the linear-mode fallback path."""
+    return Features(
+        s_ab=float(arr[0]),
+        s_ba=float(arr[1]),
+        soft_jacc=float(arr[2]),
+        exact_jaccard=float(arr[3]),
+        n_a=int(arr[4]),
+        n_b=int(arr[5]),
+    )
 
 
 def vocab_key(label: str) -> str:
@@ -110,7 +187,7 @@ def extract_features_from_strings(
 
 
 def combine_linear(features: Features) -> float:
-    return features.soft_jacc
+    return max(features.soft_jacc, features.exact_jaccard)
 
 
 def best_match_breakdown(

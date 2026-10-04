@@ -1,19 +1,21 @@
-import type { ServerMsg, Venue } from "@justmate/protocol"
+import { type ServerMsg, VENUE_KINDS, type Venue, type VenueKind } from "@justmate/protocol"
+import { Image, type ImageRef } from "expo-image"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
-import type { TFunction } from "i18next"
 import ngeohash from "ngeohash"
-import { type RefObject, useMemo, useRef, useState } from "react"
+import { type RefObject, useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Platform, StyleSheet, View } from "react-native"
+import { PixelRatio, Platform, StyleSheet, Text, useWindowDimensions, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { IconButton } from "@/components/ui"
+import { Icon, IconButton, Material, useReduceMotion, useScheme } from "@/components/ui"
 import { useLastPosition, useOwnPosition } from "@/lib/location"
-import { venueSymbol } from "@/lib/venues"
+import { venueGlyph, venueIcon, venueSymbol } from "@/lib/venues"
 import { colors } from "@/theme/colors"
-import { layout } from "@/theme/layout"
+import { layout, radius, space } from "@/theme/layout"
+import { duration } from "@/theme/motion"
+import { type } from "@/theme/type"
 
 // the only map in the app: swap the map provider here and nowhere else (docs/archive/BUILD-PLAN.md risks)
 
@@ -22,6 +24,10 @@ type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 type Coordinates = { latitude: number; longitude: number }
 
 type Circle = { id: string; center: Coordinates; radius: number; color: string; lineWidth: 0 }
+
+type Inset = { top: number; bottom: number }
+
+type Viewport = Inset & { width: number; height: number }
 
 export type ZoneMapProps = {
   /** watch your position; off, the dot stays at the last fix */
@@ -36,13 +42,21 @@ export type ZoneMapProps = {
   onVenue?: (id: string) => void
   /** shows the button that brings the camera back to you */
   canRecenter?: boolean
+  /** what the chrome above and the sheet below cover; a picked venue centres between them */
+  inset?: Inset
 }
 
 const KRAKOW_ARENA = { latitude: 50.0676, longitude: 19.9917 }
 const ZOOM = 15
+const VENUE_ZOOM = 16
+const MIN_ZOOM = 13
+const TILE = 256
 const M_PER_DEG = 111_320
 const TAP_M = 300
 const BUTTON_TOP = 54
+const MARKER = 32
+const GLYPH = 16
+const CENTER = { x: 0.5, y: 0.5 }
 
 // DESIGN.md §13.2 — points stretch along the street grid's two directions
 const STREETS = [32, -58].map((a) => (a * Math.PI) / 180)
@@ -171,6 +185,23 @@ function zoomFor(meters: number) {
   return meters < 2000 ? 14 : 13
 }
 
+// `at` in the middle of the map the chrome and the sheet leave open, zoomed out until `also` fits.
+// `base` is meters per point at zoom 0: google tiles are 256 pt wide, while expo-maps spans
+// 360° / 2^zoom of longitude across the apple map
+function cameraOn(at: Coordinates, maxZoom: number, view: Viewport, also = at) {
+  const cos = Math.cos((at.latitude * Math.PI) / 180)
+  const base = (360 * M_PER_DEG * cos) / (Platform.OS === "ios" ? view.width : TILE)
+  const north = Math.abs(also.latitude - at.latitude) * M_PER_DEG
+  const east = Math.abs(also.longitude - at.longitude) * M_PER_DEG * cos
+  const need = Math.max(
+    east / (view.width / 2 - space.xxl),
+    north / ((view.height - view.top - view.bottom) / 2 - space.xxl),
+  )
+  const zoom = Math.min(maxZoom, Math.max(MIN_ZOOM, Math.log2(base / need)))
+  const shift = ((view.bottom - view.top) / 2) * (base / 2 ** zoom)
+  return { coordinates: offset(at, 0, -shift), zoom }
+}
+
 function frame(me: Coordinates | undefined, venue: Coordinates) {
   if (!me) return { coordinates: venue, zoom: 16 }
   const middle = {
@@ -180,16 +211,65 @@ function frame(me: Coordinates | undefined, venue: Coordinates) {
   return { coordinates: middle, zoom: zoomFor(distanceM(me, venue)) }
 }
 
-// apple maps reads the glyph and tint, google maps the snippet: its pin takes no colour without an image
-function markersOf(t: TFunction, venues: Venue[], selected?: Venue) {
-  return venues.map((v) => ({
-    id: v.id,
-    coordinates: coordsOf(v),
-    title: v.name,
-    snippet: t(`plans.kinds.${v.kind}`),
-    systemImage: venueSymbol(v.kind),
-    tintColor: v.id === selected?.id ? colors.fg1 : colors.fg2,
-  }))
+type Icons = Partial<Record<string, ImageRef>>
+
+let icons: Promise<Icons> | undefined
+
+function iconKey(kind: VenueKind, isSelected: boolean) {
+  return `${kind}~${isSelected}`
+}
+
+// the list's IconDisc as an svg: google maps takes no tint, only a drawn image
+function markerSvg(kind: VenueKind, isSelected: boolean) {
+  const [fill, ink] = isSelected
+    ? [colors.fg1, colors.background]
+    : [colors.surfaceCard, colors.fg1]
+  const shapes = venueGlyph(kind)
+    .node.map(([tag, { key, ...attrs }]) => {
+      const pairs = Object.entries(attrs).map(
+        ([k, v]) => `${k}="${v === "currentColor" ? ink : v}"`,
+      )
+      return `<${tag} ${pairs.join(" ")}/>`
+    })
+    .join("")
+  const at = (MARKER - GLYPH) / 2
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${MARKER} ${MARKER}">
+<circle cx="${MARKER / 2}" cy="${MARKER / 2}" r="${MARKER / 2 - 0.5}" fill="${fill}" stroke="${colors.border}"/>
+<g transform="translate(${at} ${at}) scale(${GLYPH / 24})" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${shapes}</g>
+</svg>`
+}
+
+// a failed load leaves google's default pins
+function loadIcons() {
+  const size = Math.round(MARKER * PixelRatio.get())
+  const load = async (kind: VenueKind, isSelected: boolean) => {
+    const uri = `data:image/svg+xml;base64,${btoa(markerSvg(kind, isSelected))}`
+    const ref = await Image.loadAsync({ uri }, { maxWidth: size, maxHeight: size })
+    return [iconKey(kind, isSelected), ref] as const
+  }
+  icons ??= Promise.all(VENUE_KINDS.flatMap((kind) => [load(kind, false), load(kind, true)]))
+    .then(Object.fromEntries)
+    .catch(() => ({}))
+  return icons
+}
+
+// apple maps reads the glyph and tint, google maps the drawn icon; its callout gives way to our popover
+function markersOf(venues: Venue[], icons: Icons, selected?: Venue) {
+  return venues.map((v) => {
+    const isSelected = v.id === selected?.id
+    const icon = icons[iconKey(v.kind, isSelected)]
+    return {
+      id: v.id,
+      coordinates: coordsOf(v),
+      title: v.name,
+      systemImage: venueSymbol(v.kind),
+      tintColor: isSelected ? colors.fg1 : colors.fg2,
+      zIndex: Number(isSelected),
+      showCallout: false,
+      ...(icon && { icon, anchor: CENTER }),
+    }
+  })
 }
 
 function routeOf(me: Coordinates | undefined, selected?: Venue) {
@@ -208,19 +288,36 @@ function self(at: Coordinates): Circle[] {
 
 type Camera = { coordinates: Coordinates; zoom: number }
 
-type MapHandle = { setCameraPosition: (config?: Partial<Camera>) => void }
+type MapHandle = { setCameraPosition: (config?: Partial<Camera> & { duration?: number }) => void }
 
 type CanvasProps = {
   camera: Camera
   circles: Circle[]
-  markers?: ReturnType<typeof markersOf>
+  venues: Venue[]
+  selected?: Venue
   polylines?: ReturnType<typeof routeOf>
   onMap?: (at: Coordinates) => void
   onVenue?: (id: string) => void
   mapRef?: RefObject<MapHandle | null>
 }
 
-const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue, mapRef }: CanvasProps) => {
+const Canvas = ({
+  camera,
+  circles,
+  venues,
+  selected,
+  polylines,
+  onMap,
+  onVenue,
+  mapRef,
+}: CanvasProps) => {
+  const [icons, setIcons] = useState<Icons>({})
+  const markers = markersOf(venues, icons, selected)
+
+  useEffect(() => {
+    if (Platform.OS === "android") void loadIcons().then(setIcons)
+  }, [])
+
   const tapCircle = ({ center }: { center: Partial<Coordinates> }) =>
     center.latitude !== undefined &&
     center.longitude !== undefined &&
@@ -302,14 +399,21 @@ export const ZoneMap = ({
   selected,
   onVenue,
   canRecenter = false,
+  inset,
 }: ZoneMapProps) => {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
+  const { width, height } = useWindowDimensions()
+  const reduceMotion = useReduceMotion()
   const position = useOwnPosition(track)
   const mapRef = useRef<MapHandle | null>(null)
   const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
   const [isCentered, setIsCentered] = useState(false)
+  const [tapped, setTapped] = useState<string>()
   const me = position && { latitude: position.lat, longitude: position.lng }
+  const top = inset?.top ?? insets.top
+  const bottom = inset?.bottom ?? 0
+  const marked = onVenue ? selected : venues.find((v) => v.id === tapped)
   const dummy = useMemo(() => dummyZones(camera.coordinates), [camera.coordinates])
   const isDummy = !zones.length && hasDummy
   const shown = isDummy ? dummy : zones
@@ -328,7 +432,21 @@ export const ZoneMap = ({
     setCamera({ coordinates: me, zoom: ZOOM })
   }
 
+  // a picked venue, or you once the sheet moves, lands in the open map between chrome and sheet
+  const centre = useEffectEvent((venue: Venue | undefined, sheet: number) => {
+    const view = { width, height, top, bottom: sheet }
+    const next = venue
+      ? cameraOn(coordsOf(venue), VENUE_ZOOM, view, me)
+      : me && cameraOn(me, ZOOM, view)
+    if (!next) return
+    if (reduceMotion) return setCamera(next)
+    mapRef.current?.setCameraPosition({ ...next, duration: duration.default })
+  })
+
+  useEffect(() => centre(selected, bottom), [selected, bottom])
+
   const tap = (at: Coordinates) => {
+    setTapped(undefined)
     if (!onZone) return
     const nearest = shown
       .map((z) => ({ n: z.n, d: distanceM(at, ngeohash.decode(z.h)) }))
@@ -345,12 +463,14 @@ export const ZoneMap = ({
       <Canvas
         camera={camera}
         circles={circles}
-        markers={markersOf(t, venues, selected)}
+        venues={venues}
+        selected={marked}
         polylines={routeOf(me, selected)}
         onMap={tap}
-        onVenue={onVenue}
+        onVenue={onVenue ?? setTapped}
         mapRef={mapRef}
       />
+      {Platform.OS === "android" && marked && <Popover venue={marked} top={top} />}
       {canRecenter && me && (
         <View
           pointerEvents="box-none"
@@ -363,11 +483,38 @@ export const ZoneMap = ({
   )
 }
 
+type PopoverProps = { venue: Venue; top: number }
+
+// google's info window in our material, docked under the chrome instead of over the pin
+const Popover = ({ venue, top }: PopoverProps) => {
+  const { t } = useTranslation()
+  const { c, shadow } = useScheme()
+
+  return (
+    <View pointerEvents="none" style={[styles.popover, { top }]}>
+      <View style={[styles.round, { boxShadow: shadow[3] }]}>
+        <Material thickness="thin" style={styles.card}>
+          <View style={[styles.disc, { backgroundColor: c.fg1 }]}>
+            <Icon name={venueIcon(venue.kind)} size={GLYPH} color={c.background} />
+          </View>
+          <View style={styles.shrink}>
+            <Text numberOfLines={1} style={[type.headline, { color: c.fg1 }]}>
+              {venue.name}
+            </Text>
+            <Text numberOfLines={1} style={[type.footnote, { color: c.fg2 }]}>
+              {t(`plans.kinds.${venue.kind}`)}
+            </Text>
+          </View>
+        </Material>
+      </View>
+    </View>
+  )
+}
+
 export type VenueMapProps = { venue: Venue }
 
 // a still map framing you and one venue: cards and headers, never touchable
 export const VenueMap = ({ venue }: VenueMapProps) => {
-  const { t } = useTranslation()
   const position = useLastPosition()
   const me = position && { latitude: position.lat, longitude: position.lng }
 
@@ -376,7 +523,8 @@ export const VenueMap = ({ venue }: VenueMapProps) => {
       <Canvas
         camera={frame(me, coordsOf(venue))}
         circles={me ? self(me) : []}
-        markers={markersOf(t, [venue], venue)}
+        venues={[venue]}
+        selected={venue}
         polylines={routeOf(me, venue)}
       />
     </View>
@@ -385,4 +533,27 @@ export const VenueMap = ({ venue }: VenueMapProps) => {
 
 const styles = StyleSheet.create({
   recenter: { position: "absolute" },
+  popover: {
+    position: "absolute",
+    left: layout.gutter + layout.hitMin + space.s,
+    right: layout.gutter + layout.hitMin + space.s,
+    alignItems: "center",
+  },
+  round: { maxWidth: "100%", borderRadius: radius.pill },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: space.s,
+    padding: space.xs,
+    paddingRight: space.l,
+    borderRadius: radius.pill,
+  },
+  disc: {
+    width: MARKER + space.xs,
+    height: MARKER + space.xs,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shrink: { flexShrink: 1 },
 })

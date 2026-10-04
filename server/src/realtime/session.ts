@@ -18,8 +18,13 @@ import {
 import { type BlockStore, isBlocked, rememberBlocks } from "../matching/blocks"
 import { compat, gateMiss, matchRadiusM, partnerCard, sharedIntents } from "../matching/compat"
 import { bearing, bucketFor, cellCentre, distanceM, geohash } from "../matching/geo"
-import { MATCH_ALGORITHM_VERSION, type MatchScoreRecord, type MatchStore } from "../matching/match"
-import { pairThreshold } from "../matching/scorer_http"
+import {
+  type MatchScoreRecord,
+  type MatchStore,
+  matchAlgorithmVersion,
+  RULES_MATCH_ALGORITHM_VERSION,
+} from "../matching/match"
+import { pairThreshold, rulesThreshold } from "../matching/scorer_http"
 import {
   type PlanLink,
   pausePlans,
@@ -104,6 +109,7 @@ type Candidate = {
   b: Searcher
   intent: Intent
   score: number
+  algorithmVersion: string
   rankingScore: number
   meters: number
 }
@@ -132,7 +138,10 @@ export const clock = { now: () => Date.now() }
 
 export const STALE_FIX_MS = Number(process.env.MATCH_STALE_FIX_MS ?? 30_000)
 
-export const matching = { relaxed: (process.env.MATCH_RELAXED ?? "0") === "1" }
+export const matching = {
+  relaxed: (process.env.MATCH_RELAXED ?? "0") === "1",
+  mateInterest: (process.env.MATE_INTEREST_MATCHING ?? "0") === "1",
+}
 
 if (matching.relaxed)
   console.info(
@@ -154,7 +163,7 @@ export const pastSessions = new Map<string, { ids: string[]; endedAt: number }>(
 
 export function cacheMatchScores(records: MatchScoreRecord[]) {
   for (const record of records)
-    matchScores.set([record.userAId, record.userBId].sort().join("|"), record)
+    matchScores.set(`${[record.userAId, record.userBId].sort().join("|")}|${record.mode}`, record)
 }
 
 export function invalidateMatchScores(userId: string) {
@@ -409,7 +418,7 @@ function autoStop(client: Client) {
   client.conn.send({ t: "search_stopped", reason: "auto_stop" })
 }
 
-function offer({ a, b, intent, score, rankingScore }: Candidate, now: number) {
+function offer({ a, b, intent, score, rankingScore, algorithmVersion }: Candidate, now: number) {
   const store = a.demo ? undefined : a.deps.matchStore
   const offer: Offer = {
     id: `o_${shortId()}`,
@@ -432,7 +441,7 @@ function offer({ a, b, intent, score, rankingScore }: Candidate, now: number) {
         intent,
         compatibilityScore: score,
         rankingScore,
-        algorithmVersion: MATCH_ALGORITHM_VERSION,
+        algorithmVersion,
         createdAt: new Date(now),
       }),
     )
@@ -642,21 +651,29 @@ function incompatibility(a: Searcher, b: Searcher): string | undefined {
   if (gate) return gate
   if (matching.relaxed) return
 
-  const ml = mlScore(a, b)
-  const score = ml ?? compat(a, b)
-  const threshold = pairThreshold(config)
+  const scored = compatibilityScore(a, b)
+  const { score, threshold } = scored
   if (score >= threshold) return
-  return `score ${score.toFixed(2)} < ${threshold} (${ml === undefined ? "rules" : "ml"})`
+  return `score ${score.toFixed(2)} < ${threshold} (${scored.source})`
 }
 
 // the rules-based score stands in until the scorer has written this pair's current row
-function compatibilityScore(a: Searcher, b: Searcher): number {
-  return mlScore(a, b) ?? compat(a, b)
-}
-
-function mlScore(a: Searcher, b: Searcher): number | undefined {
-  const score = matchScores.get(pairKey([a, b]))
-  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : undefined
+function compatibilityScore(a: Searcher, b: Searcher) {
+  const score = matchScores.get(`${pairKey([a, b])}|${a.search.mode}`)
+  const usesStored = a.search.mode === "date" || matching.mateInterest
+  if (usesStored && score?.algorithmVersion === matchAlgorithmVersion(a.search.mode))
+    return {
+      score: score.score,
+      threshold: pairThreshold(a.search.mode),
+      algorithmVersion: score.algorithmVersion,
+      source: a.search.mode,
+    }
+  return {
+    score: compat(a, b),
+    threshold: rulesThreshold(),
+    algorithmVersion: RULES_MATCH_ALGORITHM_VERSION,
+    source: "rules",
+  }
 }
 
 function relay(me: Client, session: Session) {
@@ -728,10 +745,10 @@ function candidate(a: Searcher, b: Searcher, now: number): Candidate | string {
 
   const intent = sharedIntents(a.search, b.search)[0] ?? a.search.intents[0]
   if (!intent) return "intents"
-  const score = compatibilityScore(a, b)
+  const { score, algorithmVersion } = compatibilityScore(a, b)
   const waitingMs = Math.max(now - a.searchStartedAt, now - b.searchStartedAt)
   const waitBonus = Math.min(waitingMs / config.autoStopMs, 1) * MAX_WAIT_BONUS
-  return { a, b, intent, meters, score, rankingScore: score + waitBonus }
+  return { a, b, intent, meters, score, rankingScore: score + waitBonus, algorithmVersion }
 }
 
 function sendZones(me: Searcher, now: number) {

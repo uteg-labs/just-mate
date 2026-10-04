@@ -16,6 +16,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from just_mate_ml.models.interest_matcher import Features, combine_linear
+
 from scripts.interest_matcher_server import (  # type: ignore[import-not-found]
     EMBEDDING_DIM,
     Handler,
@@ -75,6 +77,11 @@ def test_ready_reports_mode(server):
     assert body["ready"] is True
     assert body["mode"] in ("linear", "trained")
     assert body["vocab_size"] > 0
+
+
+def test_linear_score_keeps_exact_matches_outside_the_embedding_vocab():
+    features = Features(0.0, 0.0, 0.0, 1.0, 0, 0)
+    assert combine_linear(features) == 1.0
 
 
 def test_string_identical_scores_high(server):

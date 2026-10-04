@@ -91,7 +91,7 @@ Header: ghost back arrow, `StepDots` for the whole flow (mono "editing" when a s
 | **who** (mate) | "Who's your kind of mate?" · "Matching uses this. It stays on your side." | who: anyone / same gender · group: one-on-one / small group · energy: chill / either / active · age | **Sounds right** |
 | **swipe** (date) | "Who catches your eye?" · "Swipe sample photos, never real people. Only the traits you're into are kept, never a photo." | 6 sample cards (a sample photo with its description, or placeholder "sample photo 01" with a traits line like "tall · dark hair · beard"; thinking line "loading sample photos…" first), mono "n of 6 · a sample, not a user"; stamps "into it" / "not for me"; x and heart buttons with "n / 6"; done card "Taste saved" · "{n} into it · {m} not for me" | **Verify me** (loading while the traits are written) · disabled "{n} left to swipe" |
 | **schedule** (mate) | "When are you usually around?" · "Pick any. It helps us time your matches." | weekday mornings · lunch breaks · after work · late nights · weekends; "a hangout usually lasts": an hour / a few hours / all day | **Verify me** · disabled "Pick at least one" |
-| **verify** | date "Prove you're real, and 18+" · mate "Prove you're real" · "One selfie, checked once, then deleted. Nobody ever sees it." | ink selfie panel with oval guide and progress ring; status "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds the check row **"I'm 18 or older"** ("Required for dating. Checked against your selfie."). Footer mono "liveness check simulated in this build" | **Take selfie** (loading while scanning) → **Enter the map** (date: only once 18+ is checked) |
+| **verify** | date "Prove you're real, and 18+" · mate "Prove you're real" · "One selfie, checked once, then deleted. Nobody ever sees it." | ink selfie panel with oval guide and progress ring, showing the selfie once taken; status "center your face in the oval" → "hold still…" → "real person · photo deleted". Date adds the check row **"I'm 18 or older"** ("Required for dating. Checked against your selfie."). Footer mono "liveness check simulated in this build" | **Take selfie** (loading while scanning) → **Enter the map** (date: only once 18+ is checked) |
 
 **Interests**:
 
@@ -134,7 +134,7 @@ Each interest has 3 related ones (coffee → flat white · café hopping · spec
 **Swipe and selfie, what is real:**
 
 - The swipe cards are generated sample photos from `GET /taste` (`server/taste/<group>/<n>/`), filtered by "interested in" (everyone alternates women and men); without them the striped placeholders and fixed trait lines stand in. These are never users, so they don't break "no faces": they only train taste. When all 6 are swiped, the descriptions of the ones marked "into it" go to the server, which keeps only the traits they share (`profile.taste`); the photos and the "not for me" picks never leave the phone.
-- **Take selfie** opens the front camera (`expo-image-picker`, `CAMERA_COPY` in `app.config.ts`). The photo is held in memory, sent once to the server, which describes only visible hair and face features (`profile.appearance`), and is never stored, logged or shown. Liveness itself is still simulated; without a camera (simulator, access denied) the timed scan alone passes. Cancelling the camera returns to the oval.
+- **Take selfie** opens the front camera (`expo-image-picker`, `CAMERA_COPY` in `app.config.ts`). The photo is held in memory, sent once to the server, which describes only visible hair and face features (`profile.appearance`), and is never stored or logged; only you see it, in the verify panel, until you leave the step. Liveness itself is still simulated; without a camera (simulator, access denied) the timed scan alone passes. Cancelling the camera returns to the oval.
 
 ### 2. Select: "What are you up for?" (sheet over the map)
 
@@ -224,19 +224,20 @@ The sheet springs up into an ink card at the top; a scrim dims the map; the stat
 
 Back arrow "Back to the map" · large title "Settings".
 
-- **Profile card**: badge swatch, name, mono "{mode} · verified|not verified · no. {serial}", vibe line in italics.
+- **Profile**: your lanyard badge ("{name} · wants: {first interest}", vibe line, verified tag), then mono "{mode} · verified|not verified · no. {serial}".
 
 | Group | Rows |
 |---|---|
 | your profile | Name · Interests ("a, b +n") · Questions and vibe ("{n} answers") · Who you're after (date "{seek} · {min}–{max}", mate "{anyone\|same gender} · {one-on-one\|small group}") · date: Appearance taste ("never shown") / mate: When you're around |
 | the map | Open the map in: Date / Mate · Walk up to: 5 min / 10 min / 15 min · Stop searching after 30 min (switch) |
-| feel | Haptics · Sounds · Reduce motion (switches) |
+| feel | Language: Auto / EN / PL / SK · Haptics · Sounds · Reduce motion (switches) |
 | privacy and safety | Taste and photos ("never stored") · Blocked people (how many you reported, from `ready`) · Download my data |
 | account | Email · Log out |
 
 - Footer: ghost **Delete account** · mono "JustMate · prototype · production path simulated".
 - Profile rows reopen their single onboarding step in "editing" mode; done returns to Settings.
-- Defaults: haptics on · sounds off · reduce motion off · auto-stop on · walk up to 10 min · open the map in the profile's mode.
+- Language is kept on the device, not in the profile; Auto follows the phone and falls back to English. Auth emails follow it.
+- Defaults: language Auto · haptics on · sounds off · reduce motion off · auto-stop on · walk up to 10 min · open the map in the profile's mode.
 
 ## Plans, safety and help (added after the mentor review, Sat 3 Oct)
 

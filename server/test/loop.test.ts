@@ -5,9 +5,11 @@ import { rememberBlocks, resetBlocks } from "../src/matching/blocks"
 import { partnerCard } from "../src/matching/compat"
 import { cellCentre, geohash, type LatLng, offset } from "../src/matching/geo"
 import {
-  MATCH_ALGORITHM_VERSION,
+  DATE_MATCH_ALGORITHM_VERSION,
+  MATE_MATCH_ALGORITHM_VERSION,
   type MatchScoreRecord,
   type MatchStore,
+  RULES_MATCH_ALGORITHM_VERSION,
 } from "../src/matching/match"
 import { STAGE_A } from "../src/realtime/demo"
 import {
@@ -50,6 +52,7 @@ afterEach(() => {
   matchScores.clear()
   resetBlocks()
   matching.relaxed = false
+  matching.mateInterest = false
   clock.now = () => Date.now()
   info.mockRestore()
 })
@@ -116,15 +119,27 @@ async function session(metersApart = 150) {
 }
 
 describe("pairing", () => {
-  test("real clients require and rank by the stored ML score", async () => {
+  test("mate matching uses its interest score instead of the date score", async () => {
+    matching.mateInterest = true
     const records: MatchScoreRecord[] = [
       {
         userAId: "u_a",
         userBId: "u_b",
+        mode: "date",
+        scoreAToB: 0.1,
+        scoreBToA: 0.1,
+        score: 0.2,
+        algorithmVersion: DATE_MATCH_ALGORITHM_VERSION,
+        calculatedAt: new Date(now),
+      },
+      {
+        userAId: "u_a",
+        userBId: "u_b",
+        mode: "mate",
         scoreAToB: 0.84,
         scoreBToA: 0.77,
         score: 0.805,
-        algorithmVersion: MATCH_ALGORITHM_VERSION,
+        algorithmVersion: MATE_MATCH_ALGORITHM_VERSION,
         calculatedAt: new Date(now),
       },
     ]
@@ -142,9 +157,9 @@ describe("pairing", () => {
         finished.push(state)
       },
     }
-    const matching = { matchScoresFor: async () => records, matchStore: store }
-    const a = await join("u_a", makeProfile(), undefined, matching)
-    const b = await join("u_b", makeProfile(), undefined, matching)
+    const deps = { matchScoresFor: async () => records, matchStore: store }
+    const a = await join("u_a", makeProfile(), undefined, deps)
+    const b = await join("u_b", makeProfile(), undefined, deps)
 
     await search(a, 0)
     await search(b, 50)
@@ -167,9 +182,58 @@ describe("pairing", () => {
     expect(finished).toEqual(["met"])
   })
 
-  test("real clients fall back to the rules-based score before their ML row exists", async () => {
+  test("date matching uses its match scorer score instead of the mate score", async () => {
+    const records: MatchScoreRecord[] = [
+      {
+        userAId: "u_a",
+        userBId: "u_b",
+        mode: "date",
+        scoreAToB: 0.42,
+        scoreBToA: 0.38,
+        score: 0.8,
+        algorithmVersion: DATE_MATCH_ALGORITHM_VERSION,
+        calculatedAt: new Date(now),
+      },
+      {
+        userAId: "u_a",
+        userBId: "u_b",
+        mode: "mate",
+        scoreAToB: 0.1,
+        scoreBToA: 0.1,
+        score: 0.1,
+        algorithmVersion: MATE_MATCH_ALGORITHM_VERSION,
+        calculatedAt: new Date(now),
+      },
+    ]
+    const created: Parameters<MatchStore["create"]>[0][] = []
     const store: MatchStore = {
-      create: async () => {},
+      create: async (record) => {
+        created.push(record)
+      },
+      activate: async () => {},
+      finish: async () => {},
+    }
+    const matching = { matchScoresFor: async () => records, matchStore: store }
+    const a = await join("u_a", makeProfile(), undefined, matching)
+    const b = await join("u_b", makeProfile(), undefined, matching)
+    const wine = { t: "search_on", mode: "date", category: "food", intents: ["wine"] }
+
+    await search(a, 0, wine)
+    await search(b, 50, wine)
+    tick()
+    await Promise.resolve()
+
+    expect(lastOf(a, "match_offer")?.offerId).toBeString()
+    expect(created[0]?.compatibilityScore).toBe(0.8)
+    expect(created[0]?.algorithmVersion).toBe(DATE_MATCH_ALGORITHM_VERSION)
+  })
+
+  test("real clients fall back to the rules-based score before their ML row exists", async () => {
+    const created: Parameters<MatchStore["create"]>[0][] = []
+    const store: MatchStore = {
+      create: async (record) => {
+        created.push(record)
+      },
       activate: async () => {},
       finish: async () => {},
     }
@@ -180,8 +244,10 @@ describe("pairing", () => {
     await search(a, 0)
     await search(b, 50)
     tick()
+    await Promise.resolve()
 
     expect(lastOf(a, "match_offer")?.offerId).toBe(lastOf(b, "match_offer")?.offerId ?? "")
+    expect(created[0]?.algorithmVersion).toBe(RULES_MATCH_ALGORITHM_VERSION)
   })
 
   test("two compatible searchers in range get the same offer in the same tick", async () => {

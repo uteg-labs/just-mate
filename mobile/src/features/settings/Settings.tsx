@@ -11,8 +11,8 @@ import { useTranslation } from "react-i18next"
 import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { BadgeSwatch } from "@/components/surface/BadgeSwatch"
 import { badgeDesign } from "@/components/surface/badgeDesign"
+import { VibeBadge } from "@/components/surface/VibeBadge"
 import {
   AnimatedPressable,
   Button,
@@ -25,10 +25,13 @@ import {
   useScheme,
 } from "@/components/ui"
 import { wordLabel } from "@/features/home/categories"
+import { tagOf } from "@/features/home/MatchCard"
 import { ageLabel, type OnboardingStep } from "@/features/onboarding/flow"
 import { api } from "@/lib/api"
 import { authClient } from "@/lib/auth-client"
+import { useBack } from "@/lib/back"
 import { clearProfile } from "@/lib/profile"
+import { chooseLanguage, LANGUAGES, type LanguageChoice, languageChoice } from "@/localization/i18n"
 import { layout, space } from "@/theme/layout"
 import { pressScale } from "@/theme/motion"
 import { type } from "@/theme/type"
@@ -151,9 +154,18 @@ export const Settings = ({
   const insets = useSafeAreaInsets()
   const { data: session } = authClient.useSession()
   const [isBusy, setIsBusy] = useState(false)
+  const [language, setLanguage] = useState(languageChoice)
+
+  const pickLanguage = (choice: LanguageChoice) => {
+    setLanguage(choice)
+    chooseLanguage(choice)
+  }
+
   const design = badgeDesign(profile)
   const { settings } = profile
   const isDate = profile.mode === "date"
+
+  useBack(onBack)
 
   const setSettings = (patch: Partial<Profile["settings"]>) =>
     setProfile((p) => ({ ...p, settings: { ...p.settings, ...patch } }))
@@ -227,22 +239,27 @@ export const Settings = ({
         {t("settings.title")}
       </Text>
 
-      <Card level={2} style={styles.profile}>
-        <BadgeSwatch colors={design.colors} blobs={design.blobs} />
-        <View style={styles.identity}>
-          <Text style={[type.headline, { color: c.fg1 }]}>{profile.name}</Text>
-          <Text style={[type.mono, { color: c.fg2 }]}>
-            {t("settings.card", {
-              mode: t(`modes.${profile.mode}`).toLowerCase(),
-              verified: t(profile.verified ? "settings.verified" : "settings.notVerified"),
-              serial: design.serial,
-            })}
-          </Text>
-          {!!profile.vibe && (
-            <Text style={[type.vibeCompact, { color: c.fg1 }]}>“{profile.vibe}”</Text>
-          )}
-        </View>
-      </Card>
+      <View style={styles.profile}>
+        <VibeBadge
+          design={design}
+          eyebrow={t("onboarding.badge.wants", {
+            name: profile.name,
+            interest: wordLabel(t, profile.interests[0] ?? ""),
+          })}
+          quote={profile.vibe}
+          name={profile.vibe ? undefined : profile.name}
+          tag={tagOf(t, { tags: profile }, profile.mode)}
+          width={224}
+          strap={64}
+        />
+        <Text style={[type.mono, styles.center, { color: c.fg2 }]}>
+          {t("settings.card", {
+            mode: t(`modes.${profile.mode}`).toLowerCase(),
+            verified: t(profile.verified ? "settings.verified" : "settings.notVerified"),
+            serial: design.serial,
+          })}
+        </Text>
+      </View>
 
       <Group label={t("settings.groups.profile")}>
         <Row
@@ -317,6 +334,17 @@ export const Settings = ({
       </Group>
 
       <Group label={t("settings.groups.feel")}>
+        <Row icon="languages" label={t("settings.language")}>
+          <Segmented
+            items={[
+              { value: "system", label: t("settings.languageSystem") },
+              ...LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() })),
+            ]}
+            value={language}
+            onChange={pickLanguage}
+            fullWidth={false}
+          />
+        </Row>
         {FEEL.map(({ key, icon }) => (
           <ToggleRow
             key={key}
@@ -365,8 +393,7 @@ const styles = StyleSheet.create({
   page: { flex: 1 },
   content: { gap: space.l, paddingHorizontal: layout.gutter },
   back: { alignSelf: "flex-start", marginLeft: -space.s },
-  profile: { flexDirection: "row", alignItems: "center", gap: space.l },
-  identity: { flex: 1, gap: space.xs },
+  profile: { gap: space.m },
   group: { gap: space.s },
   groupLabel: { paddingHorizontal: space.l },
   groupCard: { overflow: "hidden" },

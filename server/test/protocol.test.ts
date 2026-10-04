@@ -223,7 +223,8 @@ describe("onboarding requests", () => {
     expect(parseVibeRequest({ mode: "date", interests: [], qa: [], avoid: [1] }).ok).toBe(false)
     expect(parseRelatedRequest({ mode: "date", item: "", have: [] }).ok).toBe(false)
     expect(
-      parseIcebreakerRequest({ mode: "date", interests: [], partnerInterests: [], partnerVibe: 1 }).ok,
+      parseIcebreakerRequest({ mode: "date", interests: [], partnerInterests: [], partnerVibe: 1 })
+        .ok,
     ).toBe(false)
   })
 })

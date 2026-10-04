@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
-import i18n, { resolveLanguage } from "@/localization/i18n"
+import i18n, { languageChoice, resolveLanguage } from "@/localization/i18n"
 import { colors } from "@/theme/colors"
 
 const theme = {
@@ -24,7 +24,7 @@ export default function RootLayout() {
   const languageCode = useLocales()[0]?.languageCode
 
   useEffect(() => {
-    void i18n.changeLanguage(resolveLanguage(languageCode))
+    if (languageChoice() === "system") void i18n.changeLanguage(resolveLanguage(languageCode))
   }, [languageCode])
 
   return (

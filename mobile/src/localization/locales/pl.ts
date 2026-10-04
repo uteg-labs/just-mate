@@ -192,6 +192,8 @@ export const pl = {
     neverShown: "niewidoczny dla innych",
     when: "Kiedy masz czas",
     startMode: "Otwieraj mapę w trybie",
+    language: "Język",
+    languageSystem: "Auto",
     walk: "Dojście do",
     minutes: "{{count}} min",
     autoStop: "Przestań szukać po 30 min",
@@ -252,10 +254,16 @@ export const pl = {
     loadFailed: "Nie udało się wczytać profilu. Sprawdź połączenie.",
     retry: "Spróbuj ponownie",
     refused: "Nie udało się. Spróbuj za chwilę.",
+    unsent: "Jesteś offline, więc plan nie został wysłany. Spróbuj ponownie, gdy wrócisz do sieci.",
     refusedWhy: {
       adult_required: "Randki są od 18 lat. Ekipa jest otwarta dla ciebie.",
       invalid_category: "Ta wersja aplikacji jest nieaktualna. Zaktualizuj ją i spróbuj ponownie.",
       invalid_intents: "Ta wersja aplikacji jest nieaktualna. Zaktualizuj ją i spróbuj ponownie.",
+      invalid_until:
+        "Te godziny są za wcześnie. Wybierz późniejsze albo zostaw zaproszenie otwarte do 2 h przed startem.",
+      invalid_venue: "To miejsce nie pasuje do tego planu. Wybierz inne.",
+      invalid_slots: "Coś nie gra z godzinami. Wybierz je jeszcze raz.",
+      invalid_plan: "Tego planu już nie ma.",
     },
     ended: {
       vanished: "Kompas zamknięty. Znów nikt cię nie widzi.",

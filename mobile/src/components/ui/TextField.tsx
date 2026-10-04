@@ -21,6 +21,8 @@ const KIND: Record<TextFieldKind, TextInputProps> = {
     autoCapitalize: "none",
     autoCorrect: false,
   },
+  // never "newPassword": ios then fills its strong password into the next field it sees as a
+  // confirmation (onboarding age), tints it yellow and locks it
   password: {
     secureTextEntry: true,
     textContentType: "password",

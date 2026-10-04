@@ -1,8 +1,8 @@
 # just-mate — ML plan
 
-> **Status: original hackathon plan, kept for history.** The code in `ml/` diverged from it: no photo → description step (T07) in `ml/` (onboarding LLM helpers live in `server/src/onboarding/`), two embeddings per profile (self + target) instead of one, a 1536 → 256 → 128 encoder with an asymmetric match head plus a `soft_jacc` input (v3), and serving through the NDJSON `match_scorer` (ONNX, Python or PyInstaller binary), not wired into the server yet. The file layout below and the module names in `specs/` do not exist. Current state: [`docs/ML-MATCHING.md`](../ML-MATCHING.md) and [`ml/README.md`](../../ml/README.md).
+> **Status: original hackathon plan, kept for history.** The code in `ml/` diverged from it: no photo → description step (T07) in `ml/` (onboarding LLM helpers live in `server/src/onboarding/`), two embeddings per profile (self + target) instead of one, a 1536 → 256 → 128 encoder with an asymmetric match head plus a `soft_jacc` input (v3), and serving through two HTTP daemons — `match_scorer` and `interest_matcher` — that run together in one container via `ml/scripts/run_servers.py` + `ml/Dockerfile.scorer` (PR #32). The model is **not** wired into the Bun server today (PR #34 reverted the server-side clients; live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`). The file layout below and the module names in `specs/` do not exist. Current state: [`docs/ML-MATCHING.md`](../ML-MATCHING.md) and [`ml/README.md`](../../ml/README.md).
 >
-> Actual modules: `ml/src/just_mate_ml/data/{profile_descriptions_v2,embed,triplets_v2,triplets_v3}.py` and `ml/scripts/{build_interest_embeddings,train_experiments_v2,train_experiments_v3,benchmark_val,threshold_sweep,gate_sweep,build_eval_notebook,match_scorer,score_pair}.py`, plus `ml/scripts/build_match_scorer.sh`, `build_local_mac_and_linux.sh` and `ml/tests/test_bootstrap.py`.
+> Actual modules: `ml/src/just_mate_ml/data/{profile_descriptions_v2,embed,triplets_v2,triplets_v3}.py` and `ml/scripts/{build_interest_embeddings,train_experiments_v2,train_experiments_v3,benchmark_val,threshold_sweep,gate_sweep,build_eval_notebook,match_scorer,match_scorer_server,interest_matcher_server,run_servers,score_pair}.py`, plus `ml/scripts/build_match_scorer.sh`, `build_local_mac_and_linux.sh`, `ml/Dockerfile.scorer`, `docker-compose.yml` and `ml/tests/test_bootstrap.py`.
 
 > **Goal (original)**: extract rich text descriptions from user photos via an LLM API, then match profiles using a Siamese text-embedding model. No face detection, no embeddings beyond text.
 
@@ -92,8 +92,8 @@ Description: 30-year-old athletic man with short dark hair, outgoing personality
 
 - Photo upload + storage — backend
 - Profile edit UI — mobile role
-- Model serving — the NDJSON `match_scorer` in `ml/scripts/` (only needed if the model goes to production; M0 ships the rule-based baseline)
-- Bun/Elysia integration — backend
+- Model serving — `match_scorer_server.py` + `interest_matcher_server.py` running together via `run_servers.py` in a single Docker container (`Dockerfile.scorer`); only needed if the model goes to production (M0 ships the rule-based baseline)
+- Bun/Elysia integration — backend (HTTP clients were reverted in PR #34; the path forward is a pair-score cache that `compat()` reads synchronously, see `ml/DEPLOYMENT.md`)
 
 ## File layout (planned, not what exists)
 

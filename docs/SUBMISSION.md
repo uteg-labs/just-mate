@@ -7,89 +7,97 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 | Task | OPEN: Sport & Healthcare — loneliness and social connection |
 | Pitch structure | Problem → User → Value → Solution → Reality → Ask (HackYeah workshop "Pitch Like an Architect") |
 | One-liner | A plan near you, a person who fits, and someone waiting when you get there. |
-| Deck | [`submission/JustMate-deck.pdf`](submission/JustMate-deck.pdf) (10 slides, source `submission/deck.html`) |
-| Images | [`submission/images/`](submission/images/) — `cover.png` first, then app screenshots in `app/` |
-| Website | [`site/index.html`](../site/index.html) |
-| Video | Optional; 60 s script in `DEMO.md` › Launch video |
+| Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
+| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
+| Images | [`submission/cover.png`](submission/cover.png) first, then app screens in [`submission/screens/`](submission/screens/) |
+| Website | [`site/`](../site/) — Vercel, with the launch film, use-case clips and a waitlist |
+| Video | [`video/motion`](../video/motion) — Remotion launch film; script in `DEMO.md` › Launch video |
 | Repo | https://github.com/uteg-labs/just-mate |
 
 ## Title
 
 `JustMate: Meet For Real` (4 words)
 
-## Description (final, 450 words incl. team and sources)
+## Description (final, 481 words incl. team and sources)
 
-> Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [3].
+> Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
-> The people we build for are young adults new to a city, like Tomek (persona): 28, moved to Kraków for work, works from home, and spends weekends without speaking to anyone. Apps can match him with people. What stops him is the step out of the door: organising anything feels like too much, he fears nobody will come, and photo-first apps make meeting feel like an audition.
+> We build for young adults new to a city, like Tomek (persona): 28, moved to Kraków for work, works from home, and spends weekends without speaking to anyone. Apps can match him with people. What stops him is the step out of the door: organising anything feels like too much, he fears nobody will come, and photo-first apps make meeting feel like an audition.
 >
-> JustMate takes those three steps off him. He builds a profile once: Mate (friends, a running or climbing partner) or Date, his interests, and four short questions an LLM writes from his picks. Others see the one-line vibe it writes from his answers, never a photo. The app then proposes one concrete plan with a compatible person: an activity they both picked, a public venue within a 15-minute walk of both, a time they are both free, and the walking time for each. He only taps Accept plan. The plan is on only when both accept, and both phones show "you're both in" at the same moment. Fifteen minutes before the start, a compass opens and guides them to each other with a bearing and a distance bucket, never a position. He can also put out his own plan (a few times, one place), and it is offered to compatible people one at a time. When he is already out, Now pings two compatible people nearby who want the same thing at the same moment.
+> JustMate takes those steps off him. He builds a profile once: Mate (friends, a running or climbing partner) or Date, his interests, and four short questions an LLM writes from his picks. Others see the one-line vibe it writes, never a photo. The app then proposes one concrete plan with a compatible person: an activity they both picked, a public venue within a 15-minute walk of both, a time they are both free, and the walking time for each. He only taps Accept plan. The plan is on only when both accept, and both phones show "you're both in" at the same moment. Fifteen minutes before the start, a compass guides them to each other with a bearing and a distance bucket, never a position. When they meet, first names unlock and the app shows how far he walked. He can also put out his own plan, offered to compatible people one at a time. When he is already out, Now pings two compatible people nearby who want the same thing at the same moment.
 >
-> Health value comes from repeated contact. Friendship takes about 50 hours together [4], so we will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
+> Health value comes from repeated, active, in-person contact: every meeting starts on foot, 16 of 44 Mate activities are sport or outdoors, and friendship takes about 50 hours together [3]. We will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
 >
-> Built and demoed: onboarding with LLM questions and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, one-tap Vanish for both, profile moderation, age gates, 15 public venues in Kraków, English, Polish and Slovak. Production path: report and block, verification, names unlocking after meeting, "same again next week?", local support lines.
+> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 132 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
 >
 > Ask: a 4-week pilot in Kraków with one student community and five partner venues.
 >
-> Team: Artur Kozubov, Jozef Zvalo, Andrej Zak, Vielkin Serhej, Nikita Orlov.
+> Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Serhii Vielkin, Nikita Orlov.
 >
-> Sources: [1] WHO, 30 Jun 2025, who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death · [2] JRC EU Loneliness Survey 2022 · [3] Holt-Lunstad et al., PLoS Med 2010, doi.org/10.1371/journal.pmed.1000316 · [4] Hall, JSPR 2018, doi.org/10.1177/0265407518761225
+> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md
 
 ## Sources
 
-Every number in the description, deck and website comes from one of these. Nothing else is quoted.
+Every number in the description, deck and website comes from one of these, or is labelled as our estimate.
 
 | # | Claim we use | Source |
 |---|---|---|
-| 1 | 1 in 6 people affected by loneliness; 871,000+ deaths a year (~100 an hour); lonely people twice as likely to get depressed; 17–21% of 13–29-year-olds lonely | WHO, *Social connection linked to improved health and reduced risk of early death*, 30 June 2025 — https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death (full report: https://www.who.int/groups/commission-on-social-connection/report) |
+| 1 | 1 in 6 people affected by loneliness; 871,000+ deaths a year (~100 an hour); lonely people twice as likely to get depressed; 17–21% of 13–29-year-olds lonely | WHO, *Social connection linked to improved health and reduced risk of early death*, 30 June 2025 — https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death (report: https://www.who.int/groups/commission-on-social-connection/report) |
 | 2 | 13% of EU respondents lonely most or all of the time | European Commission JRC, EU Loneliness Survey 2022 — https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en |
-| 3 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
-| 4 | ~50 hours together from acquaintance to casual friend, ~90 to friend, 200+ to close friend | Hall (2018), Journal of Social and Personal Relationships — https://doi.org/10.1177/0265407518761225 |
+| 3 | ~50 hours together from acquaintance to casual friend, ~90 to friend, 200+ to close friend | Hall (2018), Journal of Social and Personal Relationships — https://doi.org/10.1177/0265407518761225 |
+| 4 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
+| 5 | 31% of adults (~1.8 billion) don't meet recommended physical activity | WHO, *Nearly 1.8 billion adults at risk of disease from not doing enough physical activity*, 26 June 2024 — https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity |
 
-Our own assumptions (labelled as such on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
+From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 132 server tests (`bun run test`, run in CI); Siamese model AUC 0.76 on synthetic validation data (`ml/`, not wired into matching).
+
+Our own estimates (labelled on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
 
 ## Deck (10 slides)
 
-1. **Title** — Meet for real. + one-line decision opening + team
-2. **Problem** — 1 in 6 · 871,000 · 2× · 13% [1][2]; the friction is the step out of the door
-3. **User** — young adults new to a city; Tomek (persona); frictions: initiative · uncertainty · judgment
-4. **Value** — capability → behaviour → outcome → evidence; 50 hours to a friend [4]; 50% survival [3]
-5. **Solution** — profile → match → plan → both in → walk; Plan for later and Now
-6. **Demo** — five steps with screenshots
+1. **Title** — Meet for real. + decision opening + team; home and "you're both in" screens
+2. **Problem** — 1 in 6 · 871,000 · 2× [1] · 31% inactive [5]; the friction is the step out of the door
+3. **User** — young adults new to a city; Tomek (persona); 17–21% [1], 13% EU [2]; initiative · uncertainty · judgment
+4. **Value** — capability → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
+5. **Solution** — profile → match → plan → both in → walk and meet; Plan for later and Now
+6. **Demo** — real app screens: vibe, a plan for you, you're both in, confirmed, home; compass and "Say hi to Ola." live
 7. **Design choices** — choice · reason · gain · cost · mitigation
 8. **Risk** — risk · mitigation in the build · production path · validation
 9. **Reality** — known · assumed · to validate
 10. **Ask** — 4-week pilot in Kraków; team; full source links; AI-use disclosure
 
-Re-export after changing `deck.html` or the screenshots:
+Re-export after changing `deck.html`, `cover.html` or the screens:
 
 ```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=4000 --print-to-pdf=docs/submission/JustMate-deck.pdf "file://$PWD/docs/submission/deck.html"
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=6000 --print-to-pdf=docs/submission/JustMate-Deck.pdf "file://$PWD/docs/submission/deck.html"
+```
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --hide-scrollbars --force-device-scale-factor=1 --window-size=1920,1080 --virtual-time-budget=6000 --screenshot=docs/submission/cover.png "file://$PWD/docs/submission/cover.html"
 ```
 
 ## Images
 
-Upload `submission/images/cover.png` first. App screenshots (`submission/images/app/`, iPhone 17 Pro simulator):
+Upload `submission/cover.png` first. App screens in `submission/screens/` (iPhone):
 
 | File | Shows |
 |---|---|
-| `02-home.png` | Home: your plans, Plan for later, places for you (hero) |
-| `03-profile.png` | Your vibe line, no photo |
-| `04-sports.png` | Sports picker: running, climbing |
-| `05-searching.png` | Now: searching, visible nearby |
-| `06-plan-when.png` | Plan for later · when |
-| `07-plan-where.png` | Plan for later · where: public venues with walk time |
-| `08-plan-review.png` | Plan for later · send it out |
-| `09-plans.png` | Plans page with an open invitation |
-| `01-welcome.png` | Welcome / log in |
+| `home-places.jpg` | Home: your plans, Plan for later, places for you |
+| `plan-proposal.jpg` | A plan for you: their vibe, place, time, minutes on foot |
+| `plan-bothin.jpg` | you're both in |
+| `plan-confirmed.jpg` | Confirmed: compass opens, names unlock when you meet |
+| `plan-home.jpg`, `plan-list.jpg` | Your plans · Plans page |
+| `plan-what.jpg`, `plan-when.jpg`, `plan-where.jpg`, `plan-review.jpg`, `plan-taker.jpg` | Plan for later, end to end |
+| `plan-proposal-date.jpg` | A Date plan |
+| `profile-vibe.jpg` | Your vibe line, no photo |
+| `now-sports.jpg`, `now-searching.jpg` | Now: sports picker, searching |
 
-Two-phone moments (plan accepted on both, compass, we met) are shown live on stage.
+Compass and post-meet screens in `video/motion/public/screens/` come from the design prototype; use them only for the film, not as app screenshots.
 
 ## What is real and what is production path
 
-Real in the build: onboarding with LLM questions and the vibe line, Plans (proposed, Accept plan, you're both in, Suggest this place, Plan for later offered one person at a time), 15 seeded public venues in Kraków, Now pings on both phones, bearing-only compass with buckets and haptics, Vanish, post-meet, moderation, age gates, en/pl/sk.
+Real in the build: LLM onboarding and vibe line; Plans (proposed from profiles and free times, Accept plan, you're both in, Suggest this place, Plan for later offered one person at a time); 18 seeded public venues in Kraków; Now pings on both phones; bearing-only compass with buckets and haptics; post-meet first name and distance walked; Vanish; moderation; age gates; support lines in Settings; demo mode (Tomek and Ola, scripted positions, plans starting in 2 minutes); en/pl/sk.
 
-Production path (say it out loud): names unlocking after meeting, "same again next week?", keep in touch, status chips, report and block, verification, women-only plans, local support lines, UCLA-3 outcome survey, the learned matching model (`ml/`, trained on synthetic data, not wired in).
+Production path (say it out loud): "same again next week?" scheduling (today a button with a local reply), report and block (today a local notice), verification, women-only plans, group plans, push reminders, UCLA-3 outcome survey, the learned matching model in `ml/`.
 
 ## AI-use disclosure (required by rules)
 
@@ -103,5 +111,5 @@ Production path (say it out loud): names unlocking after meeting, "same again ne
 - [ ] Repo public/judge-accessible, README run instructions work from a clean clone
 - [x] Every sentence describes the build or says "production path"
 - [x] No health claims: "loneliness" and "social connection", never "treats depression" (`PRODUCT.md` §3.1)
-- [x] Every number has a linked source (table above) or is labelled as our assumption
+- [x] Every number has a linked source (table above) or is labelled as our estimate
 - [ ] Submitted by 10:30 — screenshot the confirmation

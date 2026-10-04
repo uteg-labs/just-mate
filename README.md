@@ -4,7 +4,7 @@
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków) for the OPEN: Sport & Healthcare task.
 
-**Submission:** [deck (PDF)](docs/submission/JustMate-deck.pdf) · [cover image](docs/submission/images/cover.png) · [website](site/index.html) · [submission pack and sources](docs/SUBMISSION.md)
+**Submission:** [deck (PDF)](docs/submission/JustMate-Deck.pdf) · [whitepaper (PDF)](docs/submission/JustMate-Whitepaper.pdf) · [cover image](docs/submission/cover.png) · [website](site/) · [submission pack and sources](docs/SUBMISSION.md)
 
 ## The problem
 

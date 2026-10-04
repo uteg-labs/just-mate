@@ -432,6 +432,8 @@ export const sk = {
       beer_bar: "pub s remeselným pivom",
       cinema: "kino",
       climbing_gym: "lezecká stena",
+      sports_centre: "športové centrum",
+      pool: "plaváreň",
       riverside: "nábrežie",
       rooftop_bar: "bar na streche",
       park: "park",

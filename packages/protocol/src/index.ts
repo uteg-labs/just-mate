@@ -573,6 +573,8 @@ export const VENUE_KINDS = [
   "bowling",
   "museum",
   "jazz_club",
+  "sports_centre",
+  "pool",
 ] as const
 export type VenueKind = (typeof VENUE_KINDS)[number]
 

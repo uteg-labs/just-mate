@@ -30,5 +30,11 @@ export async function saveEmbeddings(userId: string, profile: Profile): Promise<
   if (self?.length !== DIMENSIONS || target?.length !== DIMENSIONS)
     throw new Error("unexpected embedding size")
 
-  await db.insert(profileEmbedding).values({ userId, selfEmb: self, targetEmb: target })
+  await db
+    .insert(profileEmbedding)
+    .values({ userId, selfEmb: self, targetEmb: target })
+    .onConflictDoUpdate({
+      target: profileEmbedding.userId,
+      set: { selfEmb: self, targetEmb: target, softJacc: null, updatedAt: new Date() },
+    })
 }

@@ -2,7 +2,7 @@ import * as Device from "expo-device"
 import * as ImagePicker from "expo-image-picker"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { StyleSheet, Text, View } from "react-native"
+import { Platform, StyleSheet, Text, View } from "react-native"
 import Animated, {
   Easing,
   type SharedValue,
@@ -34,8 +34,8 @@ const STATUS = { idle: "center", scanning: "hold", done: "done" } as const
 
 // one front-camera photo, kept in memory only; undefined = cancelled, null = no camera or no access
 async function takeSelfie(): Promise<string | null | undefined> {
-  // the camera picker raises a native exception (not a JS error) where no camera exists, e.g. simulators
-  if (!Device.isDevice) return null
+  // the iOS simulator has no camera and the picker raises a native exception there, not a JS error
+  if (!Device.isDevice && Platform.OS === "ios") return null
   try {
     const { granted } = await ImagePicker.requestCameraPermissionsAsync()
     if (!granted) return null

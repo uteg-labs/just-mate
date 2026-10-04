@@ -1,4 +1,5 @@
 import type { Profile } from "@justmate/protocol"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -10,12 +11,14 @@ import type { Match } from "@/lib/store"
 import { layout, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
-import type { Pronoun } from "./MatchCard"
+import { type Pronoun, tagOf } from "./MatchCard"
 
 export type PostMeetProps = {
   profile: Profile
   match: Match
   pronoun: Pronoun
+  partnerName?: string
+  walkedM?: number
   onBack: () => void
 }
 
@@ -23,10 +26,19 @@ const BADGE_W = 150
 const BAND_H = 384
 const TILT = 4
 
-export const PostMeet = ({ profile, match, pronoun, onBack }: PostMeetProps) => {
+export const PostMeet = ({
+  profile,
+  match,
+  pronoun,
+  partnerName,
+  walkedM,
+  onBack,
+}: PostMeetProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
+  const [isAgain, setIsAgain] = useState(false)
+  const [isReported, setIsReported] = useState(false)
   const { partner, mode } = match
 
   return (
@@ -54,6 +66,7 @@ export const PostMeet = ({ profile, match, pronoun, onBack }: PostMeetProps) => 
             fadeStrap={false}
             eyebrow={t(`match.vibe.${pronoun}`)}
             quote={partner.vibe}
+            tag={tagOf(t, partner, mode)}
           />
         </View>
       </View>
@@ -64,9 +77,44 @@ export const PostMeet = ({ profile, match, pronoun, onBack }: PostMeetProps) => 
           <Text style={[type.mono, { color: c.success }]}>{t("postmeet.found")}</Text>
         </View>
         <Text accessibilityRole="header" style={[type.largeTitle, { color: c.fg1 }]}>
-          {t("postmeet.title")}
+          {partnerName ? t("postmeet.sayHi", { name: partnerName }) : t("postmeet.title")}
         </Text>
         <Text style={[type.body, { color: c.fg2 }]}>{t("postmeet.sub")}</Text>
+        {!!walkedM && (
+          <View style={styles.found}>
+            <Icon name="footprints" size={14} strokeWidth={2} color={c.fg2} />
+            <Text style={[type.footnote, { color: c.fg2 }]}>
+              {t("postmeet.walked", { m: walkedM })}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.extras}>
+        {isAgain ? (
+          <View style={styles.found}>
+            <Icon name="circle-check" size={14} strokeWidth={2} color={c.success} />
+            <Text style={[type.footnote, { color: c.fg2 }]}>{t("postmeet.againNoted")}</Text>
+          </View>
+        ) : (
+          <Button
+            title={t("postmeet.again")}
+            variant="secondary"
+            size="sm"
+            leadingIcon="calendar-plus"
+            onPress={() => setIsAgain(true)}
+          />
+        )}
+        {isReported ? (
+          <Text style={[type.footnote, { color: c.fg2 }]}>{t("postmeet.reported")}</Text>
+        ) : (
+          <Button
+            title={t("postmeet.report")}
+            variant="ghost"
+            size="sm"
+            onPress={() => setIsReported(true)}
+          />
+        )}
       </View>
 
       <Button title={t("postmeet.back")} size="lg" fullWidth onPress={onBack} style={styles.back} />
@@ -80,5 +128,11 @@ const styles = StyleSheet.create({
   tilt: { transformOrigin: "top" },
   copy: { flex: 1, justifyContent: "flex-end", gap: 10 },
   found: { flexDirection: "row", alignItems: "center", gap: 6 },
-  back: { marginTop: space.xl },
+  extras: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: space.l,
+  },
+  back: { marginTop: space.l },
 })

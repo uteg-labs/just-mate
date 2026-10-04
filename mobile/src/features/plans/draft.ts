@@ -1,4 +1,4 @@
-import type { Mode, PlanInvite, PlanUntil } from "@justmate/protocol"
+import { type Mode, type PlanInvite, type PlanUntil, parsePlanInvite } from "@justmate/protocol"
 
 import { dayAt } from "./time"
 
@@ -48,15 +48,15 @@ export function slotTimes(draft: Draft): number[] {
 }
 
 export function inviteOf(draft: Draft): PlanInvite | undefined {
-  if (!draft.venueId) return
-  return {
+  const parsed = parsePlanInvite({
     t: "plan_invite",
     mode: draft.mode,
     category: draft.category,
-    intents: draft.intents as PlanInvite["intents"],
+    intents: draft.intents,
     slots: slotTimes(draft).map((ms) => new Date(ms).toISOString()),
     flex: draft.flex,
     venueId: draft.venueId,
     until: draft.until,
-  }
+  })
+  return parsed.ok ? parsed.value : undefined
 }

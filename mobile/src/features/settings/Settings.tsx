@@ -8,7 +8,7 @@ import {
   useState,
 } from "react"
 import { useTranslation } from "react-i18next"
-import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native"
+import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { BadgeSwatch } from "@/components/surface/BadgeSwatch"
@@ -24,6 +24,7 @@ import {
   usePress,
   useScheme,
 } from "@/components/ui"
+import { wordLabel } from "@/features/home/categories"
 import { ageLabel, type OnboardingStep } from "@/features/onboarding/flow"
 import { api } from "@/lib/api"
 import { authClient } from "@/lib/auth-client"
@@ -185,6 +186,16 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
       { text: t("settings.deleteConfirm"), style: "destructive", onPress: deleteAccount },
     ])
 
+  // simulators have no dialer
+  const call = (number: string) => Linking.openURL(`tel:${number}`).catch(() => {})
+
+  const showHelp = () =>
+    Alert.alert(t("settings.helpTitle"), t("settings.helpBody"), [
+      { text: t("settings.helpAdults"), onPress: () => call("116123") },
+      { text: t("settings.helpYoung"), onPress: () => call("116111") },
+      { text: t("settings.cancel"), style: "cancel" },
+    ])
+
   return (
     <ScrollView
       style={styles.page}
@@ -212,7 +223,7 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
           <Text style={[type.headline, { color: c.fg1 }]}>{profile.name}</Text>
           <Text style={[type.mono, { color: c.fg2 }]}>
             {t("settings.card", {
-              mode: profile.mode,
+              mode: t(`modes.${profile.mode}`).toLowerCase(),
               verified: t(profile.verified ? "settings.verified" : "settings.notVerified"),
               serial: design.serial,
             })}
@@ -233,7 +244,7 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
         <Row
           icon="sparkle"
           label={t("settings.interests")}
-          value={shortList(profile.interests)}
+          value={shortList(profile.interests.map((i) => wordLabel(t, i)))}
           onPress={() => onEdit("interests")}
         />
         <Row
@@ -309,12 +320,15 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
 
       <Group label={t("settings.groups.privacy")}>
         <Row icon="camera" label={t("settings.photos")} value={t("settings.photosValue")} />
-        <Row icon="ban" label={t("settings.blocked")} value="0" />
         <Row
           icon="download"
           label={t("settings.download")}
           onPress={isBusy ? undefined : download}
         />
+      </Group>
+
+      <Group label={t("settings.groups.help")}>
+        <Row icon="hand" label={t("settings.help")} onPress={showHelp} />
       </Group>
 
       <Group label={t("settings.groups.account")}>

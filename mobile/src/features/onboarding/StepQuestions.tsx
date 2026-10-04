@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from "react-native"
 import { badgeDesign } from "@/components/surface/badgeDesign"
 import { VibeBadge } from "@/components/surface/VibeBadge"
 import { Button, Chip, Icon, TextField, Thinking, useScheme } from "@/components/ui"
+import { wordLabel } from "@/features/home/categories"
 import { api } from "@/lib/api"
 import { space } from "@/theme/layout"
 import { type } from "@/theme/type"
@@ -25,6 +26,7 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
   const [hasFailed, setHasFailed] = useState(false)
   const { mode, name, interests, qa, vibe, character } = profile
   const isBadge = qa.length >= TOTAL
+  const labels = interests.map((i) => wordLabel(t, i))
 
   // editing restarts the questions; the old answers would only steer the new ones
   useEffect(() => {
@@ -131,14 +133,17 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
       >
         <VibeBadge
           design={design}
-          eyebrow={t("onboarding.badge.wants", { name: name.trim(), interest: interests[0] })}
+          eyebrow={t("onboarding.badge.wants", { name: name.trim(), interest: labels[0] })}
           quote={vibe || t("onboarding.badge.writing")}
-          tag={mode}
+          tag={t(`modes.${mode}`)}
           width={224}
           strap={64}
         />
         <Text style={[type.footnote, styles.center, { color: c.fg2 }]}>
-          {t("onboarding.badge.caption", { interests: design.tags.join(", "), count: qa.length })}
+          {t("onboarding.badge.caption", {
+            interests: design.tags.map((tag) => wordLabel(t, tag)).join(", "),
+            count: qa.length,
+          })}
         </Text>
         {offline}
       </Step>
@@ -150,7 +155,7 @@ export const StepQuestions = ({ profile, set, next, isEditing }: StepProps) => {
       ? t("onboarding.questions.sample")
       : qa.length
         ? t("onboarding.questions.fromLast")
-        : t("onboarding.questions.fromInterests", { a: interests[0], b: interests[1] })
+        : t("onboarding.questions.fromInterests", { a: labels[0], b: labels[1] })
 
   return (
     <Step

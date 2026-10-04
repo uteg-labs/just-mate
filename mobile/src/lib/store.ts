@@ -1,12 +1,16 @@
 import {
   type Bucket,
   type ClientMsg,
+  CloseCode,
   type Config,
   DEFAULT_CONFIG,
   type Intent,
   type MatchPartner,
   type Mode,
   type Plan,
+  type PlanRemovedReason,
+  type Position,
+  type SearchOn,
   type SearchStopReason,
   type ServerMsg,
   type SessionEndReason,
@@ -14,6 +18,7 @@ import {
 import { useSyncExternalStore } from "react"
 
 import { authClient } from "./auth-client"
+import { metersBetween } from "./venues"
 import { type Demo, openSocket, type Socket } from "./ws"
 
 export type Searching = { mode: Mode; category: string; intents: string[]; startedAt: number }
@@ -24,7 +29,12 @@ export type Offer = { offerId: string; endsAt: number; state: "offered" | "accep
 
 export type Session = { id: string; endsAt: number; bearing?: number; bucket?: Bucket }
 
-export type Note = Exclude<SessionEndReason, "met"> | SearchStopReason
+export type Note =
+  | Exclude<SessionEndReason, "met">
+  | SearchStopReason
+  | `plan_${Exclude<PlanRemovedReason, "done">}`
+
+export type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 
 export type Link = "idle" | "open" | "lost"
 
@@ -35,12 +45,18 @@ export type Live = {
   link: Link
   config: Config
   search?: Searching
-  zones: { h: string; n: number }[]
+  zones: Zone[]
   offer?: Offer
   match?: Match
   session?: Session
   met: boolean
+  /** the partner's first name, sent with `session_end {met}` */
+  partnerName?: string
+  /** your own walk during the compass, rounded */
+  walkedM?: number
   note?: Note
+  /** the last error the server answered with, worth telling the user */
+  refused?: { code: string }
   closedWith?: number
   plans: LivePlan[]
   /** the plan whose compass you opened, until both have */
@@ -54,6 +70,12 @@ const demo: Demo | undefined = raw === "a" || raw === "b" ? raw : undefined
 
 const OFFER_EXPIRED_MS = 2400
 const RETRY_MS = 2000
+const RETRY_MAX_MS = 30_000
+const STEP_MIN_M = 10
+const WALK_ROUND_M = 10
+
+// background reports and the compass's clock race are nothing the user can act on
+const QUIET = new Set(["position_before_search_on", "invalid_position", "plan_not_yet"])
 
 const IDLE: Live = { link: "idle", config: DEFAULT_CONFIG, zones: [], met: false, plans: [] }
 
@@ -70,6 +92,10 @@ const ENDED = {
 let state = IDLE
 let socket: Socket | undefined
 let isWanted = false
+let retryMs = RETRY_MS
+let lastSearch: SearchOn | undefined
+let metId: string | undefined
+let trail: { at?: Position; m: number } = { m: 0 }
 const listeners = new Set<() => void>()
 
 function set(patch: Partial<Live>) {
@@ -101,9 +127,25 @@ function matchOf(planId: string): Match | undefined {
   return { mode: plan.mode, sharedIntent: intent, partner: plan.partner }
 }
 
+// your own fixes during a compass, counted in steps past their accuracy so standing still adds nothing
+export function ownFix(at: Position) {
+  if (!state.session) return
+  const step = trail.at ? metersBetween(trail.at, at) : 0
+  if (trail.at && step < Math.max(at.acc, STEP_MIN_M)) return
+  trail = { at, m: trail.m + step }
+}
+
+function metWith(partnerName?: string): Partial<Live> {
+  const walkedM = Math.round(trail.m / WALK_ROUND_M) * WALK_ROUND_M
+  return { ...ENDED, match: state.match, met: true, partnerName, walkedM }
+}
+
 function reduce(msg: ServerMsg) {
   switch (msg.t) {
+    // nothing live survives a reconnect, so a search still on screen is asked for again
     case "ready":
+      retryMs = RETRY_MS
+      if (state.search && lastSearch) socket?.send(lastSearch)
       return set({ link: "open", config: msg.config })
 
     case "search_stopped":
@@ -126,6 +168,7 @@ function reduce(msg: ServerMsg) {
       return set({ offer: { ...state.offer, state: "expired" } })
 
     case "session_start":
+      trail = { m: 0 }
       return set({
         offer: undefined,
         zones: [],
@@ -140,8 +183,9 @@ function reduce(msg: ServerMsg) {
       return set({ session: { ...state.session, bearing: msg.bearing, bucket: msg.bucket } })
 
     case "session_end":
+      if (msg.sessionId === metId && state.met) return set({ partnerName: msg.partnerName })
       if (state.session?.id !== msg.sessionId) return
-      if (msg.reason === "met") return set({ ...ENDED, match: state.match, met: true })
+      if (msg.reason === "met") return set(metWith(msg.partnerName))
       return set({ ...ENDED, note: msg.reason })
 
     case "plans":
@@ -150,22 +194,39 @@ function reduce(msg: ServerMsg) {
     case "plan_update":
       return set({ plans: upsertPlan(msg.plan) })
 
-    case "plan_removed":
-      return set({ plans: state.plans.filter((p) => p.id !== msg.planId) })
+    // a plan you dropped yourself is already gone, so only the other side's removals get a note
+    case "plan_removed": {
+      const isKnown = state.plans.some((p) => p.id === msg.planId)
+      const plans = state.plans.filter((p) => p.id !== msg.planId)
+      if (!isKnown || msg.reason === "done") return set({ plans })
+      return set({ plans, note: `plan_${msg.reason}` })
+    }
 
     case "error":
-      if (msg.code === "plan_not_yet") set({ going: undefined })
       console.warn(`[ws] ${msg.code}: ${msg.message}`)
+      if (msg.code === "plan_not_yet") set({ going: undefined })
+      if (QUIET.has(msg.code)) return
+      return set({ refused: { code: msg.code } })
   }
 }
 
 function closed(from: Socket, code: number) {
   if (socket !== from) return
   socket = undefined
-  set({ ...ENDED, link: "lost", closedWith: code, plans: [] })
+  const wasLive = !!state.search || !!state.session
+  set({
+    ...ENDED,
+    link: "lost",
+    closedWith: code,
+    plans: [],
+    ...(wasLive && { note: "disconnected" as const }),
+  })
 
-  const isFinal = code === 1000 || code >= 4000
-  if (isWanted && !isFinal) setTimeout(() => isWanted && !socket && connect(), RETRY_MS)
+  // no profile may be a stale read: the surface reloads it and drops the socket if it is truly gone
+  const isFinal = code === 1000 || (code >= 4000 && code !== CloseCode.NoProfile)
+  if (!isWanted || isFinal) return
+  setTimeout(() => isWanted && !socket && connect(), retryMs)
+  retryMs = Math.min(retryMs * 2, RETRY_MAX_MS)
 }
 
 export async function connect() {
@@ -192,7 +253,8 @@ export function disconnect() {
 }
 
 export function send(msg: ClientMsg) {
-  socket?.send(msg)
+  if (msg.t === "search_on") lastSearch = msg
+  if (msg.t !== "search_on" || state.link === "open") socket?.send(msg)
 
   switch (msg.t) {
     case "search_on":
@@ -221,7 +283,8 @@ export function send(msg: ClientMsg) {
       return set({ ...ENDED, note: "vanished" })
 
     case "met":
-      return set({ ...ENDED, match: state.match, met: true })
+      metId = msg.sessionId
+      return set(metWith())
 
     case "plan_go":
       return set({ going: msg.planId })
@@ -238,7 +301,7 @@ function isOwnTaken(plan: LivePlan, msg: ClientMsg) {
 }
 
 export function leavePostMeet() {
-  set({ met: false, match: undefined })
+  set({ met: false, match: undefined, partnerName: undefined, walkedM: undefined })
 }
 
 function subscribe(listener: () => void) {

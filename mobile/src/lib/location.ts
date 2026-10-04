@@ -2,7 +2,7 @@ import { type Position, parsePosition } from "@justmate/protocol"
 import * as Location from "expo-location"
 import { useEffect, useState, useSyncExternalStore } from "react"
 
-import { send } from "./store"
+import { ownFix, send } from "./store"
 
 const WATCH_MS = 1000
 
@@ -23,38 +23,43 @@ export function useLastPosition() {
   return useSyncExternalStore(subscribe, () => latest)
 }
 
-// the one position watch: feeds the own dot on the map and every report to the server
-export function useOwnPosition() {
-  const [position, setPosition] = useState<Position>()
+// the one position watch: feeds the own dot on the map and every report to the server.
+// it runs only while the map needs it; reports to the server go out only while searching
+export function useOwnPosition(active: boolean) {
+  const [position, setPosition] = useState(latest)
 
   useEffect(() => {
+    if (!active) return
     let subscription: Location.LocationSubscription | undefined
     let cancelled = false
 
-    Location.requestForegroundPermissionsAsync().then(async ({ granted }) => {
-      if (!granted || cancelled) return
-      subscription = await Location.watchPositionAsync(
-        { accuracy: Location.Accuracy.High, timeInterval: WATCH_MS, distanceInterval: 0 },
-        ({ coords }) => {
-          const parsed = parsePosition({
-            lat: coords.latitude,
-            lng: coords.longitude,
-            acc: coords.accuracy ?? 0,
-          })
-          if (!parsed.ok) return
-          latest = parsed.value
-          setPosition(parsed.value)
-          for (const listener of listeners) listener()
-        },
-      )
-      if (cancelled) subscription.remove()
-    })
+    Location.requestForegroundPermissionsAsync()
+      .then(async ({ granted }) => {
+        if (!granted || cancelled) return
+        subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, timeInterval: WATCH_MS, distanceInterval: 0 },
+          ({ coords }) => {
+            const parsed = parsePosition({
+              lat: coords.latitude,
+              lng: coords.longitude,
+              acc: coords.accuracy ?? 0,
+            })
+            if (!parsed.ok) return
+            latest = parsed.value
+            ownFix(parsed.value)
+            setPosition(parsed.value)
+            for (const listener of listeners) listener()
+          },
+        )
+        if (cancelled) subscription.remove()
+      })
+      .catch(() => {})
 
     return () => {
       cancelled = true
       subscription?.remove()
     }
-  }, [])
+  }, [active])
 
   return position
 }
@@ -80,10 +85,12 @@ export function useHeading(): number {
 
     Location.watchHeadingAsync(({ trueHeading, magHeading }) =>
       setHeading(trueHeading >= 0 ? trueHeading : magHeading),
-    ).then((sub) => {
-      subscription = sub
-      if (cancelled) sub.remove()
-    })
+    )
+      .then((sub) => {
+        subscription = sub
+        if (cancelled) sub.remove()
+      })
+      .catch(() => {})
 
     return () => {
       cancelled = true

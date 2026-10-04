@@ -54,7 +54,7 @@ const RULES = [
   },
   {
     title: "No chat.",
-    sub: "status chips, then a real conversation",
+    sub: "the first words are face to face",
     bg: c.mint,
     fg: "#06302B",
     icon: "message-circle",
@@ -141,32 +141,20 @@ export const Rules = ({ dur }: S) => {
   )
 }
 
-// 6 · The app proposes one small plan; Tomek only says yes.
+// 6 · The app proposes one plan with one person; Tomek only says yes.
 export const PLAN_TAP = 128
+
+// ola-name is mia-name with the name swapped, so mia-quote is her vibe side
+export const OLA = { vibe: "mia-quote", name: "ola-name" }
+
 const Row = ({ icon, children }: { icon: string; children: React.ReactNode }) => (
-  <div style={{ display: "flex", alignItems: "center", gap: 18, height: 54 }}>
-    <Icon name={icon} size={32} color={c.fg2} stroke={1.8} />
+  <div style={{ display: "flex", alignItems: "center", gap: 16, height: 52 }}>
+    <Icon name={icon} size={30} color={c.fg2} stroke={1.8} />
     <span
-      style={{ fontFamily: font, fontSize: 32, fontWeight: 500, color: c.fg, letterSpacing: -0.4 }}
+      style={{ fontFamily: font, fontSize: 29, fontWeight: 500, color: c.fg, letterSpacing: -0.4 }}
     >
       {children}
     </span>
-  </div>
-)
-const Empty = ({ w }: { w: number }) => (
-  <div style={{ width: w, height: (w * 922) / 520, position: "relative" }}>
-    <div
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: w * 1.38,
-        borderRadius: 18,
-        border: "3px dashed rgba(0,0,0,0.14)",
-        boxSizing: "border-box",
-      }}
-    />
   </div>
 )
 
@@ -175,9 +163,8 @@ export const Plan = ({ dur, short = false, tapAt }: S & { short?: boolean; tapAt
   const tap = tapAt ?? (short ? PLAN_TAP - 6 : PLAN_TAP)
   const card = sp(f, 4, 22)
   const inn = f >= tap
-  const drop = sp(f, tap + 2, 22, true)
+  const drop = sp(f, 14, 24, true)
   const ripple = lerp(f, tap - 4, tap + 14, 0, 1)
-  const bw = 130
   return (
     <WarmBg f={f}>
       <div style={{ position: "absolute", left: 120, top: 300, width: 760 }}>
@@ -209,7 +196,7 @@ export const Plan = ({ dur, short = false, tapAt }: S & { short?: boolean; tapAt
           </span>
         </div>
         <div style={{ marginTop: 40, opacity: sp(f, 90, 12) }}>
-          <Mono size={20}>the app does the planning</Mono>
+          <Mono size={20}>one person · the app does the planning</Mono>
         </div>
       </div>
 
@@ -217,9 +204,8 @@ export const Plan = ({ dur, short = false, tapAt }: S & { short?: boolean; tapAt
         style={{
           position: "absolute",
           left: 910,
-          top: 60,
+          top: 180,
           width: 880,
-          height: 960,
           padding: 48,
           boxSizing: "border-box",
           borderRadius: 44,
@@ -229,94 +215,69 @@ export const Plan = ({ dur, short = false, tapAt }: S & { short?: boolean; tapAt
           transform: `translateY(${(1 - card) * 160}px)`,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 26 }}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <Mono size={20}>a plan for you · mate</Mono>
+          <Mono size={20}>expires in 6 h</Mono>
+        </div>
+        <div style={{ display: "flex", gap: 36, marginTop: 20 }}>
           <div
             style={{
-              width: 104,
-              height: 104,
-              borderRadius: 999,
-              background: c.fg,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              transform: `translateY(${(1 - drop) * -500}px) rotate(${Math.sin(f / 20) * 1.5}deg)`,
+              transformOrigin: "50% 0",
             }}
           >
-            <Icon name="dice-5" size={52} color={c.white} stroke={1.75} />
+            <Badge id={OLA.vibe} width={230} />
           </div>
-          <div>
-            <Mono size={20}>plan · games</Mono>
-            <div
-              style={{
-                fontFamily: font,
-                fontWeight: 750,
-                fontSize: 72,
-                letterSpacing: -2.6,
-                color: c.fg,
-                lineHeight: 1.05,
-                marginTop: 6,
-              }}
-            >
-              board games
-            </div>
-          </div>
-        </div>
-        <div style={{ marginTop: 30 }}>
-          <Row icon="map-pin">Games café · 9 min on foot</Row>
-          <Row icon="clock">Thu 19:00 · ~90 min</Row>
-          <Row icon="users">for 4</Row>
-        </div>
-        <div style={{ marginTop: 26, display: "flex", justifyContent: "space-between" }}>
-          <Mono size={20}>who's going</Mono>
-          <Mono size={20} color={c.fg}>
-            {inn ? "3" : "2"} of 4 going
-          </Mono>
-        </div>
-        <div style={{ display: "flex", gap: 40, marginTop: 6, alignItems: "flex-end" }}>
-          <Badge id="sam-quote" width={bw} />
-          <Badge id="mia-quote" width={bw} />
-          <div style={{ position: "relative" }}>
-            <Empty w={bw} />
-            {f >= tap && (
-              <Badge
-                id="tomek-quote"
-                width={bw}
+          <div style={{ paddingTop: 70 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+              <div
                 style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  transform: `translateY(${(1 - drop) * -320}px)`,
-                  opacity: Math.min(1, drop * 3),
+                  width: 88,
+                  height: 88,
+                  borderRadius: 999,
+                  background: c.fg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-              />
-            )}
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                bottom: -34,
-                textAlign: "center",
-                opacity: drop,
-              }}
-            >
-              <Mono size={18} color={c.fg}>
-                you
-              </Mono>
+              >
+                <Icon name="dice-5" size={44} color={c.white} stroke={1.75} />
+              </div>
+              <div>
+                <Mono size={18}>you both picked</Mono>
+                <div
+                  style={{
+                    fontFamily: font,
+                    fontWeight: 750,
+                    fontSize: 60,
+                    letterSpacing: -2.2,
+                    color: c.fg,
+                    lineHeight: 1.05,
+                    marginTop: 4,
+                  }}
+                >
+                  board games
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: 26 }}>
+              <Row icon="map-pin">Games café · public venue</Row>
+              <Row icon="clock">Thu 19:00 · you're both free</Row>
+              <Row icon="footprints">9 min for you, 7 for them</Row>
             </div>
           </div>
-          <Empty w={bw} />
         </div>
         <div
-          style={{ marginTop: 44, fontFamily: font, fontSize: 25, lineHeight: 1.35, color: c.fg2 }}
+          style={{ marginTop: 30, fontFamily: font, fontSize: 25, lineHeight: 1.35, color: c.fg2 }}
         >
-          Goes ahead once 3 people are in. If it doesn't, we'll tell you before you leave.
+          Confirms only if they accept too. If you pass, it goes to someone else.
         </div>
         <div style={{ display: "flex", gap: 16, marginTop: 26, position: "relative" }}>
-          <Button variant={inn ? "secondary" : "primary"} size={32} style={{ flex: 1 }}>
-            {inn ? "You're in" : "I'm in"}
+          <Button variant={inn ? "secondary" : "glow"} size={32} style={{ flex: 1 }}>
+            {inn ? "waiting for them…" : "Accept plan"}
           </Button>
           <Button variant="ghost" size={30}>
-            Not this one
+            Pass
           </Button>
           {ripple > 0 && ripple < 1 && (
             <div
@@ -338,23 +299,16 @@ export const Plan = ({ dur, short = false, tapAt }: S & { short?: boolean; tapAt
   )
 }
 
-// 7 · It's on — the plan turns on, on every phone at the same moment.
-export const ON_COUNT = 74
+// 7 · They accept too — "you're both in" on both phones at the same moment.
+export const ON_TAP = 90
 export const ON_AT = 100
-const MiniPhone = ({
-  f,
-  you,
-  at,
-  count,
-}: {
-  f: number
-  you: boolean
-  at: number
-  count: number
-}) => {
+const MiniPhone = ({ f, you, at, tap }: { f: number; you: boolean; at: number; tap: number }) => {
   const on = f >= at
-  const n = f >= count ? 3 : 2
   const pop = sp(f, at, 12, true)
+  const press = you ? 0 : Math.sin(lerp(f, tap, tap + 8, 0, 1) * Math.PI)
+  const idle = you
+    ? { background: "#EDEDEF", color: c.fg2, label: "waiting for them…" }
+    : { background: c.glow, color: c.onGlow, label: "Accept plan" }
   return (
     <div
       style={{
@@ -443,9 +397,9 @@ const MiniPhone = ({
             }}
           >
             <Mono size={14} color={c.fg}>
-              {n} of 4 going
+              {you ? 9 : 7} min on foot
             </Mono>
-            {you && <Mono size={13}>you're in</Mono>}
+            <Mono size={13}>one person</Mono>
           </div>
           <div
             style={{
@@ -458,14 +412,14 @@ const MiniPhone = ({
               gap: 10,
               fontFamily: font,
               fontWeight: 650,
-              fontSize: on ? 26 : 21,
-              background: on ? c.success : "#EDEDEF",
-              color: on ? c.white : c.fg2,
-              transform: on ? `scale(${0.9 + pop * 0.1})` : undefined,
+              fontSize: on ? 24 : 21,
+              background: on ? c.success : idle.background,
+              color: on ? c.white : idle.color,
+              transform: `scale(${on ? 0.9 + pop * 0.1 : 1 - press * 0.06})`,
             }}
           >
             {on && <Icon name="circle-check" size={26} color={c.white} stroke={2.2} />}
-            {on ? "on" : "waiting for one more"}
+            {on ? "you're both in" : idle.label}
           </div>
         </div>
       </div>
@@ -473,12 +427,8 @@ const MiniPhone = ({
   )
 }
 
-const PHONES = [
-  { who: "their phone", id: "a" },
-  { who: "your phone", id: "you" },
-  { who: "their phone", id: "b" },
-]
-export const On = ({ dur, at = ON_AT, count = ON_COUNT }: S & { at?: number; count?: number }) => {
+const PHONES = ["your phone", "their phone"]
+export const On = ({ dur, at = ON_AT, tap = ON_TAP }: S & { at?: number; tap?: number }) => {
   const f = useCurrentFrame()
   const before = 1 - sp(f, at - 6, 10)
   const after = sp(f, at, 14, true)
@@ -496,7 +446,7 @@ export const On = ({ dur, at = ON_AT, count = ON_COUNT }: S & { at?: number; cou
       >
         <div style={{ position: "absolute", left: 0, right: 0, opacity: at >= 30 ? before : 0 }}>
           <Rise
-            text="Goes ahead only when enough people are in."
+            text="On only when you both say yes."
             size={66}
             color={c.fg}
             delay={4}
@@ -523,26 +473,27 @@ export const On = ({ dur, at = ON_AT, count = ON_COUNT }: S & { at?: number; cou
               color: c.fg,
             }}
           >
-            It's on.
+            You're both in.
           </span>
         </div>
       </div>
-      {PHONES.map(({ who, id }, i) => {
+      {PHONES.map((who, i) => {
         const enter = sp(f, 4 + i * 5, 20)
         const shake = buzz(f, at)
+        const side = i * 2 - 1
         return (
           <div
-            key={id}
+            key={who}
             style={{
               position: "absolute",
-              left: 960 + (i - 1) * 420 - 165,
+              left: 960 + side * 240 - 165,
               top: 260 + (1 - enter) * 500,
-              transform: `translateX(${shake}px) rotate(${(i - 1) * 3 + shake * 0.3}deg)`,
+              transform: `translateX(${shake}px) rotate(${side * 3 + shake * 0.3}deg)`,
             }}
           >
-            <MiniPhone f={f} you={i === 1} at={at} count={count} />
+            <MiniPhone f={f} you={i === 0} at={at} tap={tap} />
             <div style={{ textAlign: "center", marginTop: 22 }}>
-              <Mono size={17} color={i === 1 ? c.fg : c.fg2}>
+              <Mono size={17} color={i === 0 ? c.fg : c.fg2}>
                 {who}
               </Mono>
             </div>
@@ -554,7 +505,7 @@ export const On = ({ dur, at = ON_AT, count = ON_COUNT }: S & { at?: number; cou
   )
 }
 
-// 8 · Thursday. Leave at 18:52. — the venue is the only pin on the map.
+// 8 · Thursday. The compass opens 15 minutes before — the venue is the only pin on the map.
 const ROUTE: [number, number][] = [
   [980, 1010],
   [980, 700],
@@ -578,7 +529,8 @@ const along = (t: number) => {
   return ROUTE[ROUTE.length - 1]
 }
 
-export const Leave = ({ dur }: S) => {
+export const OPEN_AT = 46
+export const Opens = ({ dur }: S) => {
   const f = useCurrentFrame()
   const draw = lerp(f, 6, 34, 0, 1)
   const walk = lerp(f, 30, dur, 0, 0.45)
@@ -670,8 +622,8 @@ export const Leave = ({ dur }: S) => {
         style={{
           position: "absolute",
           left: 110,
-          top: 560,
-          width: 760,
+          top: 540,
+          width: 840,
           padding: 44,
           boxSizing: "border-box",
           borderRadius: 40,
@@ -686,41 +638,30 @@ export const Leave = ({ dur }: S) => {
           style={{
             fontFamily: font,
             fontWeight: 750,
-            fontSize: 92,
-            letterSpacing: -3.8,
+            fontSize: 78,
+            letterSpacing: -3.2,
             color: c.fg,
             marginTop: 10,
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          Leave at 18:52
+          Compass opens 18:45
         </div>
         <div style={{ fontFamily: font, fontSize: 32, color: c.fg2, marginTop: 4 }}>
-          9 min on foot
+          Games café · 9 min on foot
         </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 28 }}>
-          {["on my way", "5 min late", "can't make it"].map((t, i) => {
-            const sel = i === 0 && f >= 46
-            return (
-              <div
-                key={t}
-                style={{
-                  padding: "14px 24px",
-                  borderRadius: 999,
-                  fontFamily: font,
-                  fontWeight: 550,
-                  fontSize: 25,
-                  background: sel ? c.glow : "#EDEDEF",
-                  color: sel ? c.onGlow : c.fg,
-                  transform: sel
-                    ? `scale(${1 + Math.sin(sp(f, 46, 10) * Math.PI) * 0.08})`
-                    : undefined,
-                }}
-              >
-                {t}
-              </div>
-            )
-          })}
+        <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 28 }}>
+          <Button
+            variant={f >= OPEN_AT ? "glow" : "secondary"}
+            size={28}
+            icon={
+              <Icon name="compass" size={30} color={f >= OPEN_AT ? c.onGlow : c.fg2} stroke={2} />
+            }
+            style={{ transform: `scale(${1 + Math.sin(sp(f, OPEN_AT, 10) * Math.PI) * 0.08})` }}
+          >
+            Open compass
+          </Button>
+          <Mono size={17}>names unlock when you meet</Mono>
         </div>
       </div>
       {fadeTo(f, dur, c.ink)}
@@ -728,16 +669,17 @@ export const Leave = ({ dur }: S) => {
   )
 }
 
-// 9 · At the table — I'm here, badges up, status chips instead of chat.
-const TABLE = [
-  { id: "sam-quote", chip: "here · by the window", at: 8 },
-  { id: "mia-quote", chip: "here · by the window", at: 18 },
-  { id: "tomek-quote", chip: "here · at the door", at: 30, you: true },
-  { id: "olek-quote", chip: "on my way", later: "here · by the window", at: 42 },
+// 9 · At the table — two badges, one table, then "We met".
+const PAIR = [
+  { id: "tomek-quote", who: "you · 9 min on foot", at: 8 },
+  { id: OLA.vibe, who: "them · 7 min on foot", at: 18 },
 ]
+export const TABLE_MET = 76
 export const Table = ({ dur }: S) => {
   const f = useCurrentFrame()
-  const bw = 240
+  const bw = 260
+  const met = sp(f, TABLE_MET, 12, true)
+  const ripple = lerp(f, TABLE_MET - 4, TABLE_MET + 14, 0, 1)
   return (
     <NightBg f={f}>
       {Array.from({ length: 9 }, (_, n) => n).map((i) => (
@@ -766,7 +708,7 @@ export const Table = ({ dur }: S) => {
           gap: 30,
         }}
       >
-        <Rise text="I'm here." size={96} color={c.white} delay={2} />
+        <Rise text="Two badges." size={96} color={c.white} delay={2} />
         <div
           style={{ opacity: sp(f, 30, 12), transform: `translateY(${(1 - sp(f, 30, 12)) * 30}px)` }}
         >
@@ -779,49 +721,30 @@ export const Table = ({ dur }: S) => {
               color: c.glow,
             }}
           >
-            Badges up.
+            One table.
           </span>
         </div>
       </div>
-      {TABLE.map((p, i) => {
+      {PAIR.map((p, i) => {
         const d = sp(f, p.at, 20, true)
-        const chip = p.later && f >= 70 ? p.later : p.chip
+        const side = i * 2 - 1
         return (
           <div
             key={p.id}
-            style={{ position: "absolute", left: 960 + (i - 1.5) * 330 - bw / 2, top: 250 }}
+            style={{ position: "absolute", left: 960 + side * 250 - bw / 2, top: 250 }}
           >
             <div
               style={{
-                transform: `translateY(${(1 - d) * -500}px) rotate(${(1 - d) * (i % 2 ? 8 : -8)}deg)`,
+                transform: `translateY(${(1 - d) * -500}px) rotate(${(1 - d) * side * 8}deg)`,
                 transformOrigin: "50% 0",
               }}
             >
               <Badge id={p.id} width={bw} />
             </div>
-            <div
-              style={{
-                marginTop: 22,
-                display: "flex",
-                justifyContent: "center",
-                opacity: sp(f, p.at + 12, 10),
-              }}
-            >
-              <div
-                style={{
-                  padding: "10px 18px",
-                  borderRadius: 999,
-                  background: p.you ? c.glow : "#252525",
-                  color: p.you ? c.onGlow : "rgba(235,235,245,0.8)",
-                  fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
-                  fontSize: 17,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {p.you ? `you · ${chip}` : chip}
-              </div>
+            <div style={{ marginTop: 20, textAlign: "center", opacity: sp(f, p.at + 12, 10) }}>
+              <Mono size={18} color={i ? "rgba(235,235,245,0.7)" : c.glow}>
+                {p.who}
+              </Mono>
             </div>
           </div>
         )
@@ -834,38 +757,63 @@ export const Table = ({ dur }: S) => {
           bottom: 70,
           display: "flex",
           justifyContent: "center",
+          opacity: sp(f, 40, 12),
         }}
       >
-        <Rise
-          text="Something to do, side by side."
-          size={44}
-          color="rgba(235,235,245,0.75)"
-          weight={550}
-          delay={62}
-        />
+        <div style={{ position: "relative" }}>
+          <Button
+            variant={f >= TABLE_MET ? "success" : "glow"}
+            size={36}
+            icon={
+              <Icon
+                name={f >= TABLE_MET ? "circle-check" : "hand"}
+                size={36}
+                color={f >= TABLE_MET ? c.white : c.onGlow}
+                stroke={2}
+              />
+            }
+            style={{ transform: `scale(${f >= TABLE_MET ? 0.9 + met * 0.1 : 1})` }}
+          >
+            {f >= TABLE_MET ? "you found each other" : "We met"}
+          </Button>
+          {ripple > 0 && ripple < 1 && (
+            <div
+              style={{
+                position: "absolute",
+                left: "50%",
+                top: "50%",
+                width: ripple * 300,
+                height: ripple * 300,
+                marginLeft: -ripple * 150,
+                marginTop: -ripple * 150,
+                borderRadius: 999,
+                background: `rgba(255,178,63,${0.45 * (1 - ripple)})`,
+              }}
+            />
+          )}
+        </div>
       </div>
       {fadeTo(f, dur, c.ink)}
     </NightBg>
   )
 }
 
-// 10 · Same again next week? — the second meeting is the one that counts.
-const NAMES = ["sam-name", "mia-name", "olek-name", "tomek-name"]
-const TICK_AT = [52, 60, 68, 76]
+// 10 · Names unlock, the walk counted, same again next week? — the second meeting counts.
+const NAMES = ["tomek-name", OLA.name]
 export const AGAIN_DONE = 90
 export const Again = ({ dur }: S) => {
   const f = useCurrentFrame()
-  const bw = 180
+  const bw = 200
   const done = sp(f, AGAIN_DONE, 14, true)
+  const press = Math.sin(lerp(f, AGAIN_DONE - 6, AGAIN_DONE, 0, 1) * Math.PI)
   return (
     <NightBg f={f}>
       {NAMES.map((id, i) => {
         const d = sp(f, i * 3, 22, true)
-        const tick = sp(f, TICK_AT[i], 10, true)
         return (
           <div
             key={id}
-            style={{ position: "absolute", left: 960 + (i - 1.5) * 240 - bw / 2, top: -60 }}
+            style={{ position: "absolute", left: 960 + (i * 2 - 1) * 150 - bw / 2, top: -60 }}
           >
             <div
               style={{
@@ -875,41 +823,41 @@ export const Again = ({ dur }: S) => {
             >
               <Badge id={id} width={bw} />
             </div>
-            <div
-              style={{
-                position: "absolute",
-                right: -14,
-                bottom: -10,
-                width: 56,
-                height: 56,
-                borderRadius: 99,
-                background: c.success,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transform: `scale(${tick})`,
-                boxShadow: "0 6px 20px rgba(48,209,88,0.5)",
-              }}
-            >
-              <Icon name="check" size={34} color={c.white} stroke={3} />
-            </div>
           </div>
         )
       })}
-      <div style={{ position: "absolute", left: 0, right: 0, top: 410, textAlign: "center" }}>
+      <div style={{ position: "absolute", left: 0, right: 0, top: 330, textAlign: "center" }}>
         <div style={{ opacity: sp(f, 8, 12) }}>
           <Mono size={20} color={c.success}>
             you found each other
           </Mono>
         </div>
         <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
-          <Rise
-            text="Say hi to Sam, Mia and Olek."
-            size={84}
-            color={c.white}
-            delay={10}
-            stagger={2}
-          />
+          <Rise text="Say hi to Ola." size={110} color={c.white} delay={10} stagger={2} />
+        </div>
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 16,
+            opacity: sp(f, 26, 12),
+            transform: `translateY(${(1 - sp(f, 26, 12)) * 20}px)`,
+          }}
+        >
+          <Icon name="footprints" size={40} color="rgba(235,235,245,0.7)" stroke={2} />
+          <span
+            style={{
+              fontFamily: font,
+              fontWeight: 550,
+              fontSize: 42,
+              letterSpacing: -1.2,
+              color: "rgba(235,235,245,0.7)",
+            }}
+          >
+            You walked 640 m to say hi.
+          </span>
         </div>
       </div>
       <div
@@ -917,7 +865,7 @@ export const Again = ({ dur }: S) => {
           position: "absolute",
           left: 0,
           right: 0,
-          top: 640,
+          top: 690,
           display: "flex",
           justifyContent: "center",
         }}
@@ -925,8 +873,8 @@ export const Again = ({ dur }: S) => {
         <div
           style={{
             position: "relative",
-            opacity: sp(f, 24, 12),
-            transform: `translateY(${(1 - sp(f, 24, 12)) * 30}px)`,
+            opacity: sp(f, 40, 12),
+            transform: `translateY(${(1 - sp(f, 40, 12)) * 30}px) scale(${1 - press * 0.05})`,
           }}
         >
           <div style={{ opacity: 1 - done }}>
@@ -953,7 +901,7 @@ export const Again = ({ dur }: S) => {
                 size={36}
                 icon={<Icon name="circle-check" size={36} color={c.white} stroke={2} />}
               >
-                Thu 19:00 again. See you there.
+                Glad it clicked.
               </Button>
             </div>
           )}
@@ -964,7 +912,7 @@ export const Again = ({ dur }: S) => {
           position: "absolute",
           left: 0,
           right: 0,
-          top: 880,
+          top: 900,
           textAlign: "center",
           opacity: sp(f, 100, 14),
         }}
@@ -988,7 +936,7 @@ const SAFETY = [
     accent: c.success,
   },
   { t: "Public places", s: "plans happen at public venues", icon: "map-pin", accent: c.glow },
-  { t: "One-tap Vanish", s: "ends it for everyone, instantly", icon: "x", accent: c.danger },
+  { t: "One-tap Vanish", s: "ends it for both, instantly", icon: "x", accent: c.danger },
   { t: "Zero history", s: "no stored locations, ever", icon: "lock", accent: c.mint },
 ]
 export const Safety = ({ dur }: S) => {

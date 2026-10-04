@@ -24,8 +24,6 @@ ENV NODE_ENV=production
 COPY --from=build /app/server/dist server/dist
 COPY server/drizzle server/drizzle
 COPY server/taste server/taste
-# profile cards land in ../temporary relative to server/
-RUN mkdir temporary && chown bun temporary
 
 USER bun
 WORKDIR /app/server

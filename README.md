@@ -57,13 +57,15 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 
 ```
 docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching
+docs/archive/    the pre-hackathon build plan, kept for history
 docs/submission/ deck, whitepaper, cover and app screens for the submission
 mobile/          Expo dev-client app — auth, onboarding, map, plans, match card, compass, post-meet, settings
 server/          Bun + Elysia + Drizzle — auth, profile, onboarding LLM helpers, zones, matching, plans, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
-ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), standalone
+ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), HTTP scorer; task specs in ml/docs/
 site/            public web page on Vercel — the film, use-case clips, waitlist
-video/           Remotion film and clips (motion/), app design prototype
+video/motion/    Remotion film and use-case clips
+design/prototype/ HTML design prototype the film's screens were captured from
 ```
 
 ## Run

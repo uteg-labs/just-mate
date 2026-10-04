@@ -231,7 +231,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (800 m by default) ∧ shar
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
 - **Honesty on stage.** In M0, with synthetic data only, a learned model just learns the baseline. We do not say "AI matching" about something that is not learned from real signal — the explainable function stays the headline; the model card + `docs/ML-MATCHING.md` describe the *real* M1 pipeline.
-- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `ml/README.md` (`docs/ml/PLAN.md` is the original plan, kept for history).
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `ml/README.md` (`ml/docs/PLAN.md` is the original plan, kept for history).
 
 **Description generation (LLM, M0 stretch).** — Today's version of the attraction vector. The user's photo is uploaded once at onboarding; an LLM produces a 2–3 sentence plain-prose description (`Appearance + personality + what they're looking for`) which becomes part of the profile. The matching model never sees the photo, only the text. In M0 we use a canned pool of descriptions for synthetic profiles; in M1 a real LLM call produces them per-user. **Privacy note:** photos go to the LLM API. Production needs a DPIA + explicit consent per §10; the demo uses test data only.
 

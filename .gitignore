@@ -6,8 +6,7 @@ dist/
 .DS_Store
 *.log
 
-temporary/*
-!temporary/.gitkeep
+server/.cards/
 
 .expo/
 ios/
@@ -19,9 +18,7 @@ __pycache__/
 .ruff_cache/
 *.pt
 
-app-v1
 .idea
 
-# renders and session outputs stay out of git
+# renders stay out of git
 *.mp4
-Claude outputs/

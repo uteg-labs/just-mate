@@ -31,6 +31,7 @@ import { api } from "@/lib/api"
 import { authClient } from "@/lib/auth-client"
 import { useBack } from "@/lib/back"
 import { clearProfile } from "@/lib/profile"
+import { chooseLanguage, LANGUAGES, type LanguageChoice, languageChoice } from "@/localization/i18n"
 import { layout, space } from "@/theme/layout"
 import { pressScale } from "@/theme/motion"
 import { type } from "@/theme/type"
@@ -153,6 +154,13 @@ export const Settings = ({
   const insets = useSafeAreaInsets()
   const { data: session } = authClient.useSession()
   const [isBusy, setIsBusy] = useState(false)
+  const [language, setLanguage] = useState(languageChoice)
+
+  const pickLanguage = (choice: LanguageChoice) => {
+    setLanguage(choice)
+    chooseLanguage(choice)
+  }
+
   const design = badgeDesign(profile)
   const { settings } = profile
   const isDate = profile.mode === "date"
@@ -326,6 +334,17 @@ export const Settings = ({
       </Group>
 
       <Group label={t("settings.groups.feel")}>
+        <Row icon="languages" label={t("settings.language")}>
+          <Segmented
+            items={[
+              { value: "system", label: t("settings.languageSystem") },
+              ...LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() })),
+            ]}
+            value={language}
+            onChange={pickLanguage}
+            fullWidth={false}
+          />
+        </Row>
         {FEEL.map(({ key, icon }) => (
           <ToggleRow
             key={key}

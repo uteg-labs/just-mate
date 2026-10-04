@@ -193,6 +193,8 @@ export const en = {
     neverShown: "never shown",
     when: "When you're around",
     startMode: "Open the map in",
+    language: "Language",
+    languageSystem: "Auto",
     walk: "Walk up to",
     minutes: "{{count}} min",
     autoStop: "Stop searching after 30 min",

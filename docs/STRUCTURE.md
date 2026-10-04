@@ -230,13 +230,14 @@ Back arrow "Back to the map" · large title "Settings".
 |---|---|
 | your profile | Name · Interests ("a, b +n") · Questions and vibe ("{n} answers") · Who you're after (date "{seek} · {min}–{max}", mate "{anyone\|same gender} · {one-on-one\|small group}") · date: Appearance taste ("never shown") / mate: When you're around |
 | the map | Open the map in: Date / Mate · Walk up to: 5 min / 10 min / 15 min · Stop searching after 30 min (switch) |
-| feel | Haptics · Sounds · Reduce motion (switches) |
+| feel | Language: Auto / EN / PL / SK · Haptics · Sounds · Reduce motion (switches) |
 | privacy and safety | Taste and photos ("never stored") · Blocked people (how many you reported, from `ready`) · Download my data |
 | account | Email · Log out |
 
 - Footer: ghost **Delete account** · mono "just-mate · prototype · production path simulated".
 - Profile rows reopen their single onboarding step in "editing" mode; done returns to Settings.
-- Defaults: haptics on · sounds off · reduce motion off · auto-stop on · walk up to 10 min · open the map in the profile's mode.
+- Language is kept on the device, not in the profile; Auto follows the phone and falls back to English. Auth emails follow it.
+- Defaults: language Auto · haptics on · sounds off · reduce motion off · auto-stop on · walk up to 10 min · open the map in the profile's mode.
 
 ## Plans, safety and help (added after the mentor review, Sat 3 Oct)
 

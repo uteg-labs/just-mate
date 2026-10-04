@@ -387,7 +387,7 @@ Non-touch fades (cross-fades, reduced motion) use `withTiming(…, { duration: 2
 
 ### 8.6 Gestures — draggable surfaces
 
-The morph surface sizes to its content and has no drag detents. Wherever something is dragged (the vibe badge, the swipe cards, any future draggable sheet), these rules apply:
+The morph surface sizes to its content. Over the map (select, search) it has two detents: open, and an 80 pt peek so the whole map shows. A 20 pt grab strip along its top edge carries a grabber (36 × 5 `fg-3`, 8 from the top); drag it down to the peek, drag or tap the peek to bring the sheet back. A new shape always opens. Wherever something is dragged (the vibe badge, the swipe cards, any future draggable sheet), these rules apply:
 
 
 - **1:1 tracking**, respecting the grab offset (`@gorhom/bottom-sheet` does this; keep `enableOverDrag`).

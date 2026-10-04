@@ -1,5 +1,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react"
-import { StyleSheet, useWindowDimensions } from "react-native"
+import { useTranslation } from "react-i18next"
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
+import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { scheduleOnRN } from "react-native-worklets"
 import { Material, type Scheme, Scope, useReduceMotion } from "@/components/ui"
 import { dark, light } from "@/theme/colors"
 import { shadowDark, shadowLight } from "@/theme/elevation"
@@ -58,6 +61,30 @@ const TONES: Record<MorphTone, { fill: string; scheme: Scheme }> = {
 const UNMEASURED = 320
 const SETTLE = 120
 const SCALE_FROM = 0.94
+const PEEK = 80
+const GRAB = 20
+const GRABBER = { width: 36, height: 5 }
+const SLOP = 10
+const DECELERATION = 0.998
+const RUBBER = 0.55
+
+// DESIGN.md §8.6
+function project(velocity: number) {
+  "worklet"
+  return ((velocity / 1000) * DECELERATION) / (1 - DECELERATION)
+}
+
+function rubberband(overshoot: number, dimension: number) {
+  "worklet"
+  return (overshoot * dimension * RUBBER) / (dimension + RUBBER * Math.abs(overshoot))
+}
+
+function follow(raw: number, travel: number, dimension: number) {
+  "worklet"
+  if (raw < 0) return rubberband(raw, dimension)
+  if (raw > travel) return travel + rubberband(raw - travel, dimension)
+  return raw
+}
 
 type Frame = { left: number; top: number; width: number; height: number; r: number }
 
@@ -131,10 +158,11 @@ const MorphLayer = ({
   )
 }
 
-export type MorphProps = { shape: Shape; render: (s: Shape) => ReactNode }
+export type MorphProps = { shape: Shape; render: (s: Shape) => ReactNode; canCollapse?: boolean }
 
 // DESIGN.md §13.1 — one surface springs between shapes; its content cross-fades inside it
-export const Morph = ({ shape, render }: MorphProps) => {
+export const Morph = ({ shape, render, canCollapse = false }: MorphProps) => {
+  const { t } = useTranslation()
   const reduceMotion = useReduceMotion()
   const size = useWindowDimensions()
   const insets = useSafeAreaInsets()
@@ -159,13 +187,34 @@ export const Morph = ({ shape, render }: MorphProps) => {
   const shown = useSharedValue(0)
   const isReady = useRef(false)
 
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const drop = useSharedValue(0)
+  const grabbedAt = useSharedValue(0)
+  const travel = Math.max(0, target.height - PEEK)
+
+  function settle(isDown: boolean, velocity = 0) {
+    "worklet"
+    const to = isDown ? travel : 0
+    const feel = velocity ? { ...spring.momentum, velocity } : spring.default
+    drop.set(reduceMotion ? withTiming(to, { duration: dur }) : withSpring(to, feel))
+    scheduleOnRN(setIsCollapsed, isDown)
+  }
+
+  const pan = Gesture.Pan()
+    .activeOffsetY([-SLOP, SLOP])
+    .onStart(() => grabbedAt.set(drop.get()))
+    .onUpdate((e) => drop.set(follow(grabbedAt.get() + e.translationY, travel, target.height)))
+    .onEnd((e) => settle(drop.get() + project(e.velocityY) > travel / 2, e.velocityY))
+
   useEffect(() => {
     if (current.current === shape) return
     current.current = shape
+    drop.set(withTiming(0, { duration: dur }))
+    setIsCollapsed(false)
     setLayers((ls) => (ls.includes(shape) ? ls : [...ls, shape]))
     const timer = setTimeout(() => setLayers([current.current]), dur + SETTLE)
     return () => clearTimeout(timer)
-  }, [shape, dur])
+  }, [shape, dur, drop])
 
   useEffect(() => {
     const move = (v: number) => {
@@ -209,6 +258,7 @@ export const Morph = ({ shape, render }: MorphProps) => {
     top: top.get(),
     width: width.get(),
     height: height.get(),
+    transform: [{ translateY: drop.get() }],
   }))
   const radiusStyle = useAnimatedStyle(() => ({ borderRadius: r.get() }))
 
@@ -264,6 +314,18 @@ export const Morph = ({ shape, render }: MorphProps) => {
             onHeight={onHeight}
           />
         ))}
+        {canCollapse && (
+          <GestureDetector gesture={pan}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t(isCollapsed ? "home.sheetExpand" : "home.sheetCollapse")}
+              onPress={() => settle(!isCollapsed)}
+              style={[styles.grab, isCollapsed && styles.peek]}
+            >
+              <View style={styles.grabber} />
+            </Pressable>
+          </GestureDetector>
+        )}
       </Animated.View>
     </Animated.View>
   )
@@ -274,4 +336,15 @@ const styles = StyleSheet.create({
   fill: { ...StyleSheet.absoluteFill, borderCurve: "continuous" },
   clip: { overflow: "hidden" },
   layer: { position: "absolute", top: 0, left: "50%", transformOrigin: "top" },
+  grab: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: GRAB,
+    alignItems: "center",
+    paddingTop: space.s,
+  },
+  peek: { height: "100%" },
+  grabber: { ...GRABBER, borderRadius: radius.pill, backgroundColor: light.fg3 },
 })

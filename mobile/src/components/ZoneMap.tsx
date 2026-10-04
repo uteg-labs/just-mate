@@ -2,6 +2,7 @@ import type { ServerMsg, Venue } from "@justmate/protocol"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
+import type { TFunction } from "i18next"
 import ngeohash from "ngeohash"
 import { type RefObject, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -10,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { IconButton } from "@/components/ui"
 import { useLastPosition, useOwnPosition } from "@/lib/location"
+import { venueSymbol } from "@/lib/venues"
 import { colors } from "@/theme/colors"
 import { layout } from "@/theme/layout"
 
@@ -178,11 +180,14 @@ function frame(me: Coordinates | undefined, venue: Coordinates) {
   return { coordinates: middle, zoom: zoomFor(distanceM(me, venue)) }
 }
 
-function markersOf(venues: Venue[], selected?: Venue) {
+// apple maps reads the glyph and tint, google maps the snippet: its pin takes no colour without an image
+function markersOf(t: TFunction, venues: Venue[], selected?: Venue) {
   return venues.map((v) => ({
     id: v.id,
     coordinates: coordsOf(v),
     title: v.name,
+    snippet: t(`plans.kinds.${v.kind}`),
+    systemImage: venueSymbol(v.kind),
     tintColor: v.id === selected?.id ? colors.fg1 : colors.fg2,
   }))
 }
@@ -340,7 +345,7 @@ export const ZoneMap = ({
       <Canvas
         camera={camera}
         circles={circles}
-        markers={markersOf(venues, selected)}
+        markers={markersOf(t, venues, selected)}
         polylines={routeOf(me, selected)}
         onMap={tap}
         onVenue={onVenue}
@@ -362,6 +367,7 @@ export type VenueMapProps = { venue: Venue }
 
 // a still map framing you and one venue: cards and headers, never touchable
 export const VenueMap = ({ venue }: VenueMapProps) => {
+  const { t } = useTranslation()
   const position = useLastPosition()
   const me = position && { latitude: position.lat, longitude: position.lng }
 
@@ -370,7 +376,7 @@ export const VenueMap = ({ venue }: VenueMapProps) => {
       <Canvas
         camera={frame(me, coordsOf(venue))}
         circles={me ? self(me) : []}
-        markers={markersOf([venue], venue)}
+        markers={markersOf(t, [venue], venue)}
         polylines={routeOf(me, venue)}
       />
     </View>

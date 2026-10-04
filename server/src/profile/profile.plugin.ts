@@ -8,6 +8,7 @@ import { account, profile, session, user } from "../db/schema"
 import { isDangerous } from "../onboarding/moderation"
 import { closeUser, updateProfile } from "../realtime/session"
 import { saveProfileCard } from "./card"
+import { embeddingInputsChanged, saveEmbeddings } from "./embedding"
 
 // a profile card per save, for the ML work; never in production or under test
 const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")
@@ -41,6 +42,7 @@ export const profilePlugin = new Elysia({ name: "profile" })
       const parsed = parseProfile(body)
       if (!parsed.ok) return status(400, { error: parsed.error })
 
+      const before = await loadProfile(user.id)
       const flagged = await isDangerous([
         parsed.value.name,
         parsed.value.character,
@@ -57,6 +59,10 @@ export const profilePlugin = new Elysia({ name: "profile" })
         })
         .returning({ dangerous: profile.dangerous })
       updateProfile(user.id, parsed.value, saved?.dangerous ?? flagged)
+      if (embeddingInputsChanged(before, parsed.value))
+        saveEmbeddings(user.id, parsed.value).catch((err) =>
+          console.warn("[profile] embeddings not saved:", err),
+        )
       if (writesCards)
         saveProfileCard(user.id, parsed.value).catch((err) =>
           console.warn("[profile] card not saved:", err),

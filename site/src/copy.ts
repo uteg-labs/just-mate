@@ -529,7 +529,8 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "p-full": "Lokale płacą za wypełnienie pustych wieczorów. Poznawanie ludzi zostaje darmowe.",
     "m-plan-0": "Plan: aplikacja proponuje jeden mały plan. Ty tylko mówisz tak.",
     "m-plan-1": "Rusza, gdy oboje jesteście na tak.",
-    "rules-0": "Znajdziemy twoich ludzi. Nasza własna AI jest wytrenowana, by znaleźć ludzi, z którymi naprawdę pogadasz.",
+    "rules-0":
+      "Znajdziemy twoich ludzi. Nasza własna AI jest wytrenowana, by znaleźć ludzi, z którymi naprawdę pogadasz.",
     "rules-1": "Robimy plan za ciebie. Ty tylko mówisz tak.",
     "rules-2": "Już jesteś na mieście? Poznaj kogoś teraz.",
   },

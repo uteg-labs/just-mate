@@ -126,7 +126,8 @@ export const pl = {
       done: "Gust zapisany",
       tally: "{{into}} na tak · {{not}} na nie",
       cta: "Zweryfikuj mnie",
-      ctaLeft: "Zostało {{count}} do przesunięcia",
+      confirm: "Potwierdź · {{count}} wybranych",
+      skip: "Pomiń",
       traits: [
         "wysoki · ciemne włosy · broda",
         "drobna · piegi · kręcone rude włosy",
@@ -223,6 +224,7 @@ export const pl = {
     searchingFor: ": {{picks}}",
     offline: "offline",
     openSettings: "Otwórz ustawienia",
+    recenter: "Wycentruj na mnie",
     zone: "~{{n}} pasujących osób w pobliżu",
     headlines: {
       date: [

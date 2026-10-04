@@ -1,6 +1,6 @@
 # JustMate · site
 
-The public web page: the `Main` film as the hero, then one section per use case with its clip (Tomek, Lucía, Ania, Marta, Piotr), the business model, what's real in the demo and a waitlist. EN and PL (`?lang=pl`, or the browser language).
+The public web page: the `Main` film as the hero, then one section per use case with its clip (Tomek, Lucía, Ania, Piotr), the business model, what's real in the demo and a waitlist. EN and PL (`?lang=pl`, or the browser language).
 
 The films are the Remotion compositions from [`video/motion`](../video/motion), played in a `<Player>`: a clip starts muted when scrolled into view, shows the voiceover as captions, and one tap plays it from the start with sound. Only one clip speaks at a time.
 

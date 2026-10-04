@@ -41,7 +41,6 @@ const en = {
   nav: {
     how: "How it works",
     match: "Matching",
-    safety: "Safety",
     security: "Security",
     venues: "Venues",
     join: "Join the waitlist",
@@ -210,22 +209,6 @@ const en = {
       ],
     },
     {
-      id: "safety",
-      piece: "Marta",
-      poster: 240,
-      tag: "Safety · Marta, 31",
-      title: "Serendipity, without the creepiness.",
-      body: "Marta walks home alone at night. Nobody knows where she is unless she said: now, this person, yes. And she can end it instantly.",
-      points: [
-        "Invisible until you search.",
-        "Zones, never your location. Positions live only inside an active session and are never stored.",
-        "Nothing unlocks unless both say yes.",
-        "Vanish: one tap ends it, for both.",
-      ],
-      note: "Production path: verified-only matching, women-only plans, meeting point first.",
-      dark: true,
-    },
-    {
       id: "venues",
       piece: "Piotr",
       poster: 330,
@@ -386,7 +369,6 @@ const pl: Copy = {
   nav: {
     how: "Jak to działa",
     match: "Dopasowanie",
-    safety: "Bezpieczeństwo",
     security: "Ochrona danych",
     venues: "Lokale",
     join: "Zapisz się",
@@ -553,22 +535,6 @@ const pl: Copy = {
         "Imiona odblokowują się dopiero po spotkaniu.",
         "Tryb randkowy jest od 18 lat, pilnuje tego serwer.",
       ],
-    },
-    {
-      id: "safety",
-      piece: "Marta",
-      poster: 240,
-      tag: "Bezpieczeństwo · Marta, 31",
-      title: "Spontaniczne spotkania, bez poczucia zagrożenia.",
-      body: "Marta wraca nocą sama do domu. Nikt nie wie, gdzie jest, dopóki ona sama nie powie: teraz, ta osoba, tak. I może to zakończyć w sekundę.",
-      points: [
-        "Nikt cię nie widzi, dopóki nie zaczniesz szukać.",
-        "Strefy, nigdy twoja lokalizacja. Pozycje istnieją tylko w trakcie aktywnej sesji i nigdy nie są zapisywane.",
-        "Nic się nie odblokuje, jeśli obie strony nie powiedzą „tak”.",
-        "Zniknij: jedno stuknięcie kończy wszystko, dla obojga.",
-      ],
-      note: "Ścieżka produkcyjna: dopasowania tylko ze zweryfikowanymi, plany tylko dla kobiet, najpierw punkt spotkania.",
-      dark: true,
     },
     {
       id: "venues",
@@ -755,11 +721,6 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "a-badge": "Tutaj jej vibe to jedyne, co ktokolwiek widzi.",
     "a-match": "Ktoś w pobliżu też ma ochotę na kawę. Oboje mówią tak.",
     "a-meet": "Imiona odblokowują się dopiero po spotkaniu.",
-    "s-intro": "Marta chce spontanicznych spotkań, bez poczucia zagrożenia.",
-    "s-0": "Niewidoczna, dopóki sama nie zacznie szukać.",
-    "s-1": "Strefy, nigdy jej lokalizacja.",
-    "s-2": "Nic się nie odblokuje, jeśli obie strony nie powiedzą tak.",
-    "s-3": "I jedno stuknięcie kończy wszystko, dla obojga.",
     "p-intro":
       "Piotr prowadzi kawiarnię z planszówkami. We wtorki i czwartki wieczorem stoliki stoją puste.",
     "p-list": "Wystawia dwa stoliki. JustMate wypełnia je ludźmi, którzy chcieli dokładnie tego.",

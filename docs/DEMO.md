@@ -24,6 +24,19 @@ Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → Us
 
 **Words we use:** loneliness, social connection, the step out of the door. **Words we never use:** "cure", "antidote", "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1). Never say a number without its source.
 
+## Q&A cheat sheet
+
+**Opening line:** "The app makes the plan. You only say yes." Plan is the product. Now gets one sentence: "When you're already out, Now pings two compatible people nearby." Don't pitch Date mode on stage.
+
+- **Business?** → B2B2C: universities onboarding international students, employers relocating staff, city loneliness programmes. One buyer brings both the density and the revenue.
+- **Competitors?** → Timeleft: dinners with strangers. Bumble BFF: photo-first friend swiping. Meetup: groups and an organiser's burden. happn: proximity after the fact.
+- **Women's safety in Now?** → Mutual accept, bearing and distance bucket only, 10-minute expiry, Vanish, Report blocks. Production path: meet at a public venue first, women-only plans, ID verification.
+- **Cold start?** → Plans work at low density: proposed ahead, within a 15-minute walk. Now lights up as density grows. We launch one campus at a time.
+- **Catfishing without photos?** → No photos means nothing to fake. Verification is production path; a report blocks, two reports pause the account.
+- **The selfie?** → The model describes it once, which checks it's a real face, then it's dropped and never shown. Production path: an on-device check.
+- **How good is the ML?** → A Siamese model trained on synthetic profiles, wired in with a fallback to the explainable score. It's the infrastructure to learn from real meetings: every offer and its outcome is already logged with the algorithm version. Never quote the synthetic AUC.
+- **A health app?** → No health claims. We measure plans that happen, repeat meetings, and an opt-in UCLA-3 score.
+
 ## Launch video
 
 The film is the Remotion composition `Main` in `video/motion` (~54 s, voice-over and music; see `video/motion/README.md`). The use-case clips (`Tomek`, `Lucia`, …) are compositions in the same project, and `site/` plays them on the web page. Plan scenes that show a group table, status chips or a leave-at time are product vision, not the build.

@@ -8,7 +8,8 @@ import { account, profile, session, user } from "../db/schema"
 import { isDangerous } from "../onboarding/moderation"
 import { closeUser, updateProfile } from "../realtime/session"
 import { saveProfileCard } from "./card"
-import { embeddingInputsChanged, saveEmbeddings } from "./embedding"
+import { saveEmbeddings } from "./embedding"
+import { embeddingInputsChanged } from "./embedding-text"
 
 // a profile card per save, for the ML work; never in production or under test
 const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")

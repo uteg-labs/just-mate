@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test"
 import { DEFAULT_PROFILE } from "@justmate/protocol"
 
-import { buildSelfText, buildTargetText, embeddingInputsChanged } from "../src/profile/embedding"
+import {
+  buildSelfText,
+  buildTargetText,
+  embeddingInputsChanged,
+} from "../src/profile/embedding-text"
 
 const profile = {
   ...DEFAULT_PROFILE,

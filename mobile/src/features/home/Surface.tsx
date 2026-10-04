@@ -323,6 +323,7 @@ export const Surface = () => {
   const sendInvite = () => {
     const msg = inviteOf(planDraft)
     if (!msg) return Alert.alert(t("home.refused"))
+    if (live.link !== "open") return Alert.alert(t("home.unsent"))
     haptic.find()
     send(msg)
     planning(false)

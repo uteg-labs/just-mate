@@ -29,7 +29,7 @@ const STRAP = 150
 const PILL_H = 52
 
 // the badge only claims what the server vouched for
-export function tagOf(t: TFunction, partner: MatchPartner, mode: Mode) {
+export function tagOf(t: TFunction, partner: Pick<MatchPartner, "tags">, mode: Mode) {
   if (!partner.tags.verified) return t(`modes.${mode}`).toLowerCase()
   return partner.tags.adult && mode === "date" ? t("match.adult") : t("match.verified")
 }

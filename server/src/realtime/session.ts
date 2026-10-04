@@ -14,15 +14,10 @@ import {
   type SessionEndReason,
 } from "@justmate/protocol"
 
-import {
-  COMPAT_THRESHOLD,
-  canMatch,
-  compat,
-  matchRadiusM,
-  partnerCard,
-  sharedIntents,
-} from "../matching/compat"
+import { canMatch, compat, matchRadiusM, partnerCard, sharedIntents } from "../matching/compat"
 import { bearing, bucketFor, cellCentre, distanceM, geohash } from "../matching/geo"
+import { MATCH_ALGORITHM_VERSION, type MatchScoreRecord, type MatchStore } from "../matching/match"
+import { pairThreshold } from "../matching/scorer_http"
 import {
   type PlanLink,
   planDisconnect,
@@ -43,19 +38,31 @@ export type Conn = {
 export type Deps = {
   userIdForCookie(cookie: string): Promise<string | undefined>
   profileFor(userId: string): Promise<Profile | undefined>
+  matchScoresFor?(userId: string): Promise<MatchScoreRecord[]>
   isDangerous?(userId: string): Promise<boolean>
+  matchStore?: MatchStore
 }
 
 type Pair = [Client, Client]
 
-export type Offer = { id: string; pair: Pair; accepted: Set<Client>; expiresAt: number }
+export type Offer = {
+  id: string
+  pair: Pair
+  accepted: Set<Client>
+  expiresAt: number
+  persisted: Promise<void>
+  store?: MatchStore
+}
 
 export type Session = {
   id: string
+  matchId?: string
   pair: Pair
   startedAt: number
   expiresAt: number
   planId?: string
+  persisted: Promise<void>
+  store?: MatchStore
 }
 
 export type Client = {
@@ -68,6 +75,7 @@ export type Client = {
   profile?: Profile
   dangerous?: boolean
   search?: Search
+  searchStartedAt?: number
   autoStop?: Timer
   position?: Position
   /** when `position` was kept */
@@ -79,11 +87,24 @@ export type Client = {
   zonesWindow?: number
 }
 
-type Searcher = Client & { profile: Profile; search: Search; position: Position }
+type Searcher = Client & {
+  profile: Profile
+  search: Search
+  searchStartedAt: number
+  position: Position
+}
 
-type Candidate = { a: Searcher; b: Searcher; intent: Intent; score: number; meters: number }
+type Candidate = {
+  a: Searcher
+  b: Searcher
+  intent: Intent
+  score: number
+  rankingScore: number
+  meters: number
+}
 
 const ZONE_RADIUS_M = 2000
+const MAX_WAIT_BONUS = 0.1
 
 // faster than a sprint is a spoofed fix, the kind that walks a fake baseline for triangulation
 const MAX_SPEED_MPS = 10
@@ -100,6 +121,18 @@ export const clients = new Map<string, Client>()
 
 // pair key → cooldown end
 export const cooldowns = new Map<string, number>()
+
+export const matchScores = new Map<string, MatchScoreRecord>()
+
+export function cacheMatchScores(records: MatchScoreRecord[]) {
+  for (const record of records)
+    matchScores.set([record.userAId, record.userBId].sort().join("|"), record)
+}
+
+export function invalidateMatchScores(userId: string) {
+  for (const [key, record] of matchScores)
+    if (record.userAId === userId || record.userBId === userId) matchScores.delete(key)
+}
 
 const planLink: PlanLink = {
   now: () => clock.now(),
@@ -164,7 +197,7 @@ export async function receive(client: Client, frame: unknown) {
       return accept(client, msg.offerId)
 
     case "dismiss":
-      if (client.offer && client.offer.id === msg.offerId) expireOffer(client.offer)
+      if (client.offer && client.offer.id === msg.offerId) expireOffer(client.offer, "dismissed")
       return
 
     case "vanish":
@@ -197,9 +230,13 @@ async function greet(client: Client, sessionCookie: string) {
   if (client.isClosed) return
   if (!userId) return client.conn.close(CloseCode.Unauthorized, "authentication required")
 
-  const [profile, isDangerous] = client.demo
-    ? [DEMO_PROFILES[client.demo], false]
-    : await Promise.all([client.deps.profileFor(userId), client.deps.isDangerous?.(userId)])
+  const [profile, isDangerous, scores] = client.demo
+    ? [DEMO_PROFILES[client.demo], false, []]
+    : await Promise.all([
+        client.deps.profileFor(userId),
+        client.deps.isDangerous?.(userId),
+        client.deps.matchScoresFor?.(userId),
+      ])
   if (client.isClosed) return
   if (!profile) return client.conn.close(CloseCode.NoProfile, "finish onboarding first")
 
@@ -214,6 +251,7 @@ async function greet(client: Client, sessionCookie: string) {
   client.id = id
   client.profile = profile
   client.dangerous = !!isDangerous
+  cacheMatchScores(scores ?? [])
   clients.set(client.id, client)
   client.conn.send({
     t: "ready",
@@ -230,11 +268,13 @@ function searchOn(client: Client, profile: Profile, msg: unknown) {
   const { mode, category, intents, walkMin = profile.settings.walkMin } = parsed.value
   if (mode === "date" && !profile.adult) return error(client, "adult_required", "date mode is 18+")
 
-  if (client.offer) expireOffer(client.offer)
+  if (client.offer) expireOffer(client.offer, "vanished")
   if (client.session) endSession(client.session, "vanished")
 
-  if (!client.search && profile.settings.autoStop) {
-    client.autoStop = setTimeout(() => autoStop(client), config.autoStopMs)
+  if (!client.search) {
+    client.searchStartedAt = clock.now()
+    if (profile.settings.autoStop)
+      client.autoStop = setTimeout(() => autoStop(client), config.autoStopMs)
   }
   client.search = { mode, category, intents, walkMin }
 }
@@ -273,7 +313,8 @@ function accept(client: Client, offerId: string) {
 }
 
 function leave(client: Client, reason: SessionEndReason) {
-  if (client.offer) expireOffer(client.offer)
+  if (client.offer)
+    expireOffer(client.offer, reason === "disconnected" ? "disconnected" : "vanished")
   if (client.session) endSession(client.session, reason)
   stopSearch(client)
 }
@@ -282,6 +323,7 @@ function stopSearch(client: Client) {
   clearTimeout(client.autoStop)
   client.autoStop = undefined
   client.search = undefined
+  client.searchStartedAt = undefined
   client.position = undefined
   client.fixAt = undefined
 }
@@ -293,12 +335,33 @@ function autoStop(client: Client) {
   client.conn.send({ t: "search_stopped", reason: "auto_stop" })
 }
 
-function offer({ a, b, intent }: Candidate, now: number) {
+function offer({ a, b, intent, score, rankingScore }: Candidate, now: number) {
+  const store = a.demo ? undefined : a.deps.matchStore
   const offer: Offer = {
     id: `o_${shortId()}`,
     pair: [a, b],
     accepted: new Set(),
     expiresAt: now + config.offerTtlMs,
+    persisted: Promise.resolve(),
+    store,
+  }
+  if (store) {
+    const userAId = a.id < b.id ? a.id : b.id
+    const userBId = a.id < b.id ? b.id : a.id
+    persist(offer, () =>
+      store.create({
+        id: offer.id,
+        userAId,
+        userBId,
+        mode: a.search.mode,
+        category: a.search.category,
+        intent,
+        compatibilityScore: score,
+        rankingScore,
+        algorithmVersion: MATCH_ALGORITHM_VERSION,
+        createdAt: new Date(now),
+      }),
+    )
   }
   for (const [me, them] of [
     [a, b],
@@ -315,17 +378,22 @@ function offer({ a, b, intent }: Candidate, now: number) {
   }
 }
 
-function expireOffer(offer: Offer) {
+function expireOffer(offer: Offer, state: "expired" | "dismissed" | "vanished" | "disconnected") {
   for (const client of offer.pair) {
     client.offer = undefined
     client.conn.send({ t: "offer_expired", offerId: offer.id })
   }
+  if (offer.store) persist(offer, () => offer.store?.finish(offer.id, state, new Date(clock.now())))
   coolDown(offer.pair)
 }
 
 function startSession(offer: Offer) {
   for (const client of offer.pair) client.offer = undefined
-  openSession(offer.pair, config.sessionTtlMs)
+  openSession(offer.pair, config.sessionTtlMs, {
+    matchId: offer.id,
+    persisted: offer.persisted,
+    store: offer.store,
+  })
 }
 
 // a plan's compass ends whatever else either side had going
@@ -334,30 +402,45 @@ function startPlanSession(ids: [string, string], planId: string): boolean {
   if (!a?.profile || !b?.profile) return false
 
   for (const client of [a, b]) {
-    if (client.offer) expireOffer(client.offer)
+    if (client.offer) expireOffer(client.offer, "vanished")
     if (client.session) endSession(client.session, "vanished")
     if (client.search) stopSearch(client)
   }
-  openSession([a, b], config.planSessionTtlMs, planId)
+  openSession([a, b], config.planSessionTtlMs, { planId })
   return true
 }
 
-function openSession(pair: Pair, ttlMs: number, planId?: string) {
+function openSession(
+  pair: Pair,
+  ttlMs: number,
+  source: {
+    matchId?: string
+    planId?: string
+    persisted?: Promise<void>
+    store?: MatchStore
+  } = {},
+) {
   const now = clock.now()
   const session: Session = {
     id: `s_${shortId()}`,
+    matchId: source.matchId,
     pair,
     startedAt: now,
     expiresAt: now + ttlMs,
-    planId,
+    planId: source.planId,
+    persisted: source.persisted ?? Promise.resolve(),
+    store: source.store,
   }
+  const matchId = session.matchId
+  if (session.store && matchId)
+    persist(session, () => session.store?.activate(matchId, session.id, new Date(now)))
   for (const client of pair) {
     client.session = session
     client.conn.send({
       t: "session_start",
       sessionId: session.id,
       expiresInMs: ttlMs,
-      ...(planId && { planId }),
+      ...(source.planId && { planId: source.planId }),
     })
   }
 }
@@ -379,8 +462,18 @@ function endSession(session: Session, reason: SessionEndReason) {
       ...(partnerName && { partnerName }),
     })
   }
+  const matchId = session.matchId
+  if (session.store && matchId)
+    persist(session, () => session.store?.finish(matchId, reason, new Date(clock.now())))
   coolDown(session.pair)
   if (session.planId) planSessionEnded(planLink, session.planId, reason === "met")
+}
+
+function persist(record: { persisted: Promise<void> }, write: () => Promise<void> | undefined) {
+  record.persisted = record.persisted
+    .then(write)
+    .then(() => undefined)
+    .catch((error) => console.error("[matching] could not store match:", error))
 }
 
 function pairKey([a, b]: Pair): string {
@@ -412,7 +505,7 @@ function sessionTick() {
   for (const client of clients.values()) {
     if (client.demo && isLocating(client))
       client.position = demoPosition(client.demo, walkingMs(client, now))
-    if (client.offer && now >= client.offer.expiresAt) expireOffer(client.offer)
+    if (client.offer && now >= client.offer.expiresAt) expireOffer(client.offer, "expired")
     if (client.session && now >= client.session.expiresAt) endSession(client.session, "expired")
   }
 
@@ -448,7 +541,15 @@ function isSearching(client: Client): client is Searcher {
 function isCompatible(a: Searcher, b: Searcher): boolean {
   if (a.dangerous || b.dangerous) return false
   const isSameSide = demoAccountOf(a.id) === demoAccountOf(b.id)
-  return isSameSide && canMatch(a, b) && compat(a, b) >= COMPAT_THRESHOLD
+  return isSameSide && canMatch(a, b) && compatibilityScore(a, b) >= pairThreshold(config)
+}
+
+function compatibilityScore(a: Searcher, b: Searcher): number {
+  // Demo sockets and tests without persistence retain the deterministic rule-based score.
+  // Real clients only match once the background profile job has populated the ML matrix.
+  if (a.demo || !a.deps.matchStore) return compat(a, b)
+  const score = matchScores.get(pairKey([a, b]))
+  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : -Infinity
 }
 
 function relay(me: Client, session: Session) {
@@ -474,7 +575,7 @@ function pairUp(now: number) {
   const pool = [...clients.values()].filter((c): c is Searcher => isSearching(c) && !c.offer)
   const candidates = pool
     .flatMap((a, i) => pool.slice(i + 1).flatMap((b) => candidate(a, b, now)))
-    .sort((x, y) => y.score - x.score || x.meters - y.meters)
+    .sort((x, y) => y.rankingScore - x.rankingScore || y.score - x.score || x.meters - y.meters)
 
   const taken = new Set<Client>()
   for (const pick of candidates) {
@@ -489,7 +590,10 @@ function candidate(a: Searcher, b: Searcher, now: number): Candidate[] {
   const meters = distanceM(a.position, b.position)
   if (!intent || !isCompatible(a, b) || (cooldowns.get(pairKey([a, b])) ?? 0) > now) return []
   if (meters > matchRadiusM(a.search, b.search, config)) return []
-  return [{ a, b, intent, meters, score: compat(a, b) }]
+  const score = compatibilityScore(a, b)
+  const waitingMs = Math.max(now - a.searchStartedAt, now - b.searchStartedAt)
+  const waitBonus = Math.min(waitingMs / config.autoStopMs, 1) * MAX_WAIT_BONUS
+  return [{ a, b, intent, meters, score, rankingScore: score + waitBonus }]
 }
 
 function sendZones(me: Searcher, now: number) {

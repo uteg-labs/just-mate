@@ -3,6 +3,11 @@ import type { Profile, ServerMsg } from "@justmate/protocol"
 
 import { partnerCard } from "../src/matching/compat"
 import { cellCentre, geohash, type LatLng, offset } from "../src/matching/geo"
+import {
+  MATCH_ALGORITHM_VERSION,
+  type MatchScoreRecord,
+  type MatchStore,
+} from "../src/matching/match"
 import { STAGE_A } from "../src/realtime/demo"
 import {
   type Client,
@@ -11,7 +16,9 @@ import {
   config,
   connect,
   cooldowns,
+  type Deps,
   disconnect,
+  matchScores,
   receive,
   tick,
 } from "../src/realtime/session"
@@ -35,15 +42,21 @@ beforeEach(() => {
 afterEach(() => {
   for (const client of [...clients.values()]) disconnect(client)
   cooldowns.clear()
+  matchScores.clear()
   clock.now = () => Date.now()
 })
 
-async function join(id: string, profile = makeProfile(), demo?: "a" | "b"): Promise<User> {
+async function join(
+  id: string,
+  profile = makeProfile(),
+  demo?: "a" | "b",
+  matching: Pick<Deps, "matchScoresFor" | "matchStore"> = {},
+): Promise<User> {
   const sent: ServerMsg[] = []
   const closed: number[] = []
   const client = connect(
     { send: (msg) => sent.push(msg), close: (code) => closed.push(code) },
-    { userIdForCookie: async () => id, profileFor: async () => profile },
+    { userIdForCookie: async () => id, profileFor: async () => profile, ...matching },
     demo,
   )
   await receive(client, { t: "hello", sessionCookie: id })
@@ -91,6 +104,74 @@ async function session(metersApart = 150) {
 }
 
 describe("pairing", () => {
+  test("real clients require and rank by the stored ML score", async () => {
+    const records: MatchScoreRecord[] = [
+      {
+        userAId: "u_a",
+        userBId: "u_b",
+        scoreAToB: 0.84,
+        scoreBToA: 0.77,
+        score: 0.805,
+        algorithmVersion: MATCH_ALGORITHM_VERSION,
+        calculatedAt: new Date(now),
+      },
+    ]
+    const created: Parameters<MatchStore["create"]>[0][] = []
+    const activated: string[] = []
+    const finished: string[] = []
+    const store: MatchStore = {
+      create: async (record) => {
+        created.push(record)
+      },
+      activate: async (id) => {
+        activated.push(id)
+      },
+      finish: async (_id, state) => {
+        finished.push(state)
+      },
+    }
+    const matching = { matchScoresFor: async () => records, matchStore: store }
+    const a = await join("u_a", makeProfile(), undefined, matching)
+    const b = await join("u_b", makeProfile(), undefined, matching)
+
+    await search(a, 0)
+    await search(b, 50)
+    tick()
+    await Promise.resolve()
+
+    expect(lastOf(a, "match_offer")?.offerId).toBeString()
+    expect(created).toHaveLength(1)
+    expect(created[0]?.compatibilityScore).toBe(0.805)
+
+    const offerId = lastOf(a, "match_offer")?.offerId ?? ""
+    await receive(a.client, { t: "accept", offerId })
+    await receive(b.client, { t: "accept", offerId })
+    const activeSession = a.client.session
+    await activeSession?.persisted
+    expect(activated).toEqual([offerId])
+
+    await receive(a.client, { t: "met", sessionId: activeSession?.id ?? "" })
+    await activeSession?.persisted
+    expect(finished).toEqual(["met"])
+  })
+
+  test("real clients are not paired before their score matrix row exists", async () => {
+    const store: MatchStore = {
+      create: async () => {},
+      activate: async () => {},
+      finish: async () => {},
+    }
+    const matching = { matchScoresFor: async () => [], matchStore: store }
+    const a = await join("u_a", makeProfile(), undefined, matching)
+    const b = await join("u_b", makeProfile(), undefined, matching)
+
+    await search(a, 0)
+    await search(b, 50)
+    tick()
+
+    expect(all(a, "match_offer")).toEqual([])
+  })
+
   test("two compatible searchers in range get the same offer in the same tick", async () => {
     const { a, b } = await pair(300)
     const offerA = lastOf(a, "match_offer")

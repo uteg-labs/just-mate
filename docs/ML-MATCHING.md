@@ -5,8 +5,8 @@
 ## 1. TL;DR
 
 - **What it does:** given two profiles, output a pairwise compatibility score: one directional score in `[0, 1]` per direction, summed into a symmetric `pair_score` in `[0, 2]`.
-- **Stack:** OpenAI `text-embedding-3-small` (two embeddings per profile: *self* and *target*) → custom PyTorch model (Shared Encoder + asymmetric Match Head) trained in Python → exported to ONNX → served by **`match_scorer`**, a long-lived process speaking newline-delimited JSON (NDJSON) over stdin/stdout (`ml/scripts/match_scorer.py`, run as a Python script or as a PyInstaller-frozen binary). That is the only serving path: no FastAPI, no HTTP, no in-process model in Bun, no C++ binary.
-- **Status: not wired into the server.** Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × Jaccard(interests) + 0.3 × min(1, shared intents)`, threshold `0.45`). `compat()` runs per candidate pair on every matching tick, so the planned integration precomputes model scores into a cache that `compat()` reads, with the rules as fallback (§6).
+- **Stack:** OpenAI `text-embedding-3-small` (two embeddings per profile: *self* and *target*) → custom PyTorch model (Shared Encoder + asymmetric Match Head) trained in Python → exported to ONNX → served by **`match_scorer`** as an HTTP daemon (`ml/scripts/match_scorer_server.py`), bundled in one container alongside **`interest_matcher`** (`ml/scripts/interest_matcher_server.py`) — both launched together by `ml/scripts/run_servers.py` and built into `ml/Dockerfile.scorer` (PR #32). The same model is also exposed via an NDJSON subprocess (`ml/scripts/match_scorer.py`, Python or PyInstaller-frozen binary) for dev. There is no FastAPI, no in-process model in Bun, no C++ binary.
+- **Status: not wired into the server.** The HTTP container exposes `match_scorer` on `:8000` and `interest_matcher` on `:8001`; the Bun server does not import an HTTP client for them today (PR #34 reverted the server-side clients). Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × Jaccard(interests) + 0.3 × min(1, shared intents)`, threshold `0.45`). The intended integration precomputes model scores into a cache that `compat()` reads, with the rules as fallback (§6).
 - **Training objective:** triplet loss + binary match loss (+ a bidirectional BCE term in v3), jointly, on synthetic profiles; real meeting outcomes in M1.
 - **Hard rules (zones, cooldown, session limit, K-anonymity, intent gate) are NOT learned.** The model is one of several gates; everything else is server-side logic.
 
@@ -116,34 +116,73 @@ Real meeting outcomes don't exist before launch. Strategy is honest-proxy traini
 
 The model learns to reproduce these rules with a non-trivial nonlinearity. With synthetic data only, it is a demonstration of the pipeline, not evidence of real-world matching quality.
 
-## 6. Inference (planned server integration)
+## 6. Inference (HTTP scorer container; server wiring pending)
 
-**Not implemented.** Nothing in `server/` calls the model today. The intended shape (details in `ml/DEPLOYMENT.md`):
+The trained ONNX runs in a single Docker container (`ml/Dockerfile.scorer`) that hosts two `ThreadingHTTPServer` daemons — `match_scorer` on `:8000` and `interest_matcher` on `:8001` — both launched by `ml/scripts/run_servers.py`. The Bun server does **not** call them today (PR #34 reverted the HTTP clients; live matching is the rules-based `compat()`).
+
+### 6.0 `match_scorer` HTTP API
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| `GET` | `/health` | — | `{"ok": true}` |
+| `GET` | `/ready` | — | `{"ready": true, "uptime_s": …}` after ONNX load |
+| `POST` | `/score` | `{"target_emb":[…1536…], "self_emb":[…1536…], "soft_jacc": <float>}` | `{"score": <float>}` |
+| `POST` | `/pair` | `{"target_a":[…], "self_a":[…], "target_b":[…], "self_b":[…], "soft_ab": <float>, "soft_ba": <float>}` | `{"score_ab": <float>, "score_ba": <float>, "pair_score": <float>}` |
+| `POST` | `/batch` | `{"rows": [{…}, …]}` (cap 256) | `{"scores": [<float>, …]}` |
+
+Errors come back as HTTP 4xx with `{"error": "..."}` body; the daemon never crashes on a bad request.
+
+### 6.1 `interest_matcher` HTTP API
+
+| Method | Path | Body | Response |
+|---|---|---|---|
+| `GET` | `/health` | — | `{"ok": true}` |
+| `GET` | `/ready` | — | `{"ready": true, "uptime_s": …}` after model + vocab load |
+| `POST` | `/score` | numeric: `{"interests_a_emb": [[…1536…], …], "interests_b_emb": […], "labels_a": […], "labels_b": […]}` (labels optional); string: `{"interests_a": ["music", …], "interests_b": […]}` | `{"score": <float>, "mode": "linear"|"trained", "features": {...}, "breakdown": […], "matched_exact": […]}` |
+| `POST` | `/batch` | `{"rows": [{…}, …]}` (cap 256) | `{"rows": [{…}, …]}` |
+
+Wire payload is auto-detected by key name (`interests_a_emb` → numeric, `interests_a` → string).
+
+### 6.2 Intended server integration
+
+The container is wired for scale; the Bun client is the missing piece:
 
 ```
 profile create / change (background, off the matching tick)
   1. server: embed self + target text with OpenAI, store per profile
-  2. server: for each relevant counterpart B, compute soft_jacc(A, B)
-  3. server → match_scorer (NDJSON over stdin/stdout, long-lived process pool):
-        {"id", "target_emb": A.target, "self_emb": B.self, "soft_jacc"} → score(A→B)
-        {"id", "target_emb": B.target, "self_emb": A.self, "soft_jacc"} → score(B→A)
-  4. server: pair_score = score(A→B) + score(B→A) → score cache
+  2. server: for each relevant counterpart B, compute soft_jacc(A, B) (via POST /score on :8001)
+  3. server → match_scorer (POST /pair on :8000):
+        {target_a, self_a, target_b, self_b, soft_ab, soft_ba}
+        → {score_ab, score_ba, pair_score}
+  4. server: pair_score → in-memory `pairKey → pair_score` cache
 
 matching tick (every sessionIntervalMs)
-  5. canMatch(a, b) hard gates, distance, cooldown, offer state (unchanged)
+  5. canMatch(a, b) hard gates (unchanged)
   6. compat(a, b): synchronous cache read; rules-based score on a miss
 ```
 
-`compat()` is synchronous and runs per pair per tick, so the scorer is never called inline. The ONNX graph contains encoder + head and takes raw 1536-d embeddings, so every directional score is one full forward pass (sub-millisecond on CPU; one scorer process per core).
+`compat()` is synchronous and runs per pair per tick, so the scorer is never called inline. The ONNX graph contains encoder + head and takes raw 1536-d embeddings, so every directional score is one full forward pass (sub-millisecond on CPU).
 
-### 6.1 Cache strategy
+### 6.3 NDJSON dev path
+
+`scripts/match_scorer.py` is the legacy NDJSON daemon, field-for-field identical to `match_scorer_server.py`. Run locally without a container:
+
+```bash
+python scripts/match_scorer.py
+# NDJSON on stdin: {"id": "r1", "target_emb":[…1536…], "self_emb":[…1536…], "soft_jacc": 0.81}
+# NDJSON on stdout: {"id": "r1", "score": 0.78}
+```
+
+PyInstaller builds (`scripts/build_match_scorer.sh` + `build_local_mac_and_linux.sh`) freeze the script into a standalone binary so the host needs no Python.
+
+### 6.4 Cache strategy
 
 | Stage | Cache | Key | Value | Recomputed on |
 |---|---|---|---|---|
 | Profile texts (LLM onboarding) | profile in PostgreSQL | `user_id` | interests, character/appearance text | profile change |
 | OpenAI embeddings (planned) | per profile | `user_id` | self + target `float[1536]` | profile change |
 | Pair score (planned) | server memory | pair of `user_id`s | `pair_score` | either profile changes, new model |
-| Model | `match_scorer` process memory | — | ONNX weights | process restart |
+| Model | container memory (`run_servers.py` process) | — | ONNX weights | container restart |
 
 ## 7. Hard gates (server-side, NOT in model)
 
@@ -197,7 +236,7 @@ The demo never breaks if the scorer has a hiccup, and the explainable formula st
 | k-anonymity gate | K=1 (demo shows all zones) | K=3 (zones <3 stay dark) |
 | Embedding | OpenAI `text-embedding-3-small`, self + target | Same, regenerated on profile change |
 | Position crypto | Plaintext | E2E position encryption between matched session |
-| Model serving | Not wired: rules-based `compat()` only; `match_scorer` exists in `ml/` | `match_scorer` pool next to the server feeding a pair-score cache, rules as fallback. Adds DPIA + extended audit. |
+| Model serving | HTTP container exists (`match_scorer` + `interest_matcher` via `run_servers.py`); Bun server doesn't call them yet (PR #34 reverted clients); rules-based `compat()` is the live path | Bun client restored, `match_scorer` + `interest_matcher` containers scale horizontally behind a load balancer. Adds DPIA + extended audit. |
 | Audit | None | Persistence-free audit log (decision-only, no positions) |
 | DPIA | None | RODO DPIA filed; data subject rights delegated |
 
@@ -209,7 +248,7 @@ The demo never breaks if the scorer has a hiccup, and the explainable formula st
 | Shared Encoder architecture + weights | Training labels (rule-based, not real interactions) |
 | Match Head architecture + weights | Profile texts for synthetic profiles |
 | Joint training loop (triplet + match) | Negative buckets (rule-typed) |
-| `match_scorer` NDJSON serving, PyInstaller builds | Server integration (planned, §6) |
+| `match_scorer` + `interest_matcher` HTTP containers, NDJSON dev daemon, PyInstaller builds | Server integration (planned, §6.2 — PR #34 reverted the client) |
 | Threshold sweeps on held-out synthetic data | Calibration on real interactions |
 
 ## 12. Open questions
@@ -226,7 +265,8 @@ The demo never breaks if the scorer has a hiccup, and the explainable formula st
 ml/
 ├── pyproject.toml                    # uv project; installs src/just_mate_ml (hatchling)
 ├── README.md                         # run-it-yourself guide
-├── DEPLOYMENT.md                     # planned server integration
+├── DEPLOYMENT.md                     # HTTP container deployment (PR #32)
+├── Dockerfile.scorer                 # single image hosting match_scorer (:8000) + interest_matcher (:8001)
 ├── src/just_mate_ml/data/
 │   ├── profile_descriptions_v2.py    # synthetic profile generator
 │   ├── embed.py                      # profile parser + self/target texts + OpenAI embeddings
@@ -237,13 +277,18 @@ ml/
 │   ├── train_experiments_v2.py       # v2 sweep → checkpoints/model_v0.pt
 │   ├── train_experiments_v3.py       # v3 sweep → checkpoints/model_v3.pt
 │   ├── benchmark_val.py, threshold_sweep.py, gate_sweep.py, build_eval_notebook.py
-│   ├── match_scorer.py               # NDJSON ONNX scorer
+│   ├── match_scorer.py               # NDJSON ONNX scorer (dev)
+│   ├── match_scorer_server.py        # HTTP ONNX scorer on :8000 (production)
+│   ├── interest_matcher_server.py    # HTTP interest scorer on :8001 (production)
+│   ├── run_servers.py                # launches both HTTP servers in one process
 │   ├── score_pair.py                 # CLI pair scoring through match_scorer
 │   └── build_match_scorer.sh, build_local_mac_and_linux.sh   # PyInstaller builds
 ├── notebooks/evaluate_matching_model.ipynb
 ├── tests/test_bootstrap.py
 ├── data/                             # generated, gitignored
 └── checkpoints/                      # model_v0.{pt,onnx} from Releases, gitignored
+
+docker-compose.yml                    # scorer + server, scorer has healthcheck, internal only
 ```
 
-**Deployment (planned):** the server and a pool of `match_scorer` processes on one box, talking NDJSON over pipes. The server image (`server/Dockerfile`) is Bun-only today, so this needs either the PyInstaller binary copied in or a Python runtime added — see `ml/DEPLOYMENT.md`.
+**Deployment:** the scorer container (`Dockerfile.scorer`) runs both `match_scorer` (`:8000`) and `interest_matcher` (`:8001`) in one process via `run_servers.py`. `docker-compose.yml` wires it into a network alongside the Bun server; the server is responsible for OpenAI embeddings and `soft_jacc` per pair (planned, see `ml/DEPLOYMENT.md` §6.2).

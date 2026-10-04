@@ -59,5 +59,13 @@
         "noUselessTernary": "error"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/package.json"],
+      "formatter": {
+        "enabled": false
+      }
+    }
+  ]
 }

@@ -135,7 +135,7 @@ export const MapChrome = ({
       />
 
       <Reveal on={isAuth} style={[styles.brand, { top: top + 20 }]}>
-        <Text style={[styles.wordmark, { color: c.fg1 }]}>just-mate</Text>
+        <Text style={[styles.wordmark, { color: c.fg1 }]}>JustMate</Text>
         <Text style={[type.title, styles.tagline, { color: c.fg2 }]}>
           {t("home.brand.tagline")}
         </Text>

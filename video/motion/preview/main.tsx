@@ -68,7 +68,7 @@ const App = () => {
       <header className="top">
         <div className="brand">
           <span className="dot" aria-hidden="true" />
-          just-mate <span className="muted">motion</span>
+          JustMate <span className="muted">motion</span>
         </div>
         <nav className="pieces" aria-label="Pieces">
           {PIECES.map((p) => (

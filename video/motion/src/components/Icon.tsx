@@ -2,7 +2,7 @@ import { Img } from "remotion"
 import icons from "../data/icons.json"
 import { c } from "../theme"
 
-// Lucide glyphs (same set as the just-mate DS, copied from its bundle) + a few extras.
+// Lucide glyphs (same set as the JustMate DS, copied from its bundle) + a few extras.
 const extra: Record<string, string> = {
   "message-circle": '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
   "map-pin":

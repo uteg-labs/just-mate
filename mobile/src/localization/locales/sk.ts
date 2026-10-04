@@ -14,7 +14,7 @@ export const sk = {
     errors: {
       credentials: "tento e-mail a heslo k sebe nesedia.",
       exists: "účet s týmto e-mailom už existuje. skús sa prihlásiť.",
-      generic: "nepodarilo sa spojiť s just-mate. skús to o chvíľu.",
+      generic: "nepodarilo sa spojiť s JustMate. skús to o chvíľu.",
     },
   },
   onboarding: {
@@ -28,7 +28,7 @@ export const sk = {
       last: "posledný krok",
     },
     saveError: "profil sa nepodarilo uložiť. skús to o chvíľu.",
-    offline: "nepodarilo sa spojiť s just-mate. skontroluj pripojenie a skús znova.",
+    offline: "nepodarilo sa spojiť s JustMate. skontroluj pripojenie a skús znova.",
     retry: "Skúsiť znova",
     mode: {
       title: "Prečo si tu?",
@@ -49,7 +49,7 @@ export const sk = {
       cta: "Volaj ma {{name}}",
       ctaName: "Napíš svoje meno",
       ctaAge: "Doplň svoj vek",
-      ctaAgeRange: "just-mate je od 16 rokov",
+      ctaAgeRange: "JustMate je od 16 rokov",
       ctaAdult: "Rande je od 18 rokov",
     },
     interests: {
@@ -218,7 +218,7 @@ export const sk = {
     deleteConfirm: "Zmazať",
     deleteError: "účet sa nepodarilo zmazať. skús to o chvíľu.",
     cancel: "Zrušiť",
-    footer: "just-mate · prototyp · produkčná cesta simulovaná",
+    footer: "JustMate · prototyp · produkčná cesta simulovaná",
   },
   home: {
     brand: {

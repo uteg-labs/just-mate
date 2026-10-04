@@ -1,4 +1,4 @@
-// just-mate landing one-pager. Reuses the app's real components (map, bento, morph surface, badge, compass).
+// JustMate landing one-pager. Reuses the app's real components (map, bento, morph surface, badge, compass).
 const LD_NS = window.JustMateDesignSystem_dee067;
 
 function LdPhone({ scale = 1, dark = false, statusHidden = false, children }) {
@@ -121,7 +121,7 @@ function ModelDiagram() {
       <span className="ld-arrow"><Icon name="arrow-right" size={22} strokeWidth={1.75} /></span>
       <div className="ld-core">
         <img src="assets/brand/just-mate-symbol.svg" width="112" height="112" alt="" style={{ borderRadius: 999, boxShadow: "var(--shadow-6)" }} />
-        <div className="t-title">just-mate model</div>
+        <div className="t-title">JustMate model</div>
         <span className="t-mono" style={{ color: "var(--fg-2)" }}>custom trained · private by design</span>
       </div>
       <span className="ld-arrow"><Icon name="arrow-right" size={22} strokeWidth={1.75} /></span>
@@ -216,7 +216,7 @@ function Landing() {
       <nav className="ld-nav">
         <div className="ld-wrap ld-nav-in">
           <a href="#top" className="ld-brand" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-            <img src="assets/brand/just-mate-symbol.svg" width="32" height="32" alt="" /><span className="ld-wm" style={{ fontSize: 24 }}>just-mate</span>
+            <img src="assets/brand/just-mate-symbol.svg" width="32" height="32" alt="" /><span className="ld-wm" style={{ fontSize: 24 }}>JustMate</span>
           </a>
           <div className="ld-links">
             <a href="#how" onClick={(e) => { e.preventDefault(); go("how"); }}>How it works</a>
@@ -250,7 +250,7 @@ function Landing() {
       <section className="ld-sec" data-screen-label="The loop">
         <div className="ld-wrap">
           <div className="ld-head" style={{ maxWidth: 720 }}>
-            <span className="t-mono" style={{ color: "var(--fg-2)" }}>why just-mate</span>
+            <span className="t-mono" style={{ color: "var(--fg-2)" }}>why JustMate</span>
             <h2 className="ld-h2">Swipe, match, chat, fade. Repeat.</h2>
             <p className="ld-lead" style={{ fontSize: 19, lineHeight: "28px", maxWidth: 640 }}>Apps turned meeting people into a second job. Hours of judging profiles, chats that die after three messages, plans for “sometime”. More matches than ever, and somehow lonelier. Meanwhile, the people you'd get on with are a few streets away.</p>
           </div>
@@ -262,7 +262,7 @@ function Landing() {
               ))}
             </Card>
             <Card level={6} padding={28} className="dark" style={{ display: "flex", flexDirection: "column", gap: 4, background: "var(--jm-ink)", color: "var(--fg-1)" }}>
-              <span className="t-mono" style={{ color: "var(--fg-2)", paddingBottom: 10 }}>just-mate</span>
+              <span className="t-mono" style={{ color: "var(--fg-2)", paddingBottom: 10 }}>JustMate</span>
               {["One match, when it really fits", "No chat. A direction and ten minutes", "Tonight, not sometime", "An evening you'll actually remember"].map((x) => (
                 <div key={x} className="ld-li"><span style={{ color: "var(--success)" }}><Icon name="check" size={18} strokeWidth={2.25} /></span><span>{x}</span></div>
               ))}
@@ -373,7 +373,7 @@ function Landing() {
 
       <section id="get" className="ld-cta dark" data-screen-label="Get the app">
         <div className="ld-wrap ld-cta-in">
-          <img src="assets/brand/just-mate-app-icon.svg" width="112" height="112" alt="just-mate app icon" style={{ borderRadius: 26, boxShadow: "0 20px 50px -20px rgb(0 0 0 / .6)" }} />
+          <img src="assets/brand/just-mate-app-icon.svg" width="112" height="112" alt="JustMate app icon" style={{ borderRadius: 26, boxShadow: "0 20px 50px -20px rgb(0 0 0 / .6)" }} />
           <h2 className="ld-h2" style={{ color: "var(--fg-1)" }}>Go meet someone.</h2>
           <p className="ld-lead" style={{ color: "var(--fg-2)", textAlign: "center" }}>Less time on your phone. More nights worth remembering. iPhone first.</p>
           <Button size="lg" trailingIcon="arrow-right">Download for iPhone</Button>
@@ -384,11 +384,11 @@ function Landing() {
       <footer className="ld-foot">
         <div className="ld-wrap ld-foot-in">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src="assets/brand/just-mate-symbol.svg" width="24" height="24" alt="" /><span className="ld-wm" style={{ fontSize: 18 }}>just-mate</span>
+            <img src="assets/brand/just-mate-symbol.svg" width="24" height="24" alt="" /><span className="ld-wm" style={{ fontSize: 18 }}>JustMate</span>
           </div>
           <div className="ld-links" style={{ gap: 20 }}>
             <a href="#">Privacy</a><a href="#">Terms</a><a href="#">Contact</a>
-            <span className="t-mono" style={{ color: "var(--fg-3)" }}>© 2026 just-mate</span>
+            <span className="t-mono" style={{ color: "var(--fg-3)" }}>© 2026 JustMate</span>
           </div>
         </div>
       </footer>

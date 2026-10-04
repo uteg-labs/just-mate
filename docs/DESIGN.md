@@ -2,7 +2,7 @@
 
 The source of truth for how the app **looks, moves and feels**. Screens and flows live in `STRUCTURE.md`. This doc says how to build them.
 
-Source: the **JustMate Design System** project in Claude Design, https://claude.ai/design/p/c59ab891-429e-48c6-8f77-d899971225cc. It covers the token kit and the app prototype (*just-mate App*). Where an older note in this repo disagrees with either, Claude Design wins. Token sources mirror this doc one to one: native = `mobile/src/theme/*.ts`, web = `mobile/src/theme/web.css`. Missing token → add it here first, then to both.
+Source: the **JustMate Design System** project in Claude Design, https://claude.ai/design/p/c59ab891-429e-48c6-8f77-d899971225cc. It covers the token kit and the app prototype (*JustMate App*). Where an older note in this repo disagrees with either, Claude Design wins. Token sources mirror this doc one to one: native = `mobile/src/theme/*.ts`, web = `mobile/src/theme/web.css`. Missing token → add it here first, then to both.
 
 Foundations:
 
@@ -49,7 +49,7 @@ The three product rules are also visual rules:
 - **`·` is the separator** in copy and metadata ("wants · beer", "5 meetings · this device only").
 - **Plain words.** No "seamless", "powerful", "AI-powered". Anything not real in the build is labelled "production path" (`PRODUCT.md`).
 - **No emoji. No exclamation marks. No confetti language.** Delight comes from the walk, not the copy. `●` appears only as the searching status glyph in docs.
-- Brand name is **just-mate** (lowercase, hyphen) in product. "JustMate" only where a proper noun is grammatically needed (docs, store listing).
+- Brand name is **JustMate** (one word, capital J and M) everywhere: product, docs, store listing, video, web. Never "just-mate", "Just Mate" or "Justmate". The lowercase `just-mate` survives only in identifiers (repo slug, file names, Expo slug).
 
 ## 3. Color
 
@@ -495,15 +495,17 @@ A white compass arrow, Lucide `navigation-2`, rotated **38°**, over a pale pape
 | `just-mate-app-icon.svg` | 1024, full-bleed square, warm glows | **default app icon** (the OS applies the mask) |
 | `just-mate-app-icon-cool.svg` | 1024, cool glows: blue `#58A0E0`, periwinkle `#90B1FF`, mint `#37C2B3` | alternate icon |
 | `just-mate-app-icon-ring.svg` | 1024, warm glows + white dial ring with four ticks (north solid, others 75%), smaller arrow | alternate icon |
-| `just-mate-wordmark.svg` | `just-mate` in `#171717`, transparent ground | wordmark on paper |
-| `just-mate-wordmark-dark.svg` | `just-mate` in `#F5F5F7` on `#0A0A0D` | wordmark on ink |
+| `just-mate-wordmark.svg` | `JustMate` in `#171717`, transparent ground | wordmark on paper |
+| `just-mate-wordmark-dark.svg` | `JustMate` in `#F5F5F7` on `#0A0A0D` | wordmark on ink |
+| `just-mate-lockup.svg` | symbol + `JustMate` side by side, transparent ground | horizontal logo on paper |
+| `just-mate-lockup-dark.svg` | symbol + `JustMate` in `#F5F5F7` on `#0A0A0D` | horizontal logo on ink |
 
 The PNGs referenced by `mobile/app.config.ts` (`mobile/assets/images/`: icon, adaptive icon layers, splash, favicon) are exported from these files. Re-export them when the mark changes; never edit the PNGs by hand.
 
 ### 10.2 Wordmark
 
-- Always **`just-mate`**: lowercase, with the hyphen. Never "JustMate", "Just Mate" or all caps in the wordmark.
-- Set in **Inter Bold** (700), tracking −0.036em (−4.3 at 120 px).
+- Always **`JustMate`**: one word, capital J and M (camel case), no space or hyphen. Never "just-mate", "Just Mate" or all caps in the wordmark.
+- Set in **Inter Bold** (700, display optical size `opsz` 32), tracking −0.036em (−4.3 at 120 px). The SVG files carry the wordmark as outlined paths, so they render the same without Inter installed.
 - `fg-1` on paper, `#F5F5F7` on ink. Never amber, never on a gradient other than the mark's own disc.
 - The mark and the wordmark can stand alone or side by side; use the files, don't retype the wordmark in another face.
 
@@ -640,7 +642,7 @@ The faceless identity. A paper badge on a fabric strap: what a match sees instea
 - **Face, top 60%**: three soft radial blobs in the badge colours (mixed toward white), masked to fade down. Optional pattern in white at 42% over the top half: dots (9 pt), lines (every 7 pt at the badge angle), rings (every 11 pt), grid (14 pt) or none. Paper grain at 22% multiply over everything.
 - **Face, top row**: a 26 × 1.5 rule and the badge icon (15, stroke 2) in white on the left, mono "no. 0000" serial on the right.
 - **Face, body** (from 46% down, 20 side padding): mono eyebrow `fg-2` ("her vibe · wants: wine"), then either the vibe quote (italic 19 / 25, medium, small badge 17 / 23) or a NAME (uppercase 26 / 30, small 20 / 24, medium, +0.2) on post-meet.
-- **Face, footer**: mono interest tags ("coffee · hiking · jazz"), then the wordmark "just-mate" (17 bold, −0.6) and a mono tag with `shield-check` 12: "verified", "verified · 18+", or the mode while onboarding.
+- **Face, footer**: mono interest tags ("coffee · hiking · jazz"), then the wordmark "JustMate" (17 bold, −0.6) and a mono tag with `shield-check` 12: "verified", "verified · 18+", or the mode while onboarding.
 - **Motion**: drops in on its strap (1300 ms, ease-out, from above); tilts toward the pointer or finger (perspective 900, up to ±8° on X and ±11° on Y, 120 ms follow, 700 ms `--ease-spring` settle) with a soft-light shine at the touch point; drag swings it on the strap (up to ±24°, released with 1100 ms `--ease-momentum`); lifts away upward (−130%, 420 ms, `cubic-bezier(0.5, 0, 0.75, 0)`). Dims to 55% when its offer expires. Reduce Motion: no drop, tilt or swing; it cross-fades.
 
 ### 13.5 Badge design (deterministic)
@@ -686,7 +688,7 @@ Caption under your own badge: "Colours from {three interests}. Pattern from your
 - Android back returns to the map (an edited step returns to Settings).
 - **Groups**: a mono label above each group ("your profile", "the map", "feel", "privacy and safety", "account"), rows inside a `Card` at level 2.
 - **Rows**: min height 52, a 20 icon (stroke 1.5, 2 on hover), label, value in `fg-2` on the right, `chevron-right` for rows that open something. Inset separators between rows, never a full-width line. Choice rows use `Segmented`; on/off rows use `Switch`.
-- Footer: ghost **Delete account**, then mono "just-mate · prototype · production path simulated".
+- Footer: ghost **Delete account**, then mono "JustMate · prototype · production path simulated".
 
 ### 13.8 Screen layouts
 

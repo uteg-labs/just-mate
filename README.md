@@ -34,7 +34,7 @@ After meeting: **We met** unlocks the other person's first name, shows how far y
 - **Zones, not pins** — the compass reveals a bearing and a distance bucket, never a position.
 - **Public venues** — plans happen only at seeded public places.
 - **Ephemeral** — live positions exist only inside an active session; no location history is stored.
-- **10-minute window** — the compass expires automatically.
+- **Time-boxed** — a Now compass expires after 10 minutes, a plan's after 30.
 - **Vanish** — one tap ends the session for both, instantly.
 - **No triangulation** — the server refuses implausible position jumps and coarsens bearings, so a modified client can't turn the compass into a pin.
 - **Moderation** — free-text profile answers run through the OpenAI moderation model; a flagged user silently never sees or is seen by anyone.

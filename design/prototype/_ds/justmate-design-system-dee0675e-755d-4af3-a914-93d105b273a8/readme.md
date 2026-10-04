@@ -1,12 +1,12 @@
 # JustMate Design System
 
-**Meet for real.** just-mate helps two compatible strangers who want the same thing *right now* find each other in the real world: faceless, mutual, and on foot. You pick an intent (beer, coffee, a date), switch search on, and when a compatible person nearby is searching too, both phones ping at once. Both accept, a compass unlocks, and you walk to each other. No faces. No chat. No pins.
+**Meet for real.** JustMate helps two compatible strangers who want the same thing *right now* find each other in the real world: faceless, mutual, and on foot. You pick an intent (beer, coffee, a date), switch search on, and when a compatible person nearby is searching too, both phones ping at once. Both accept, a compass unlocks, and you walk to each other. No faces. No chat. No pins.
 
 One product, one surface: the **Expo mobile app** (iOS first). Four screens: Onboarding, Home ("Where to?"), Match, Compass, plus a post-meet screen.
 
 ## Sources
 
-- **just-mate docs** (local mount `just-mate/docs/`, mirrors `https://github.com/uteg-labs/just-mate/tree/main/docs`): `DESIGN.md` (visual, motion, haptics; the source for every token here), `STRUCTURE.md` (screens, flows), `PRODUCT.md` (rules, copy, states), `README.md`. The GitHub repo returned 404 to our importer (private or app not installed); everything was read from the local mount.
+- **JustMate docs** (local mount `just-mate/docs/`, mirrors `https://github.com/uteg-labs/just-mate/tree/main/docs`): `DESIGN.md` (visual, motion, haptics; the source for every token here), `STRUCTURE.md` (screens, flows), `PRODUCT.md` (rules, copy, states), `README.md`. The GitHub repo returned 404 to our importer (private or app not installed); everything was read from the local mount.
 - **Fluid Functionalism** by Micka: `https://github.com/mickadesign/fluid-functionalism` and `https://www.fluidfunctionalism.com/`. Requested as the visual source for colours and components: neutral surface ladder, shadow ladder, Inter Variable with paired optical size, button press mechanics, switch geometry, badge recipe, spring tiers, tone of voice. Files read: `app/globals.css`, `tone-of-voice.md`, `registry/base/button.tsx`, `registry/base/switch.tsx`, `registry/default/badge.tsx`, `registry/default/lib/{springs,shape-context,font-weight}.ts(x)`, `lib/docs/icon-map.tsx`.
 - **Mood references** (uploads): `assets/reference/mood-dark-light.jpg` (dark chrome, paper cards, segmented pill), `assets/reference/mood-monochrome.jpg` (monochrome, mono labels, dusk gradients).
 
@@ -14,7 +14,7 @@ Explore both repositories further when building new screens: the docs carry exac
 
 ## How the two sources merge
 
-just-mate's DESIGN.md defines *what* (dark map, amber glow, type scale, springs, the three rules). Fluid Functionalism defines *how it looks up close* (true-neutral greys instead of blue-greys, layered shadows, Inter, 1px press collapse, see-through secondary fills). Where they conflict: just-mate wins on semantics and sizes (mobile: 44pt targets, 14px button radius), FF wins on neutrals and shadows. **Theme decision:** DESIGN.md specifies dark-only; per the brief this system ships **light as the default** and keeps the dark palette as a `.dark` scope.
+JustMate's DESIGN.md defines *what* (dark map, amber glow, type scale, springs, the three rules). Fluid Functionalism defines *how it looks up close* (true-neutral greys instead of blue-greys, layered shadows, Inter, 1px press collapse, see-through secondary fills). Where they conflict: JustMate wins on semantics and sizes (mobile: 44pt targets, 14px button radius), FF wins on neutrals and shadows. **Theme decision:** DESIGN.md specifies dark-only; per the brief this system ships **light as the default** and keeps the dark palette as a `.dark` scope.
 
 ---
 
@@ -32,7 +32,7 @@ just-mate's DESIGN.md defines *what* (dark map, amber glow, type scale, springs,
 - **Vibe cards are lowercase, wry, two short clauses:** *"quietly funny — will out-argue you about pizza"*. They're the icebreaker that replaces "hey". (Vibe quotes are the one place an em dash appears; everywhere else follow FF rule 6: commas, colons, full stops.)
 - **Plain words.** No "seamless", "powerful", "AI-powered". Honesty rule from PRODUCT.md: anything not real in the build is labelled "production path".
 - **No emoji. No exclamation marks. No confetti language.** Delight comes from the walk, not the copy.
-- Brand name written **just-mate** (lowercase, hyphen) in product; "JustMate" only where a proper noun is grammatically needed (this DS title).
+- Brand name written **JustMate** (one word, capital J and M) everywhere.
 
 ## VISUAL FOUNDATIONS
 
@@ -60,7 +60,7 @@ just-mate's DESIGN.md defines *what* (dark map, amber glow, type scale, springs,
 - Intent icons: heart (Soul mate), beer, coffee, ferris-wheel (Attractions), users (Friends), dumbbell (Sports), music.
 - The compass arrow is Lucide `navigation-2`, filled with the bucket colour.
 - No emoji. No unicode pictographs, except `●` for searching status in docs and `·` as a separator in copy.
-- No logo was supplied: the wordmark is the name set in Inter Bold, `just-mate`, −2px tracking. **Do not invent a mark.**
+- No logo was supplied: the wordmark is the name set in Inter Bold, `JustMate`, −2px tracking. **Do not invent a mark.**
 
 ---
 

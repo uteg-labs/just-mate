@@ -90,6 +90,7 @@ export const AuthSheet = ({ onLoggedIn, onRegistered, initialTab = "login" }: Au
       <TextField
         label={t("auth.email")}
         kind="email"
+        textContentType="username"
         value={email}
         onChangeText={setEmail}
         placeholder={t("auth.emailPlaceholder")}

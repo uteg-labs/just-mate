@@ -475,6 +475,20 @@ describe("positions", () => {
     expect(a.client.position?.lng).toBeGreaterThan(ARENA.lng)
   })
 
+  test("indoor jitter within both fixes' accuracy is kept, a spoofed accuracy is not", async () => {
+    const a = await join("u_a")
+    await receive(a.client, beer)
+    await receive(a.client, { t: "position", ...ARENA, acc: 40 })
+    now += 1000
+    await receive(a.client, { t: "position", ...offset(ARENA, 90, 60), acc: 40 })
+    expect(all(a, "error")).toEqual([])
+    expect(a.client.position?.lng).toBeGreaterThan(ARENA.lng)
+
+    now += 1000
+    await receive(a.client, { t: "position", ...offset(ARENA, 90, 5000), acc: 9000 })
+    expect(lastOf(a, "error")?.code).toBe("position_too_fast")
+  })
+
   test("fixes sent faster than the interval are dropped", async () => {
     const a = await join("u_a")
     await search(a, 0)

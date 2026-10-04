@@ -2,7 +2,7 @@
 const jmWait = (ms) => new Promise((r) => setTimeout(r, ms));
 const jmTimeout = (ms) => new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms));
 
-const JM_LLM_SYSTEM = (mode) => `You write onboarding questions for just-mate, an app where two compatible strangers nearby meet in person right now. No photos, no chat.
+const JM_LLM_SYSTEM = (mode) => `You write onboarding questions for JustMate, an app where two compatible strangers nearby meet in person right now. No photos, no chat.
 The user is looking for ${mode === "date" ? "a date (romance)" : "a mate (friendship, someone to hang out with)"}.
 Ask ONE new question that builds on their previous answers and digs a little deeper. Never repeat a topic already asked.
 Voice: calm, specific, a little wry. Sentence case, under 60 characters, no emoji, no exclamation marks.

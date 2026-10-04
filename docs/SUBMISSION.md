@@ -8,7 +8,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 | Pitch structure | Problem → User → Value → Solution → Reality → Next (after the HackYeah workshop "Pitch Like an Architect") |
 | One-liner | For anyone lonely in a new city: a plan near you, a person who fits, and someone waiting when you get there. |
 | Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
-| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
+| Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) — 22 pages, chapters 00–14 (product, Plan and Now, safety, architecture, matching & AI, engineering, business, roadmap), source [`submission/whitepaper-src/`](submission/whitepaper-src/README.md) (`python3 build.py wp`). `submission/whitepaper.html` is the earlier 10-page short version and is no longer exported. |
 | Images | [`submission/cover.png`](submission/cover.png) first, then app screens in [`submission/screens/`](submission/screens/) |
 | Website | https://just-mate-site.vercel.app — source in [`site/`](../site/), with the launch film, use-case clips and a waitlist |
 | Video | [`video/motion`](../video/motion) — Remotion launch film; script in `DEMO.md` › Launch video |
@@ -18,7 +18,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 `JustMate: Meet For Real` (4 words)
 
-## Description (final, 493 words incl. team and sources)
+## Description (final, 489 words incl. team and sources)
 
 > Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
@@ -28,13 +28,13 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Health value comes from repeated, active, in-person contact: every meeting starts on foot, 16 of 44 Mate activities are sport or outdoors, and friendship takes about 50 hours together [3]. We will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
 >
-> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, Report that blocks (two reports pause the account), moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 144 server tests. Production path: "same again next week?" scheduling, verification, group plans.
+> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, Report that blocks (two reports pause the account), moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 177 server tests. Production path: "same again next week?" scheduling, verification, group plans.
 >
 > Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
 > Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Nikita Orlov, Serhii Vielkin.
 >
-> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md · just-mate-site.vercel.app
+> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024.
 
 ## Sources
 
@@ -48,24 +48,24 @@ Every number in the description, deck and website comes from one of these, or is
 | 4 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
 | 5 | 31% of adults (~1.8 billion) don't meet recommended physical activity | WHO, *Nearly 1.8 billion adults at risk of disease from not doing enough physical activity*, 26 June 2024 — https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity |
 
-From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 144 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
+From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 177 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
 
 Our own estimates (labelled on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
 
 ## Deck (10 slides)
 
-1. **Title** — Meet for real. + decision opening + team; home and "you're both in" screens
+1. **Title** — Meet for real. + decision opening (plan or right now) + team; "you're both in" (Plan) and "searching" (Now) screens
 2. **Problem** — 1 in 6 · 871,000 · 2× [1] · 31% inactive [5]; the friction is the step out of the door
-3. **User** — young adults new to a city; Tomek (persona); 17–21% [1], 13% EU [2]; initiative · uncertainty · judgment
-4. **Value** — capability → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
-5. **Solution** — profile → match → plan → both in → walk and meet; Plan for later and Now
-6. **Demo** — real app screens: vibe, a plan for you, you're both in, confirmed, home; compass and "Say hi to Ola." live
-7. **Design choices** — choice · reason · gain · cost · mitigation
+3. **User** — the quietly lonely in a city, 18–35; 17–21% [1], 13% EU [2]; four use cases: Tomek (Plan, newcomer) · Lucía (Now, solo traveller) · Ania (Now, Date mode) · the shy one
+4. **Value** — capability (Plan and Now) → behaviour → outcome → evidence; health · sport · wellbeing [3][4]
+5. **Solution** — two loops side by side: Plan (find · plan · both in · walk and meet) and Now (pick · both phones ping · both open compass · walk and meet); one profile; Plan for later
+6. **Matching** — our own AI model: who I'd like to meet ↔ who they are, scored both ways; three steps; honest footer (synthetic training data, scores Now, plans use the explainable score)
+7. **Design choices** — choice · reason · gain · cost · mitigation (four rows, incl. Now: invisible until you search)
 8. **Risk** — risk · mitigation in the build · production path · validation
 9. **Reality** — known · assumed · to validate
 10. **What's next** — real users in Kraków · measure what matters · learn from real meetings; team; full source links; AI-use disclosure
 
-Re-export after changing `deck.html`, `cover.html` or the screens:
+Re-export after changing `deck.html`, `cover.html`, the screens or `badges/`:
 
 ```bash
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --allow-file-access-from-files --no-pdf-header-footer --virtual-time-budget=6000 --print-to-pdf=docs/submission/JustMate-Deck.pdf "file://$PWD/docs/submission/deck.html"
@@ -77,19 +77,19 @@ Re-export after changing `deck.html`, `cover.html` or the screens:
 
 ## Images
 
-Upload `submission/cover.png` first. App screens in `submission/screens/` (iPhone):
+Upload `submission/cover.png` first, then only the real build captures: `home-places.jpg`, `now-sports.jpg`, `now-searching.jpg`, `profile-vibe.jpg`. The other files in `submission/screens/` are design-prototype captures (they show a match % and a VERIFIED chip the build doesn't have) and are not uploaded.
 
 | File | Shows |
 |---|---|
-| `home-places.jpg` | Home: your plans, Plan for later, places for you |
+| `home-places.jpg` | Home: your plans, Plan for later, places for you (build) |
 | `plan-proposal.jpg` | A plan for you: their vibe, place, time, minutes on foot |
 | `plan-bothin.jpg` | you're both in |
 | `plan-confirmed.jpg` | Confirmed: compass opens, names unlock when you meet |
 | `plan-home.jpg`, `plan-list.jpg` | Your plans · Plans page |
 | `plan-what.jpg`, `plan-when.jpg`, `plan-where.jpg`, `plan-review.jpg`, `plan-taker.jpg` | Plan for later, end to end |
 | `plan-proposal-date.jpg` | A Date plan |
-| `profile-vibe.jpg` | Your vibe line, no photo |
-| `now-sports.jpg`, `now-searching.jpg` | Now: sports picker, searching |
+| `profile-vibe.jpg` | Your vibe line, no photo (build) |
+| `now-sports.jpg`, `now-searching.jpg` | Now: sports picker, searching (build) |
 
 Compass and post-meet screens in `video/motion/public/screens/` come from the design prototype; use them only for the film, not as app screenshots.
 

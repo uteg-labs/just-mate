@@ -42,6 +42,14 @@
   .moment { margin-top: 40px; font-size: 34px; line-height: 1.4; max-width: 1500px; color: var(--fg-2); }
   .moment b { color: var(--fg-1); font-weight: 600; }
 
+  .who { margin-top: 32px; font-size: 28px; line-height: 1.4; max-width: 1560px; color: var(--fg-2); }
+  .who b { color: var(--fg-1); font-weight: 600; }
+  .persona { gap: 12px; }
+  .persona h3 { font-size: 40px; }
+  .persona p { font-size: 25px; line-height: 1.42; color: var(--fg-2); }
+  .persona p.does { color: var(--fg-1); }
+  .persona p.does b { display: block; font-family: var(--mono); font-weight: 400; font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: var(--link); margin-bottom: 8px; }
+
   /* 4 · value ladder */
   .ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 36px; }
   .rung { padding: 20px 36px 24px; display: flex; flex-direction: column; gap: 16px; border-left: 1px solid var(--line); }
@@ -63,7 +71,40 @@
   .also p { font-size: 26px; color: var(--fg-2); }
   .also b { color: var(--fg-1); font-weight: 600; }
 
-  /* 6 · demo */
+  .loops { margin-top: 44px; display: flex; flex-direction: column; gap: 28px; }
+  .loop { counter-reset: s; display: grid; grid-template-columns: 280px repeat(4, 1fr); gap: 20px; align-items: stretch; }
+  .loop .lab { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding-right: 8px; }
+  .loop .lab h3 { font-size: 40px; }
+  .loop .lab p { font-size: 22px; color: var(--fg-2); line-height: 1.35; }
+  .loop .node { padding: 22px 24px 24px; gap: 10px; }
+  .loop .node h3 { font-size: 27px; }
+  .loop .node p { font-size: 20px; }
+  .loop.now .node::before { color: var(--self); }
+  .loop.now .node.hot::before { color: var(--glow); }
+
+  /* 6 · matching */
+  .mx { display: grid; grid-template-columns: 860px 1fr; gap: 80px; margin-top: 28px; align-items: center; }
+  .viz { display: grid; grid-template-columns: 200px 1fr 200px; gap: 28px; align-items: center; }
+  .viz img { width: 200px; display: block; }
+  .viz .a { transform: rotate(-4deg); }
+  .viz .b { transform: rotate(4deg); }
+  .ways { display: flex; flex-direction: column; gap: 22px; align-items: stretch; }
+  .way { display: flex; align-items: center; gap: 10px; }
+  .way i { flex: 1; height: 2px; background: var(--fg-3); position: relative; min-width: 24px; }
+  .way i::after { content: ""; position: absolute; right: 0; top: 50%; width: 10px; height: 10px; border-top: 2px solid var(--fg-3); border-right: 2px solid var(--fg-3); transform: translateY(-50%) rotate(45deg); }
+  .way.back i::after { right: auto; left: 0; transform: translateY(-50%) rotate(-135deg); }
+  .way span { flex: none; font-family: var(--mono); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; padding: 10px 14px; border-radius: 999px; }
+  .way .want { background: rgba(255,178,63,.16); color: var(--link); box-shadow: inset 0 0 0 1.5px rgba(255,178,63,.55); }
+  .way .is { background: rgba(20,184,166,.1); color: #0f766e; box-shadow: inset 0 0 0 1.5px rgba(20,184,166,.4); }
+  .ways .both { text-align: center; font-family: var(--mono); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-1); }
+  .ways .both b { color: var(--success); font-weight: 600; }
+  .msteps { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 18px; counter-reset: m; }
+  .msteps li { display: flex; flex-direction: column; gap: 6px; padding-top: 14px; border-top: 2px solid var(--fg-1); }
+  .msteps li::before { counter-increment: m; content: "0" counter(m); font-family: var(--mono); font-size: 18px; letter-spacing: .1em; color: var(--link); }
+  .msteps h3 { font-size: 28px; }
+  .msteps p { font-size: 21px; line-height: 1.4; color: var(--fg-2); }
+
+  /* old demo slide (unused) */
   .shots { display: flex; gap: 64px; margin-top: 36px; align-items: flex-start; }
   .shots figure { display: flex; flex-direction: column; gap: 16px; width: 250px; }
   .shots .phone { width: 250px; border-width: 8px; border-radius: 38px; }
@@ -112,10 +153,10 @@
     <div class="col" style="gap:44px">
       <div class="row" style="gap:28px;align-items:center">
         <img class="mark" src="../../mobile/assets/brand/just-mate-symbol.svg" alt="">
-        <img class="word" src="../../mobile/assets/brand/just-mate-wordmark.svg" alt="just-mate">
+        <img class="word" src="../../mobile/assets/brand/just-mate-wordmark.svg" alt="JustMate">
       </div>
       <div class="display">Meet for real.</div>
-      <p class="lede">Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate gets two compatible people to the same table.</p>
+      <p class="lede">Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate gets two compatible people to the same table: at a small plan the app makes for them, or right now, when they're already out.</p>
     </div>
     <div class="row" style="gap:28px;align-items:flex-end;margin-bottom:-40px"><div class="phone" style="width:300px;transform:rotate(-4deg) translateY(-30px)"><img src="screens/plan-bothin.jpg" alt=""></div><div class="phone" style="width:300px;transform:rotate(4deg)"><img src="screens/now-searching.jpg" alt=""></div></div>
   </div>
@@ -144,26 +185,27 @@
 <section class="slide">
   <div class="glow" style="width:900px;height:900px;right:-300px;top:-380px;opacity:.6"></div>
   <div class="eyebrow">2 · User</div>
-  <h2 style="margin-top:28px;max-width:1560px">Young adults who are new to a city and have no one to call on a weekday evening.</h2>
-  <p class="moment"><b>Tomek, 28 (persona).</b> Moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend. WHO reports 17–21% of 13–29-year-olds feel lonely<sup>1</sup>; in the EU, 13% feel lonely most or all of the time<sup>2</sup>. Swipe apps give him chats that die. Meetup gives him a room of 40 strangers.</p>
-  <div class="cards c3">
-    <div class="card"><span class="k">Friction 1</span><h3>Initiative</h3><p class="m">Organising anything, even choosing between options, feels like too much.</p></div>
-    <div class="card"><span class="k">Friction 2</span><h3>Uncertainty</h3><p class="m">What if nobody comes? One no-show confirms that nobody wants him.</p></div>
-    <div class="card"><span class="k">Friction 3</span><h3>Judgment</h3><p class="m">Photo-first apps turn meeting into an audition before anyone says hello.</p></div>
+  <h2 style="margin-top:28px;max-width:1600px">The quietly lonely in a city, 18–35.</h2>
+  <p class="who"><b>Newcomers, remote workers, students, people after a move or a breakup.</b> WHO reports 17–21% of 13–29-year-olds feel lonely<sup>1</sup>; in the EU, 13% feel lonely most or all of the time<sup>2</sup>. Four people we built it for:</p>
+  <div class="cards c4" style="margin-top:52px">
+    <div class="card persona"><span class="k">Plan · newcomer</span><h3>Tomek, 28</h3><p>Moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend. Organising anything feels like too much.</p><p class="does"><b>With JustMate</b>The app offers him one small plan with someone who fits. He only says yes.</p></div>
+    <div class="card persona"><span class="k">Now · solo traveller</span><h3>Lucía, 27</h3><p>Three days alone in Kraków, already out on an evening walk. She'd like company, not a dating app and not a tour group.</p><p class="does"><b>With JustMate</b>She picks beer. Someone 300 m away wants the same, and both phones ping at once.</p></div>
+    <div class="card persona"><span class="k">Now · Date mode</span><h3>Ania, 24</h3><p>Deleted Tinder twice. Tired of being judged on photos and of chats that die before anyone meets.</p><p class="does"><b>With JustMate</b>Her vibe badge is all anyone sees. First names unlock only once they've met.</p></div>
+    <div class="card persona"><span class="k">Plan or Now · shy</span><h3>The shy one</h3><p>Big groups feel like too much and a date feels like an interview. Eats lunch alone most days.</p><p class="does"><b>With JustMate</b>One person who fits and something to do side by side, so the first sentence is easy.</p></div>
   </div>
-  <div class="foot"><span>[1] WHO, 30 June 2025 · [2] JRC, EU Loneliness Survey 2022 · also: students, remote workers, people after a move</span><span class="num">03 / 10</span></div>
+  <div class="foot"><span>[1] WHO, 30 June 2025 · [2] JRC, EU Loneliness Survey 2022 · later: festival and conference crowds; older adults through partners</span><span class="num">03 / 10</span></div>
 </section>
 
 <!-- 4 · value -->
 <section class="slide">
   <div class="glow mint" style="width:900px;height:900px;left:-380px;top:-420px"></div>
   <div class="eyebrow">3 · Value</div>
-  <h2 style="margin-top:28px;max-width:1700px">From a lonely Sunday to the same person next Thursday.</h2>
+  <h2 style="margin-top:28px;max-width:1700px">From alone on the couch, or alone in a new city, to the same person again.</h2>
   <div class="ladder">
-    <div class="rung"><span class="k">Capability</span><h3>The app makes the plan</h3><p>A compatible person, an activity you both picked, a public venue halfway, a time you're both free.</p></div>
-    <div class="rung"><span class="k">Behaviour</span><h3>You only say yes</h3><p>One tap. It is on only when both accept, so you never walk into an empty café.</p></div>
+    <div class="rung"><span class="k">Capability</span><h3>The app does the hard part</h3><p><b style="color:var(--fg-1)">Plan:</b> a compatible person, an activity you both picked, a public venue halfway, a time you're both free. <b style="color:var(--fg-1)">Now:</b> someone nearby who wants the same thing, right now.</p></div>
+    <div class="rung"><span class="k">Behaviour</span><h3>You only say yes</h3><p>One tap. A plan is on only when both accept, so you never walk into an empty café. In Now, nothing happens unless both open the compass.</p></div>
     <div class="rung"><span class="k">Outcome</span><h3>A real meeting, then a repeat</h3><p>"Say hi to Ola." First names unlock only after you meet. A friend, a training partner, or a partner; friendship needs about 50 hours together<sup>3</sup>.</p></div>
-    <div class="rung"><span class="k">Evidence</span><h3>How we'll know</h3><p>Plans that happen, repeat meetings with the same person, and an opt-in UCLA-3 loneliness score before and after.</p></div>
+    <div class="rung"><span class="k">Evidence</span><h3>How we'll know</h3><p>Plans that happen, Now pings that end in "We met", repeat meetings with the same person, and an opt-in UCLA-3 loneliness score.</p></div>
   </div>
   <div class="cards c3" style="margin-top:28px"><div class="card"><span class="k">Health · meet</span><p class="m">People with stronger social relationships have a 50% higher likelihood of survival<sup>4</sup>. Every flow ends face to face.</p></div><div class="card"><span class="k">Sport · move</span><p class="m">Every meeting starts on foot. 16 of 44 Mate activities are sport or outdoors, each with a public venue in Kraków.</p></div><div class="card"><span class="k">Wellbeing · look up</span><p class="m">No feed, no chat, no streaks. No health claims and no mood data; support lines are one tap away in Settings.</p></div></div>
   <div class="foot"><span>[3] Hall, J. Social and Personal Relationships, 2018 · [4] Holt-Lunstad et al., PLoS Medicine, 2010</span><span class="num">04 / 10</span></div>
@@ -173,47 +215,67 @@
 <section class="slide">
   <div class="glow" style="width:1000px;height:1000px;right:-420px;bottom:-520px;opacity:.6"></div>
   <div class="eyebrow">4 · Solution</div>
-  <h2 style="margin-top:28px">One essential flow: plan, yes, walk, meet.</h2>
-  <div class="flow">
-    <div class="node"><h3>Profile</h3><p>Mate or Date, interests, four questions an LLM writes from your picks. It writes your vibe line.</p></div>
-    <div class="node"><h3>Match</h3><p>A Siamese model scores Now pairs; plans use an explainable score. Walking distance, age rules.</p></div>
-    <div class="node hot"><h3>Plan</h3><p>Shared activity, an open venue within a 15-min walk of both, a 30-min slot you're both free.</p></div>
-    <div class="node"><h3>Both in</h3><p>Accept plan confirms only if they accept too. Both phones update at the same moment.</p></div>
-    <div class="node"><h3>Walk and meet</h3><p>15 min before, a compass opens: a bearing, never a position. We met: first names and how far you walked.</p></div>
+  <h2 style="margin-top:28px">Two speeds, one ending: you walk and you meet.</h2>
+  <div class="loops">
+    <div class="loop plan">
+      <div class="lab"><span class="eyebrow" style="color:var(--link)">Plan</span><h3>Need a reason to go</h3><p>For later today or this week</p></div>
+      <div class="node"><h3>We find your person</h3><p>Compatible both ways, within a 15-minute walk, free at the same time.</p></div>
+      <div class="node"><h3>We make the plan</h3><p>An activity you both picked, an open public venue, a 30-minute slot.</p></div>
+      <div class="node"><h3>Both in</h3><p>Accept plan confirms only if they accept too. Both phones update at once.</p></div>
+      <div class="node hot"><h3>Walk and meet</h3><p>15 min before, a compass opens. At the table: "Say hi to Ola."</p></div>
+    </div>
+    <div class="loop now">
+      <div class="lab"><span class="eyebrow" style="color:#0f766e">Now</span><h3>Already out</h3><p>Serendipity, but only when you ask for it</p></div>
+      <div class="node"><h3>Pick what you want</h3><p>Food, sports, games… You're invisible until you search.</p></div>
+      <div class="node"><h3>Both phones ping</h3><p>Someone compatible within a 10-minute walk wants the same thing.</p></div>
+      <div class="node"><h3>Both open the compass</h3><p>A mutual tap or nothing happens. A bearing and warmer, colder, never a position.</p></div>
+      <div class="node hot"><h3>Walk and meet</h3><p>Ten minutes to find each other. "We met" unlocks first names.</p></div>
+    </div>
   </div>
-  <div class="also">
+  <div class="also" style="margin-top:36px">
+    <p><b>One faceless profile for both.</b> Mate or Date, interests, four questions an LLM writes from your picks, and a vibe line instead of a photo.</p>
     <p><b>Plan for later.</b> Pick a few times and a place yourself. The invitation goes to one compatible person at a time.</p>
-    <p><b>Now.</b> Already out? Two compatible people nearby who want the same thing are pinged at once, and the same compass walks them together.</p>
   </div>
   <div class="foot"><span>Expo app · Bun + Elysia · PostgreSQL · one WebSocket per phone · 18 public venues in Kraków · English, Polish, Slovak</span><span class="num">05 / 10</span></div>
 </section>
 
-<!-- 6 · demo -->
-<section class="slide ink">
-  <div class="glow" style="width:1200px;height:1200px;left:360px;top:160px;opacity:.28"></div>
-  <div class="eyebrow">Live demo · Tomek and Ola · two phones</div>
-  <h2 style="margin-top:24px">A plan, both in, a walk to the same table.</h2>
-  <div class="shots">
-    <figure data-n="01"><div class="phone"><img src="screens/profile-vibe.jpg" alt=""></div><figcaption><b>Your vibe</b>no photo, ever</figcaption></figure>
-    <figure data-n="02"><div class="phone"><img src="screens/plan-proposal.jpg" alt=""></div><figcaption><b>A plan for you</b>a vibe, a place, a time</figcaption></figure>
-    <figure data-n="03"><div class="phone"><img src="screens/plan-bothin.jpg" alt=""></div><figcaption><b>you're both in</b>on both phones at once</figcaption></figure>
-    <figure data-n="04"><div class="phone"><img src="screens/plan-confirmed.jpg" alt=""></div><figcaption><b>Confirmed</b>compass 15 min before</figcaption></figure>
-    <figure data-n="05"><div class="phone"><img src="screens/home-places.jpg" alt=""></div><figcaption><b>Plan for later</b>or pick a place yourself</figcaption></figure>
+<!-- 6 · matching -->
+<section class="slide">
+  <div class="glow" style="width:900px;height:900px;right:-380px;top:-460px;opacity:.45"></div>
+  <div class="eyebrow">Matching · our own AI model</div>
+  <h2 style="margin-top:28px;max-width:1650px">Not a random stranger. Someone you'll have something to talk about.</h2>
+  <p class="who" style="max-width:1500px">JustMate doesn't pair you with whoever happens to be nearby. A model we trained ourselves looks for people who care about the same things, are the kind of person you'd like to meet, and want to meet someone like you.</p>
+  <div class="mx">
+    <div class="viz">
+      <img class="a" src="badges/lucia-quote.webp" alt="">
+      <div class="ways">
+        <p class="way"><span class="want">who I'd like to meet</span><i></i><span class="is">who they are</span></p>
+        <p class="way back"><span class="is">who I am</span><i></i><span class="want">who they'd like to meet</span></p>
+        <p class="both"><b>✓</b> scored both ways, then added up</p>
+      </div>
+      <img class="b" src="badges/kai-quote.webp" alt="">
+    </div>
+    <ol class="msteps">
+      <li><h3>You, in your own words</h3><p>Interests, four short questions and a one-line vibe. Never a photo shown to anyone.</p></li>
+      <li><h3>Two portraits in numbers</h3><p>Who you are and who you'd like to meet, as two text embeddings our own encoder maps into one compatibility space.</p></li>
+      <li><h3>It has to fit both ways</h3><p>Each of you is scored against what the other wants, and the two scores are added up. Only pairs above the bar ever ping. You meet over something you both love, so the first sentence is easy.</p></li>
+    </ol>
   </div>
-  <div class="foot"><span>Screens from the app on iPhone · on stage: the compass walk and "Say hi to Ola." live · positions scripted in demo mode</span><span class="num">06 / 10</span></div>
+  <div class="foot"><span>Today: trained on 25,000 synthetic profiles · scores Now for real accounts · plans use an explainable score · next: real meetings</span><span class="num">06 / 10</span></div>
 </section>
 
 <!-- 7 · trade-offs -->
 <section class="slide">
   <div class="eyebrow">Design choices</div>
-  <h2 style="margin-top:28px">Three choices, and what they cost us.</h2>
+  <h2 style="margin-top:28px">Four choices, and what they cost us.</h2>
   <div class="tbl">
     <div class="h">Choice</div><div class="h">Reason</div><div class="h">Gain</div><div class="h">Cost</div><div class="h">Mitigation</div>
     <div class="c">A vibe line, no photos</div><div>Judgment stops shy people before they start</div><div>Met for who you are; no appearance economy</div><div>Less to go on, especially in Date mode</div><div>LLM-written vibe; taste training on generated samples</div>
     <div class="c">The app proposes; no chat</div><div>Initiative is the hardest step</div><div>One tap from couch to plan</div><div>Less control over who and when</div><div>Plan for later, Suggest this place, Pass is silent</div>
     <div class="c">1:1 plans first</div><div>Groups need density we won't have at launch</div><div>Works with a few users per district</div><div>Higher stakes than a group table</div><div>Public venues, activity-first plans; groups in v1</div>
+    <div class="c">Now: invisible until you search</div><div>Proximity apps feel creepy</div><div>Nobody can find you unless you chose to, right now</div><div>Needs people searching at the same moment</div><div>Plans carry quiet hours; campuses and event zones first</div>
   </div>
-  <div class="foot"><span>Privacy rule behind all three: the server relays a bearing and a distance bucket, never a person's position</span><span class="num">07 / 10</span></div>
+  <div class="foot"><span>Privacy rule behind all four: the server relays a bearing and a distance bucket, never a person's position</span><span class="num">07 / 10</span></div>
 </section>
 
 <!-- 8 · safety & risk -->
@@ -241,20 +303,21 @@
         <li><b>Plans end to end:</b> proposed from real profiles and free times, accepted on two phones, compass, "Say hi to Ola." with distance walked</li>
         <li><b>Now:</b> both phones pinged at once, mutual accept, compass · <b>Report</b> blocks, two reports pause</li>
         <li><b>Onboarding:</b> LLM questions and vibe line, selfie described then dropped, moderation</li>
-        <li><b>18 public venues</b> in Kraków, every sport covered · <b>144 server tests</b> in CI</li>
+        <li><b>18 public venues</b> in Kraków, every sport covered · <b>177 server tests</b> in CI</li>
       </ul>
     </div>
     <div class="bet"><span class="eyebrow" style="color:var(--fg-1)">Assumed · our bets</span>
       <ul>
         <li><b>People accept plans an app makes for them,</b> if the plan is concrete and small</li>
         <li><b>A vibe line is enough</b> to want to meet someone</li>
+        <li><b>People switch on Now</b> when they're out, if a match is a short walk away</li>
         <li><b>Venues pay</b> to fill off-peak tables (price assumption: €39 a month)</li>
         <li><b>Running cost</b> for one city: our estimate ~€820 a month (hosting, LLM, verification, moderation)</li>
       </ul>
     </div>
     <div class="open"><span class="eyebrow" style="color:var(--fg-1)">To validate · next</span>
       <ul>
-        <li><b>Show-up rate</b> for app-made plans</li>
+        <li><b>Show-up rate</b> for app-made plans, and Now pings that end in "We met"</li>
         <li><b>Repeat meetings</b> with the same person within 4 weeks</li>
         <li><b>Change in loneliness</b> on UCLA-3, opt-in and anonymous</li>
         <li><b>Learned matching:</b> the model scoring Now is trained on synthetic profiles; retrain it on real meetings</li>
@@ -270,8 +333,8 @@
   <div class="eyebrow">6 · What's next</div>
   <h2 style="margin-top:24px">Next: real people, real meetings, measured.</h2>
   <div class="next">
-    <div><h3>Real users in Kraków</h3><p>One campus and a few partner venues, so plans have enough people within a walk.</p></div>
-    <div><h3>Measure what matters</h3><p>Show-ups, repeat meetings with the same person, and an opt-in UCLA-3 loneliness score.</p></div>
+    <div><h3>Real users in Kraków</h3><p>One campus and a few partner venues, so plans have people within a walk and Now has people searching at the same time.</p></div>
+    <div><h3>Measure what matters</h3><p>Show-ups for plans and Now, repeat meetings with the same person, and an opt-in UCLA-3 loneliness score.</p></div>
     <div><h3>Learn from real meetings</h3><p>Retrain the matching model on real outcomes: who met, who said same again.</p></div>
   </div>
   <div class="people" style="margin-top:36px">

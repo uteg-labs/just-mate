@@ -1,4 +1,4 @@
-/* Motion tokens. Springs from just-mate DESIGN.md §6.1 (dampingRatio/duration) + FF tiers.
+/* Motion tokens. Springs from JustMate DESIGN.md §6.1 (dampingRatio/duration) + FF tiers.
    CSS approximations: critically-damped springs ≈ cubic-bezier(0.23,1,0.32,1). Momentum = slight overshoot. */
 :root{
   --ease-spring:cubic-bezier(0.23,1,0.32,1); /* @kind other */

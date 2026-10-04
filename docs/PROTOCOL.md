@@ -152,7 +152,7 @@ Interests (onboarding base lists; related picks extend them open-endedly):
 | `offer_expired` | `{ offerId }` | Offer TTL ran out, or the other side dismissed, or the other side went `search_off` / replaced its search / disconnected. The client shows the same neutral "offer expired" for all of them. Both sides keep searching. |
 | `session_start` | `{ sessionId, expiresInMs: number, planId?: string }` | Both accepted, or both sent `plan_go` (then `planId` is set). Compass unlocks in state `waiting` until the first `partner_position`. |
 | `partner_position` | `{ sessionId, bearing: number, bucket: "cold"\|"warm"\|"hot"\|"burning", distanceM?: number }` | Every `sessionIntervalMs` (1 s) once both members have a position. **Server sends bearing + bucket, never the partner's lat/lng** — the "no pins" rule is enforced at the protocol layer, not in the UI. `bearing` is whole degrees. `bucket` from `config.buckets`: under `burning` m → `burning`, under `hot` → `hot`, under `warm` → `warm`, else `cold`. `distanceM` (whole metres) is sent only to demo sockets (`config.demo: true`) for tuning and must not be rendered. |
-| `session_end` | `{ sessionId, reason: "met"\|"expired"\|"vanished"\|"disconnected" }` | Sent to both (the remaining one, on `disconnected`). `met`: either side's `met`. `expired`: session TTL. `vanished`: either side's `vanish`, `search_off` or replacing `search_on`. `disconnected`: the partner's socket closed. Client discards all session state. `vanished` is shown identically whichever side pressed it. The search ends with the session for both (auto-stop clock cleared, positions dropped); the client returns to select and sends `search_on` to search again. |
+| `session_end` | `{ sessionId, reason: "met"\|"expired"\|"vanished"\|"disconnected", partnerName?: string }` | Sent to both (the remaining one, on `disconnected`). `met`: either side's `met`; only then `partnerName` carries the other person's first name (names unlock in person, never before). `expired`: session TTL. `vanished`: either side's `vanish`, `search_off` or replacing `search_on`. `disconnected`: the partner's socket closed. Client discards all session state. `vanished` is shown identically whichever side pressed it. The search ends with the session for both (auto-stop clock cleared, positions dropped); the client returns to select and sends `search_on` to search again. |
 
 ### `MatchPartner` — the other person's badge, and nothing else
 
@@ -361,8 +361,8 @@ B← session_start {sessionId:"s1", expiresInMs:600000}
 A← partner_position {sessionId:"s1", bearing:271, bucket:"cold"}   (every 1 s)
      … bucket → warm → hot → burning …
 B→ met {sessionId:"s1"}
-A← session_end {sessionId:"s1", reason:"met"}
-B← session_end {sessionId:"s1", reason:"met"}
+A← session_end {sessionId:"s1", reason:"met", partnerName:"Kuba"}
+B← session_end {sessionId:"s1", reason:"met", partnerName:"Ola"}
 ```
 
 ## Close codes

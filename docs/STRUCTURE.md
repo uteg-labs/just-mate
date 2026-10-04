@@ -478,7 +478,7 @@ What the design needs that `PROTOCOL.md` / `@justmate/protocol` don't carry yet.
 3. ~~**Interest vocabulary.**~~ Resolved: `INTERESTS.date` / `INTERESTS.mate`; profiles accept related picks open-endedly, and `POST /api/onboarding/related` serves them.
 4. ~~**Profile fields.**~~ Resolved: the whole profile is stored server-side (`GET`/`PUT /api/profile`, `parseProfile`); `hello` carries only the session cookie. New: the profile needs the user's own `age` (16–99) for the age-range rules, so onboarding needs an age field.
 5. ~~**Vibe line + badge.**~~ Resolved: `match_offer.partner` carries their own vibe line, first 3 interests, `badgeSeed` and `{verified, adult}` tags. Still open: the post-meet **opener** for the pair.
-6. **Names after meeting.** Still open: "Say hi to {name}" needs the partner's first name, and only after `met`, e.g. on `session_end{met}`.
+6. ~~**Names after meeting.**~~ Resolved: `session_end{met}` carries `partnerName`, the other person's first name, and nothing earlier does.
 7. **Keep in touch.** Still open: no message exists. It needs a mutual opt-in after `met` (`keep` → both → `kept`) and a decision on what is saved on the phone.
 8. ~~**Offer countdown.**~~ Resolved: render from `match_offer.expiresInMs` (`config.offerTtlMs`, 45000).
 9. ~~**Match percentage.**~~ Resolved: dropped from `match_offer`.

@@ -8,7 +8,12 @@
 # Build:  docker build -f ml/Dockerfile.scorer -t match-scorer ml/
 # Run:    docker run --rm -p 8000:8000 -p 8001:8001 match-scorer
 #
-# Override model / vocab locations / ports via env (see below).
+# Weights and vocab are pulled from a GitHub release at build time, not from
+# git. The release is created by ml/scripts/release_models.sh — it tags
+# `ml-models@<semver>` and uploads the six files below.
+#
+#   docker build --build-arg MODEL_RELEASE_TAG=ml-models@1.0.0 \
+#     -f ml/Dockerfile.scorer ml/
 
 FROM python:3.11-slim AS base
 
@@ -29,14 +34,40 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN pip install --no-cache-dir 'numpy==1.26.4' 'onnxruntime==1.19.2'
 
-# Runtime artifacts only (see .dockerignore).
+# Runtime scripts and source tree only (see .dockerignore).
 COPY scripts/match_scorer_server.py scripts/interest_matcher_server.py scripts/run_servers.py scripts/
-COPY checkpoints ./checkpoints
-COPY data/interest_embeddings.npz data/interest_index.json ./data/
 COPY src ./src
+
+# Download weights + vocab from a GitHub release. BuildKit caches this layer,
+# so re-builds without a tag change skip the download entirely.
+#
+# Args:
+#   MODEL_RELEASE_TAG    tag like "ml-models@1.0.0"
+#   GITHUB_REPO          org/repo slug — override for forks
+#
+# Both ONNX models + their JSON model cards + the interest vocabulary land
+# in /app/{checkpoints,data}. Failing to fetch is loud (curl -f) so partial
+# releases don't ship a 500-ing container.
+ARG MODEL_RELEASE_TAG=ml-models@1.0.0
+ARG GITHUB_REPO=uteg-labs/just-mate
+ENV MODEL_RELEASE_URL=https://github.com/${GITHUB_REPO}/releases/download/${MODEL_RELEASE_TAG}
 
 ARG MATCH_SCORER_MODEL_FILE=model_v3_best.onnx
 ARG INTEREST_MATCHER_MODEL_FILE=interest_matcher.onnx
+
+RUN mkdir -p /app/checkpoints /app/data \
+    && for f in \
+        checkpoints/${MATCH_SCORER_MODEL_FILE} \
+        checkpoints/${MATCH_SCORER_MODEL_FILE%.onnx}.json \
+        checkpoints/${INTEREST_MATCHER_MODEL_FILE} \
+        checkpoints/${INTEREST_MATCHER_MODEL_FILE%.onnx}.json \
+        data/interest_embeddings.npz \
+        data/interest_index.json; do \
+        echo "→ fetching $f from ${MODEL_RELEASE_URL}"; \
+        curl -fsSL --retry 3 --retry-delay 2 \
+            -o "/app/$f" \
+            "${MODEL_RELEASE_URL}/$f"; \
+    done
 
 ENV MATCH_SCORER_MODEL=/app/checkpoints/${MATCH_SCORER_MODEL_FILE} \
     INTEREST_MATCHER_MODEL=/app/checkpoints/${INTEREST_MATCHER_MODEL_FILE} \

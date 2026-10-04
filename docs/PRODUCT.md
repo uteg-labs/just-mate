@@ -201,7 +201,7 @@ Screens and exact copy are in `STRUCTURE.md` §8; the wire contract is `PROTOCOL
 
 ## 7. Matching system
 
-**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, appearance (selfie features, never shown), taste (traits of the liked samples), character (five trait lines from the answers), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (The stretch ML service keeps a per-user embedding cache in pgvector — profile vectors, never positions; see below.)
+**Data model.** `user = { id, mode, name, gender, age, interests[], answers[], vibe, prefs (date: seek, age range, looking · mate: who, group, energy, age range, when, length), verified, adult, appearance (selfie features, never shown), taste (traits of the liked samples), character (five trait lines from the answers), settings, attractionVector (private, on-device), session: { mode, category, intents[], walkMin, state } }`. The profile is stored server-side (`PROTOCOL.md` › Profile) so matching can use it; the search session and positions live only on the socket. (Onboarding also stores two profile embeddings per user in `profile_embedding` for the ML model — profile vectors, never positions; see below.)
 
 **Explainable scoring (M0 primary).** A transparent function, served by the Elysia backend, is what runs in the demo and what we defend in Q&A:
 
@@ -210,7 +210,7 @@ compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
 match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent ≥ 1 ∧ compat ≥ 0.45
 ```
 
-- **Mode and intents gate, interests score.** Both people must be searching in the same mode, and their picks must share at least one intent; that shared intent is the *context* of the match ("this is a beer match"). Interests and answers set the compatibility score. The score gates the match but isn't shown on screen.
+- **Mode and intents gate, interests score.** Both people must be searching in the same mode, and their picks must share at least one intent; that shared intent is the *context* of the match ("this is a running match"). Interests and answers set the compatibility score. The score gates the match but isn't shown on screen.
 - **Distance, not zone, is the match gate.** The server holds exact positions anyway; zones are a *display* abstraction (see §8). Matching on "same geohash cell" would (a) pair people up to 1.35 km apart — more than the ~830 m a person walks in the 10-minute window at 5 km/h — and (b) never pair two people 50 m apart on either side of a cell boundary. `R_MATCH = 400 m` ≈ 5 min on foot, leaving half the window for finding each other.
 - **Offer TTL 45 s**, then the offer expires silently for both (see §6.4).
 - **Pair cooldown: 5 min** after any match/dismiss/expiry/vanish — no re-pinging the same person, no notification spam.
@@ -222,17 +222,17 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (400 m) ∧ shared intent �
 **Compatibility model (M1+ — post-hackathon, documented, not in M0 demo).** A Siamese text-embedding model with a Match Head, custom-trained by the team. The pipeline:
 
 1. **Photo description (LLM).** At onboarding, the user's photo + (intents, interests) is sent to a vision LLM (e.g. `gpt-4o-mini`) which returns a 2–3 sentence plain-prose text covering how they look, their personality vibe, and who they want to meet. This text is cached in `profile["description"]`. No face data is shared between users — only the text description.
-2. **Text embedding.** Each profile's text — `Intent: … Interests: … Description: …` — is sent to OpenAI `text-embedding-3-small` (1536-d, frozen).
-3. **Shared Encoder.** A learned MLP `1536 → 512 → 256 → 128` (LayerNorm + ReLU between layers) projects to 128-d compatibility vectors `z_a`, `z_b`, L2-normalized.
-4. **Match Head.** Takes `concat(|z_a − z_b|, z_a ⊙ z_b, cos(z_a, z_b))` (257-d) and outputs a pairwise compatibility logit. Sigmoid → score ∈ [0, 1].
+2. **Text embedding.** Two texts per profile — a *self* text (interests, character, appearance) and a *target* text (who they want to meet) — go to OpenAI `text-embedding-3-small` (1536-d, frozen).
+3. **Shared Encoder.** A learned MLP `1536 → 256 → 128` (LayerNorm, L2-normalized output) projects them to 128-d compatibility vectors.
+4. **Match Head.** Scores one person's target vector against the other's self vector from their difference, product and cosine (v3 also takes a soft-Jaccard of interests), `→ 32 → 1` logit. Exact heads in `docs/ML-MATCHING.md` §3.
 5. **Joint training.** Triplet loss (margin=1.0, p=2) + binary match loss (BCE for logit_ab→1 and logit_ac→0) trained jointly on synthetic profiles for M0 / on real outcomes for M1.
 
-- **Serving (M0 stretch).** The trained Siamese model is loaded in-process inside the Bun/Elysia server — no separate inference binary, no compiled C++ runtime, no subprocess protocol. PyTorch + ONNX Runtime both work; we pick whichever starts fastest on the demo machine. The demo always has the explainable baseline as a fallback if the model is unavailable.
+- **Serving (planned, not wired in).** The ONNX model runs behind `ml/scripts/match_scorer.py`, an NDJSON scorer (Python or a PyInstaller binary). The server's `compat()` is synchronous and runs per pair on every tick, so integration means a precomputed pair-score cache with the explainable baseline as fallback (`ml/DEPLOYMENT.md`).
 - **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.
 - **Honesty on stage.** In M0, with synthetic data only, a learned model just learns the baseline. We do not say "AI matching" about something that is not learned from real signal — the explainable function stays the headline; the model card + `docs/ML-MATCHING.md` describe the *real* M1 pipeline.
-- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `docs/ml/PLAN.md`.
+- Full pipeline, training loop, file layout, and M1 roadmap: see `docs/ML-MATCHING.md` and `ml/README.md` (`docs/ml/PLAN.md` is the original plan, kept for history).
 
 **Description generation (LLM, M0 stretch).** — Today's version of the attraction vector. The user's photo is uploaded once at onboarding; an LLM produces a 2–3 sentence plain-prose description (`Appearance + personality + what they're looking for`) which becomes part of the profile. The matching model never sees the photo, only the text. In M0 we use a canned pool of descriptions for synthetic profiles; in M1 a real LLM call produces them per-user. **Privacy note:** photos go to the LLM API. Production needs a DPIA + explicit consent per §10; the demo uses test data only.
 

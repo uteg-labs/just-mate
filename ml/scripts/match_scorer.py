@@ -1,8 +1,6 @@
-"""Standalone match-scorer binary.
-
-Runs the exported ONNX model (full pipeline: 1536-d embeddings + soft-jaccard
-→ score) in a single Python interpreter. Communicates with the parent process
-via newline-delimited JSON on stdin/stdout.
+"""Match scorer: runs an exported ONNX match model behind newline-delimited
+JSON on stdin/stdout. Runs as a Python script or as the PyInstaller binary
+built by scripts/build_match_scorer.sh.
 
 Run as a subprocess from any language:
 
@@ -14,9 +12,10 @@ Wire format (newline-delimited JSON):
                          "soft_jacc": <scalar float>}
   response → stdout:  {"id":"req_42", "score":0.78}
 
-The `soft_jacc` field is REQUIRED for v3 models (the third input). Use
-`compute_soft_jaccard_pair()` from `just_mate_ml.data.embed` to derive it
-from two profiles' interests.
+`soft_jacc` is fed only to models that declare a `soft_jacc` input (v3);
+2-input models (v2, the published model_v0.onnx) ignore it. It is the
+bidirectional soft-Jaccard of the two profiles' interests, see
+`compute_full_soft_jaccard()` in scripts/train_experiments_v3.py.
 
 One-shot CLI mode (for ad-hoc / debugging):
     python scripts/match_scorer.py <model.onnx> \
@@ -36,6 +35,7 @@ import json
 import os
 import sys
 import time
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -45,7 +45,7 @@ import onnxruntime as ort
 def default_model_path() -> Path:
     """Path to the bundled ONNX model.
 
-    In source runs: <repo>/checkpoints/model_v0.onnx
+    In source runs: ml/checkpoints/model_v0.onnx
     In PyInstaller --onedir builds: <dist>/match_scorer/checkpoints/model_v0.onnx
       (we put the model there via `pyinstaller --add-data ...:checkpoints`,
        and `sys.executable.parent` resolves to `<dist>/match_scorer/`).
@@ -77,17 +77,21 @@ def load_session(model_path: Path) -> ort.InferenceSession:
     return ort.InferenceSession(str(model_path), sess_options=so)
 
 
+@cache
+def takes_soft_jacc(sess: ort.InferenceSession) -> bool:
+    return "soft_jacc" in {i.name for i in sess.get_inputs()}
+
+
 def score_one(
     sess, target_emb: list[float], self_emb: list[float], soft_jacc: float = 0.0
 ) -> float:
-    target_arr = np.asarray(target_emb, dtype=np.float32)[None, :]   # (1, 1536)
-    self_arr = np.asarray(self_emb, dtype=np.float32)[None, :]
-    sj_arr = np.asarray([soft_jacc], dtype=np.float32)[None, :]      # (1, 1)
-    score = sess.run(
-        None,
-        {"target_emb": target_arr, "self_emb": self_arr, "soft_jacc": sj_arr},
-    )[0]
-    return float(score[0])
+    feeds = {
+        "target_emb": np.asarray(target_emb, dtype=np.float32)[None, :],   # (1, 1536)
+        "self_emb": np.asarray(self_emb, dtype=np.float32)[None, :],
+    }
+    if takes_soft_jacc(sess):
+        feeds["soft_jacc"] = np.asarray([[soft_jacc]], dtype=np.float32)  # (1, 1)
+    return float(sess.run(None, feeds)[0][0])
 
 
 def score_pair(
@@ -125,20 +129,26 @@ def serve_loop(sess) -> None:
 
 
 def self_test(sess) -> None:
-    """Sanity check using REAL profile embeddings and soft_jaccard cache."""
+    """Sanity check using REAL profile embeddings (and the soft_jaccard cache
+    for models that take it)."""
     here = Path(__file__).resolve().parents[1]
     self_emb = np.load(here / "data" / "profile_embeddings_self.npy")
     target_emb = np.load(here / "data" / "profile_embeddings_target.npy")
-    sj_cache = np.load(here / "data" / "soft_jaccard.npy")
+    sj_cache = (
+        np.load(here / "data" / "soft_jaccard.npy", mmap_mode="r")
+        if takes_soft_jacc(sess) else None
+    )
+
+    def soft(i: int, j: int) -> float:
+        return 0.0 if sj_cache is None else float((sj_cache[i, j] + sj_cache[j, i]) / 2)
 
     # Pick a profile that has a real match in the triplets and one that doesn't.
     z = np.load(here / "data" / "triplets.npz")
     val = z["anchor"][0]; pos = z["positive"][0]; neg = z["negative"][0]
-    soft_v_p = float((sj_cache[val, pos] + sj_cache[pos, val]) / 2)
-    soft_v_n = float((sj_cache[val, neg] + sj_cache[neg, val]) / 2)
+    soft_v_p = soft(val, pos)
+    soft_v_n = soft(val, neg)
 
-    s_self = score_one(sess, target_emb[val].tolist(), self_emb[val].tolist(),
-                       float((sj_cache[val, val] + sj_cache[val, val]) / 2))
+    s_self = score_one(sess, target_emb[val].tolist(), self_emb[val].tolist(), soft(val, val))
     s_match = score_one(sess, target_emb[val].tolist(), self_emb[pos].tolist(), soft_v_p)
     s_nonmatch = score_one(sess, target_emb[val].tolist(), self_emb[neg].tolist(), soft_v_n)
     s_pair_match = score_pair(
@@ -176,8 +186,8 @@ def main() -> None:
                         help="score one pair inline: 'target_emb.json,self_emb.json' "
                              "(paths to JSON files each holding 1536 floats)")
     parser.add_argument("--soft-jacc", type=float, default=0.0,
-                        help="soft_jacc value for --score mode (REQUIRED for v3 models; "
-                             "ignored by v2 models that take only 2 inputs)")
+                        help="soft_jacc value for --score mode; fed only to models with a "
+                             "soft_jacc input (v3), ignored by 2-input models (v2)")
     args = parser.parse_args()
 
     model_path = Path(args.model)

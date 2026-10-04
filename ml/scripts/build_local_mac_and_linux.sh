@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build match_scorer for the current Mac (native) AND for Linux (via Docker).
-# Windows still requires CI (GitHub Actions windows-latest) — PyInstaller has
-# no Wine-compatible build path on macOS that produces reliable .exe artifacts.
+# Windows needs a Windows machine (scripts/build_match_scorer.sh under Git Bash):
+# PyInstaller does not cross-compile.
 #
 # Usage:
 #   bash scripts/build_local_mac_and_linux.sh
@@ -71,5 +71,4 @@ echo "  $DIST/match_scorer-linux/    (can't run on macOS — for Linux server)"
 echo "  $DIST/match-scorer-macos.tar.gz"
 echo "  $DIST/match-scorer-linux.tar.gz"
 echo ""
-echo "For Windows build, push a tag like 's@1.0.0' or trigger the"
-echo "build-match-scorer workflow from GitHub Actions UI."
+echo "For a Windows build, run scripts/build_match_scorer.sh under Git Bash on Windows."

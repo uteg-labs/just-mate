@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JustMate Whitepaper</title>
+<link rel="stylesheet" href="pack.css">
+<style>
+  @page { size: A4; margin: 0; }
+
+  body { counter-reset: pg; }
+
+  .page {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    padding: 18mm 18mm 12mm;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    break-after: page;
+    background: var(--paper);
+    counter-increment: pg;
+  }
+  .page.ink { background: var(--ink); color: var(--on-ink-1); }
+  .page > :not(.glow) { position: relative; z-index: 1; }
+
+  .eyebrow { font-size: 9.5px; letter-spacing: .14em; }
+  .display { font-size: 66px; letter-spacing: -.045em; }
+  h2 { font-size: 29px; line-height: 1.08; letter-spacing: -.03em; margin-top: 10px; }
+  h3 { font-size: 14.5px; line-height: 1.25; letter-spacing: -.01em; }
+  p, li { font-size: 12px; line-height: 1.52; }
+  .lede { font-size: 14px; line-height: 1.45; color: var(--fg-2); margin-top: 10px; max-width: 560px; }
+  .ink .lede { color: var(--on-ink-2); }
+  b { font-weight: 600; }
+  sup { font-family: var(--mono); font-size: .62em; color: var(--link); margin-left: 1px; letter-spacing: 0; }
+  .ink sup { color: var(--glow); }
+  a { color: inherit; text-decoration: none; }
+
+  .foot { font-size: 8px; gap: 24px; padding-top: 10px; }
+  .foot .num::after { content: counter(pg, decimal-leading-zero) " / 10"; }
+  .foot .src { max-width: 520px; line-height: 1.45; }
+
+  .sec { margin-top: 18px; }
+  .k { font-family: var(--mono); font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-2); }
+  .ink .k { color: var(--on-ink-2); }
+  .k.amber { color: var(--link); }
+  .ink .k.amber { color: var(--glow); }
+  .prod { font-size: 7.5px; padding: 1px 5px; border-radius: 4px; border-width: 1px; vertical-align: 1px; margin-left: 4px; }
+  .plan { font-family: var(--mono); font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--cold); color: var(--cold); vertical-align: 1px; margin-left: 4px; white-space: nowrap; }
+  .built { font-family: var(--mono); font-size: 7.5px; letter-spacing: .1em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--success); color: #1d9a31; vertical-align: 1px; margin-left: 4px; white-space: nowrap; }
+
+  .row { display: flex; gap: 22px; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .grow { flex: 1; }
+
+  .cards { display: grid; gap: 14px; }
+  .c2 { grid-template-columns: repeat(2, 1fr); }
+  .c3 { grid-template-columns: repeat(3, 1fr); }
+  .c4 { grid-template-columns: repeat(4, 1fr); }
+  .card { padding-top: 9px; border-top: 1.5px solid var(--fg-1); display: flex; flex-direction: column; gap: 5px; }
+  .ink .card { border-top-color: var(--on-ink-1); }
+  .card p { font-size: 11px; line-height: 1.48; color: var(--fg-2); }
+  .ink .card p { color: var(--on-ink-2); }
+
+  .tile { background: #fff; border-radius: 12px; padding: 12px 13px 13px; box-shadow: 0 1px 0 var(--line), 0 10px 24px -18px rgba(0,0,0,.25); display: flex; flex-direction: column; gap: 5px; }
+  .tile p { font-size: 11px; line-height: 1.45; color: var(--fg-2); }
+  .tile.dark { background: var(--ink); color: var(--on-ink-1); }
+  .tile.dark p { color: var(--on-ink-2); }
+
+  .phone { width: 118px; border-width: 4px; border-radius: 19px; box-shadow: 0 16px 30px -16px rgba(10,10,13,.45), 0 0 0 1px rgba(255,255,255,.06); }
+  .phone img { border-radius: 15px; }
+  figure { display: flex; flex-direction: column; gap: 6px; }
+  figcaption { font-size: 9px; line-height: 1.35; color: var(--fg-2); }
+  figcaption b { display: block; color: var(--fg-1); font-weight: 600; font-size: 9.5px; }
+  .ink figcaption { color: var(--on-ink-2); }
+  .ink figcaption b { color: var(--on-ink-1); }
+  .shots { display: flex; justify-content: space-between; gap: 10px; }
+
+  .steps { list-style: none; padding: 0; counter-reset: st; display: flex; flex-direction: column; gap: 7px; }
+  .steps li { position: relative; padding-left: 24px; color: var(--fg-2); }
+  .steps li b { color: var(--fg-1); }
+  .steps li::before { counter-increment: st; content: counter(st, decimal-leading-zero); position: absolute; left: 0; top: 2px; font-family: var(--mono); font-size: 9px; color: var(--link); }
+
+  .bul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .bul li { position: relative; padding-left: 12px; font-size: 11px; line-height: 1.45; color: var(--fg-2); }
+  .bul li::before { content: ""; position: absolute; left: 0; top: 6.5px; width: 4px; height: 4px; border-radius: 50%; background: var(--glow); }
+  .bul li b { color: var(--fg-1); }
+  .ink .bul li { color: var(--on-ink-2); }
+  .ink .bul li b { color: var(--on-ink-1); }
+
+  table { width: 100%; border-collapse: collapse; border-top: 1.5px solid var(--fg-1); }
+  th { font-family: var(--mono); font-size: 8px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-2); text-align: left; padding: 7px 10px 6px 0; border-bottom: 1px solid var(--line); }
+  td { font-size: 11px; line-height: 1.42; color: var(--fg-2); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td:first-child { color: var(--fg-1); font-weight: 600; }
+  td.r, th.r { text-align: right; padding-right: 0; font-variant-numeric: tabular-nums; }
+  tr.tot td { color: var(--fg-1); font-weight: 700; border-bottom: 0; }
+
+  .formula { font-family: var(--mono); font-size: 11px; line-height: 1.7; background: var(--ink); color: var(--on-ink-1); border-radius: 12px; padding: 12px 16px; letter-spacing: .01em; }
+  .formula span { color: var(--glow); }
+
+  .buckets { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; border-radius: 10px; overflow: hidden; }
+  .buckets div { padding: 8px 10px; font-size: 10px; line-height: 1.3; }
+  .buckets b { display: block; font-size: 11.5px; }
+
+  .pipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .pipe div { background: #fff; border-radius: 10px; padding: 9px 9px 10px; box-shadow: 0 1px 0 var(--line), 0 8px 18px -14px rgba(0,0,0,.25); font-size: 9.5px; line-height: 1.38; color: var(--fg-2); position: relative; }
+  .pipe div b { display: block; color: var(--fg-1); font-size: 10.5px; margin-bottom: 2px; }
+  .pipe div:not(:last-child)::after { content: "→"; position: absolute; right: -7px; top: 50%; transform: translate(50%, -50%); color: var(--link); font-size: 11px; }
+
+  .stat b { display: block; font-size: 44px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+  .stat p { margin-top: 7px; font-size: 11px; line-height: 1.4; color: var(--on-ink-2); }
+  .glance .stat b { font-size: 30px; }
+  .glance .stat p { color: var(--fg-2); font-size: 10.5px; }
+  .glance .stat b { color: var(--fg-1); }
+
+  .arc { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .arc div { border-top: 2px solid var(--glow); padding-top: 6px; }
+  .arc b { font-size: 12.5px; display: block; }
+  .arc span { font-size: 9.5px; line-height: 1.35; color: var(--fg-2); display: block; margin-top: 2px; }
+
+  .refs { display: flex; flex-direction: column; gap: 7px; }
+  .refs p { font-size: 9.5px; line-height: 1.45; color: var(--on-ink-2); padding-left: 22px; position: relative; }
+  .refs p b { position: absolute; left: 0; font-family: var(--mono); font-weight: 400; color: var(--glow); }
+  .refs a { color: var(--on-ink-1); word-break: break-all; }
+
+  .chip { height: 22px; padding: 0 10px; border-radius: 11px; font-size: 10px; gap: 6px; }
+  .note { font-size: 10.5px; line-height: 1.5; color: var(--fg-2); }
+  .ink .note { color: var(--on-ink-2); }
+</style>
+</head>
+<body>
+
+<!-- 1 · title and abstract -->
+<section class="page">
+  <div class="glow" style="width:700px;height:700px;right:-260px;top:-260px"></div>
+  <div class="glow mint" style="width:460px;height:460px;left:-220px;bottom:-200px"></div>
+  <div class="eyebrow">HackYeah 2026 · Kraków · Open task · Sport &amp; Healthcare</div>
+
+  <div class="row" style="margin-top:56px;align-items:flex-end;justify-content:space-between">
+    <div class="col" style="gap:18px;max-width:350px">
+      <div class="row" style="gap:12px;align-items:center">
+        <img src="../../mobile/assets/brand/just-mate-symbol.svg" alt="" style="width:46px;height:46px">
+        <img src="../../mobile/assets/brand/just-mate-wordmark.svg" alt="just-mate" style="height:32px">
+      </div>
+      <div class="display">Meet for real.</div>
+      <p style="font-size:17px;line-height:1.35;letter-spacing:-.015em">A plan near you, a person who fits, and someone waiting when you get there.</p>
+      <span class="k">Product &amp; technical whitepaper · October 2026</span>
+    </div>
+    <div class="row" style="gap:12px;align-items:flex-end;margin-right:4px">
+      <div class="phone" style="width:132px;transform:rotate(-4deg) translateY(-14px)"><img src="screens/plan-proposal.jpg" alt=""></div>
+      <div class="phone" style="width:132px;transform:rotate(4deg)"><img src="screens/plan-bothin.jpg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:52px">
+    <span class="k amber">Abstract</span>
+    <p style="margin-top:8px;font-size:12.5px;line-height:1.55">Loneliness affects one in six people worldwide and is linked to more than 871,000 deaths a year<sup>1</sup>. For a lonely person, the hard part is rarely finding someone online. It is the step out of the door: organising anything feels like too much, nobody may come, and photo-first apps make meeting feel like an audition.</p>
+    <p style="margin-top:8px;font-size:12.5px;line-height:1.55">JustMate takes those steps off them. From a faceless profile, the app proposes one concrete 1:1 plan: a compatible person, an activity both picked, an open public venue within a 15-minute walk of both, and a time both are free. The plan is on only when both accept. A compass then guides them to each other with a bearing and a distance bucket, never a position, and first names unlock only when they meet. For people already out, Now pings two compatible people nearby who want the same thing at the same moment.</p>
+    <p style="margin-top:8px;font-size:12.5px;line-height:1.55">This paper describes what the build does today, and labels everything else <span class="prod" style="margin-left:0">production path</span>. JustMate is not therapy and makes no health claims.</p>
+  </div>
+
+  <div class="cards c4 sec glance" style="margin-top:34px">
+    <div class="stat"><b class="num">1:1</b><p>plans, on only when both accept</p></div>
+    <div class="stat"><b class="num">15 min</b><p>max walk to the venue, for each of you</p></div>
+    <div class="stat"><b class="num">18</b><p>public venues in Kraków, every sport covered</p></div>
+    <div class="stat"><b class="num">0</b><p>photos, chats or location history</p></div>
+  </div>
+
+  <div class="cards c3 sec" style="margin-top:34px">
+    <div class="card"><span class="k">Team</span><p style="color:var(--fg-1)">Arthur Kozubov · Jozef Zvalo · Andrej Zak · Nikita Orlov · Serhii Vielkin</p></div>
+    <div class="card"><span class="k">Code &amp; docs</span><p style="color:var(--fg-1)">github.com/uteg-labs/just-mate<br>MIT licence</p></div>
+    <div class="card"><span class="k">Contents</span><p>Problem · Who it's for · How it works · Matching · Safety &amp; privacy · Health case · Business · Built vs production path · References</p></div>
+  </div>
+
+  <div class="foot"><span>JustMate · Whitepaper · HackYeah 2026</span><span class="num"></span></div>
+</section>
+
+<!-- 2 · problem -->
+<section class="page ink">
+  <div class="glow" style="width:620px;height:620px;right:-260px;bottom:-300px;opacity:.45"></div>
+  <div class="eyebrow">01 · The problem</div>
+  <h2 style="max-width:600px">Loneliness and inactivity are health risks at population scale.</h2>
+
+  <div class="cards c4" style="margin-top:44px;gap:16px">
+    <div class="stat"><b class="num">1 in 6</b><p>people worldwide are affected by loneliness<sup>1</sup></p></div>
+    <div class="stat"><b class="num">871,000</b><p>deaths a year are linked to loneliness, about 100 every hour<sup>1</sup></p></div>
+    <div class="stat"><b class="num">2×</b><p>lonely people are twice as likely to get depressed<sup>1</sup></p></div>
+    <div class="stat"><b class="num">31%</b><p>of adults, 1.8 billion people, don't get enough physical activity<sup>5</sup></p></div>
+  </div>
+  <div class="cards c3" style="margin-top:30px;gap:16px">
+    <div class="stat"><b class="num" style="font-size:34px">17–21%</b><p>of 13–29-year-olds are lonely, the highest of any age group<sup>1</sup></p></div>
+    <div class="stat"><b class="num" style="font-size:34px">13%</b><p>of people in the EU feel lonely most or all of the time<sup>2</sup></p></div>
+    <div class="stat"><b class="num" style="font-size:34px">+50%</b><p>higher likelihood of survival with stronger social relationships<sup>4</sup></p></div>
+  </div>
+
+  <p style="margin-top:60px;font-size:21px;line-height:1.3;font-weight:600;letter-spacing:-.02em;max-width:610px">Apps solved matching. The friction is the step out of the door: <span style="color:var(--glow)">no reason to go, no one sure to be there, and a fear of being judged.</span></p>
+
+  <div class="cards c3" style="margin-top:48px">
+    <div class="card"><span class="k">Barrier 1</span><h3>Initiative</h3><p>Low energy makes organising anything, even choosing between options, feel like too much. "Find people now" assumes you are already out and already brave.</p></div>
+    <div class="card"><span class="k">Barrier 2</span><h3>The empty table</h3><p>"What if nobody comes?" One no-show confirms the story that nobody wants you.</p></div>
+    <div class="card"><span class="k">Barrier 3</span><h3>Judgment</h3><p>Photo-first apps turn meeting into an audition, and chat turns it into weeks of performance before anything real happens.</p></div>
+  </div>
+
+  <div class="tile dark" style="margin-top:48px;padding:16px 18px;background:rgba(255,255,255,.06);box-shadow:none">
+    <span class="k amber">Design consequence</span>
+    <p>Every mechanic in JustMate removes one of the three barriers. And because friendship takes about 50 hours together to go from acquaintance to casual friend<sup>3</sup>, the product's job is not the first meeting but the second and the tenth. Existing apps earn from attention spent on the phone; JustMate succeeds when the phone goes back in the pocket.</p>
+  </div>
+
+  <div class="foot"><span class="src">[1] WHO, 30 Jun 2025 · [2] JRC, EU Loneliness Survey 2022 · [3] Hall, 2018 · [4] Holt-Lunstad et al., 2010 · [5] WHO, 26 Jun 2024. Full links on page 10.</span><span class="num"></span></div>
+</section>
+
+<!-- 3 · who it's for -->
+<section class="page">
+  <div class="glow" style="width:520px;height:520px;right:-220px;top:-220px;opacity:.55"></div>
+  <div class="eyebrow">02 · Who it's for</div>
+  <h2 style="max-width:560px">Young adults new to a city, with no one to call on a weekday evening.</h2>
+  <p class="lede">Primary: 18–35-year-olds who moved for work or study, remote workers, students who haven't found their people, people after a breakup. They can walk, and cities give the density plans need. Loneliness peaks at this age: 17–21% of 13–29-year-olds are lonely<sup>1</sup>. Secondary: people already out alone, like a traveller on an evening walk, which is the Now loop.</p>
+
+  <div class="row" style="margin-top:30px;gap:22px;align-items:flex-start">
+    <div class="col grow" style="gap:12px">
+      <div class="tile dark" style="padding:16px 18px">
+        <span class="k amber">Persona · Tomek, 28</span>
+        <h3 style="font-size:17px;margin-top:2px">Moved to Kraków for a job. Works from home. Hasn't spoken to anyone all weekend.</h3>
+        <p style="margin-top:4px">Not "depressed", just flat and stuck. Organising anything feels impossible; a Meetup room of 40 strangers feels worse. Swipe apps gave him chats that died.</p>
+      </div>
+      <p style="color:var(--fg-2)">Sunday night a plan drops in: <b style="color:var(--fg-1)">board games · Sunday 15:00 · Meeple Café</b>, 7 minutes on foot for him and 9 for them, with a vibe line instead of a face: <span class="vibe" style="color:var(--fg-1)">"will lose at chess — will demand a rematch"</span>. He taps <b style="color:var(--fg-1)">Accept plan</b>. When the other side accepts too, both phones show <b style="color:var(--fg-1)">you're both in</b>.</p>
+      <p style="color:var(--fg-2)">At 14:45 the compass opens and walks him there. At the table: <b style="color:var(--fg-1)">"Say hi to Ola."</b> and how far he walked. Then <b style="color:var(--fg-1)">Same again next week?</b> He didn't plan anything, didn't chat with anyone, and knew someone would be there.</p>
+    </div>
+    <figure style="width:150px;flex:none">
+      <div class="phone" style="width:150px"><img src="screens/plan-proposal.jpg" alt=""></div>
+      <figcaption><b>A plan for you</b>their vibe, the place, the time, minutes on foot for each</figcaption>
+    </figure>
+  </div>
+
+  <div class="sec" style="margin-top:34px">
+    <span class="k">The arc we design for</span>
+    <div class="arc" style="margin-top:8px">
+      <div><b>couch</b><span>flat, no energy to plan</span></div>
+      <div><b>yes</b><span>one tap: Accept plan</span></div>
+      <div><b>door</b><span>the compass opens 15 min before</span></div>
+      <div><b>table</b><span>an activity to do side by side</span></div>
+      <div><b>again</b><span>"Same again next week?"</span></div>
+    </div>
+  </div>
+
+  <table class="sec" style="margin-top:34px">
+    <tr><th style="width:22%">Who</th><th style="width:30%">Situation</th><th style="width:12%">Loop</th><th>What JustMate does</th></tr>
+    <tr><td>Newcomer</td><td>Lonely, low energy, never initiates</td><td>Plan</td><td>Proposes one concrete plan; he only taps Accept plan</td></tr>
+    <tr><td>Shy person</td><td>A date feels like an interview</td><td>Plan</td><td>An activity first: board games, climbing, a run, at a public venue</td></tr>
+    <tr><td>Has the energy today</td><td>Knows what and where, not who</td><td>Plan for later</td><td>Their own invitation, offered to one compatible person at a time</td></tr>
+    <tr><td>Already out</td><td>Alone on an evening walk</td><td>Now</td><td>Pings a compatible person nearby who wants the same thing</td></tr>
+  </table>
+
+  <div class="foot"><span class="src">Tomek and Ola are the personas of the stage demo. [1] WHO, 30 Jun 2025.</span><span class="num"></span></div>
+</section>
+
+<!-- 4 · how it works: plan -->
+<section class="page">
+  <div class="glow mint" style="width:480px;height:480px;left:-240px;top:-220px"></div>
+  <div class="eyebrow">03 · How it works · Plan</div>
+  <h2>The app makes the plan. You only say yes.</h2>
+  <p class="lede">Plans are strictly 1:1, in both Mate and Date. They need no chat: the card carries the person's vibe, the activity, the place, the time and when the compass opens.</p>
+
+  <div class="shots" style="margin-top:26px">
+    <figure><div class="phone"><img src="screens/plan-list.jpg" alt=""></div><figcaption><b>Plans</b>proposed for you, upcoming, your invitations</figcaption></figure>
+    <figure><div class="phone"><img src="screens/plan-proposal.jpg" alt=""></div><figcaption><b>A plan for you</b>alternatives as chips</figcaption></figure>
+    <figure><div class="phone"><img src="screens/plan-bothin.jpg" alt=""></div><figcaption><b>you're both in</b>on both phones at once</figcaption></figure>
+    <figure><div class="phone"><img src="screens/plan-confirmed.jpg" alt=""></div><figcaption><b>Confirmed</b>compass 15 min before</figcaption></figure>
+    <figure><div class="phone"><img src="screens/plan-proposal-date.jpg" alt=""></div><figcaption><b>A Date plan</b>same rules, 18+ only</figcaption></figure>
+  </div>
+
+  <ol class="steps sec" style="margin-top:30px;gap:10px">
+    <li><b>Proposed from real profiles and free times.</b> The matcher pairs two compatible people and picks an activity both chose, a time inside both people's free slots, and an open public venue within a 15-minute walk of both, the one where nobody walks much further. The card shows walking minutes for each: "7 min for you, 9 for them".</li>
+    <li><b>Accept, pass, or suggest a place.</b> <b>Accept plan</b> confirms only if both accept; "waiting for them…" turns into <b>you're both in</b> on both phones at the same moment. Picking an alternative venue turns the button into <b>Suggest this place</b>. <b>Pass</b> is silent: the other side only sees the proposal expire.</li>
+    <li><b>Confirmed.</b> The plan card shows the venue, who you're meeting as a vibe, and when the compass opens. Names still unlock only when you meet. <b>Can't make it</b> is one tap; the other side sees "plan cancelled", no reason asked.</li>
+    <li><b>The walk.</b> The compass opens 15 minutes before the start and runs for up to 30 minutes, exactly like Now: a bearing and a distance bucket, never a pin. At the table: <b>We met</b>.</li>
+  </ol>
+
+  <div class="cards c3 sec" style="margin-top:34px">
+    <div class="card"><span class="k">Places</span><p><b style="color:var(--fg-1)">18 public venues in Kraków</b>, hand-tagged with activities and opening hours, with every sport covered. Plans only ever happen at public venues, never at an address.</p></div>
+    <div class="card"><span class="k">Copy rules</span><p>Nobody is told "X declined" or "X passed". A passed proposal simply expires. Declines are silent by construction.</p></div>
+    <div class="card"><span class="k">Not in the build</span><p>Group plans, status chips, a leave-at time and push reminders are <span class="prod" style="margin-left:0">production path</span>. Without push, plans update while the app is open.</p></div>
+  </div>
+
+  <div class="foot"><span>Screens from the app on iPhone</span><span class="num"></span></div>
+</section>
+
+<!-- 5 · plan for later, now, after meeting -->
+<section class="page">
+  <div class="eyebrow">03 · How it works · Plan for later and Now</div>
+  <h2>Your own plan, or someone nearby right now.</h2>
+
+  <div class="sec" style="margin-top:14px">
+    <div class="row" style="align-items:baseline;justify-content:space-between"><h3>Plan for later: what, when, where, send</h3><span class="k">You don't pick who</span></div>
+    <p style="color:var(--fg-2);margin-top:4px">For the days you have the energy. Pick an activity, several days and times (optionally flexible by 30 minutes) and a public venue. The invitation is offered to <b style="color:var(--fg-1)">one compatible person at a time</b>. The first one in picks one of your times; you see their vibe and <b style="color:var(--fg-1)">Confirm plan</b> or <b style="color:var(--fg-1)">Pass</b>, and then it goes to someone else, who only sees "plan filled".</p>
+    <div class="shots" style="margin-top:12px">
+      <figure><div class="phone" style="width:104px"><img src="screens/plan-what.jpg" alt=""></div><figcaption><b>1 · What</b></figcaption></figure>
+      <figure><div class="phone" style="width:104px"><img src="screens/plan-when.jpg" alt=""></div><figcaption><b>2 · When</b></figcaption></figure>
+      <figure><div class="phone" style="width:104px"><img src="screens/plan-where.jpg" alt=""></div><figcaption><b>3 · Where</b></figcaption></figure>
+      <figure><div class="phone" style="width:104px"><img src="screens/plan-review.jpg" alt=""></div><figcaption><b>4 · Send</b></figcaption></figure>
+      <figure><div class="phone" style="width:104px"><img src="screens/plan-taker.jpg" alt=""></div><figcaption><b>Someone's in</b></figcaption></figure>
+    </div>
+  </div>
+
+  <div class="row sec" style="margin-top:18px;gap:18px">
+    <div class="col grow">
+      <h3>Now: already out</h3>
+      <ol class="steps" style="margin-top:2px">
+        <li><b>Pick what you're up for</b>, a category and one or more things inside it, and tap <b>Find people</b>. You are invisible until then.</li>
+        <li><b>Both phones ping at once</b> when a compatible person nearby wants the same thing. The default radius is a 10-minute walk.</li>
+        <li><b>Mutual accept.</b> The compass unlocks only if both accept. The session lasts 10 minutes.</li>
+        <li><b>Vanish</b> at any moment: one tap, and the session ends for both.</li>
+      </ol>
+    </div>
+    <figure style="flex:none;width:104px"><div class="phone" style="width:104px"><img src="screens/now-sports.jpg" alt=""></div><figcaption><b>Pick</b>sports, games, food…</figcaption></figure>
+    <figure style="flex:none;width:104px"><div class="phone" style="width:104px"><img src="screens/now-searching.jpg" alt=""></div><figcaption><b>Searching</b>visible only now</figcaption></figure>
+  </div>
+
+  <div class="sec" style="margin-top:16px">
+    <div class="row" style="align-items:baseline;justify-content:space-between"><h3>The compass: distance as a game, deliberately imprecise</h3><span class="k">Server sends bearing + bucket</span></div>
+    <div class="buckets" style="margin-top:8px">
+      <div style="background:var(--cold);color:#fff"><b>cold</b>over 200 m</div>
+      <div style="background:var(--warm);color:var(--on-glow)"><b>warm</b>under 200 m</div>
+      <div style="background:var(--hot);color:#fff"><b>hot</b>under 80 m</div>
+      <div style="background:var(--burning);color:var(--on-glow)"><b>burning</b>under 30 m</div>
+    </div>
+    <p class="note" style="margin-top:6px">An arrow turns with the phone's own heading; colour and haptics escalate as you get closer. The partner's coordinates never reach your phone.</p>
+  </div>
+
+  <div class="row sec" style="margin-top:14px;gap:18px">
+    <table style="flex:1.1">
+      <tr><th>Setting</th><th class="r">Value</th></tr>
+      <tr><td>Walk up to 5 / 10 / 15 min</td><td class="r">400 / 800 / 1,200 m</td></tr>
+      <tr><td>Default Now radius</td><td class="r">800 m</td></tr>
+      <tr><td>Now compass session</td><td class="r">10 min</td></tr>
+      <tr><td>Plan compass opens · runs</td><td class="r">T−15 min · 30 min</td></tr>
+    </table>
+    <div class="col" style="flex:1">
+      <span class="k amber">After meeting</span>
+      <p style="font-size:15px;font-weight:600;letter-spacing:-.01em">"Say hi to Ola."</p>
+      <p class="note">Only the first name unlocks, with the distance you walked to get there. <b style="color:var(--fg-1)">Same again next week?</b> is a button; scheduling the pair again is <span class="prod" style="margin-left:0">production path</span>. <b style="color:var(--fg-1)">Report</b> is here and on the compass (page 7).</p>
+    </div>
+  </div>
+
+  <div class="foot"><span>Screens from the app on iPhone · all thresholds are sent by the server in one config</span><span class="num"></span></div>
+</section>
+
+<!-- 6 · profile and matching -->
+<section class="page">
+  <div class="glow" style="width:460px;height:460px;right:-220px;top:-200px;opacity:.5"></div>
+  <div class="eyebrow">04 · Profile and matching</div>
+  <h2>A faceless profile, an explainable score, a learned model.</h2>
+
+  <div class="row sec" style="margin-top:16px;gap:18px">
+    <div class="col grow">
+      <h3>Onboarding in about two minutes</h3>
+      <ol class="steps">
+        <li><b>Mate or Date.</b> Friends and training partners, or someone to fall for. Switchable on the map.</li>
+        <li><b>Interests.</b> At least three; each pick opens related ones.</li>
+        <li><b>Four questions</b> written by gpt-4o-mini from your picks, each with four tap-able answers. Fixed questions if the model is unavailable.</li>
+        <li><b>A one-line vibe</b> in two lowercase clauses. Reroll until it fits. It is all a match ever sees.</li>
+        <li><b>One selfie</b>, described once as text, then dropped: never stored, never shown. The check is simulated in this build.</li>
+      </ol>
+      <p class="note">Every saved profile passes OpenAI moderation; a flagged person is never matched.</p>
+    </div>
+    <figure style="flex:none;width:118px"><div class="phone" style="width:118px"><img src="screens/profile-vibe.jpg" alt=""></div><figcaption><b>Your vibe in Settings</b>no photo, ever</figcaption></figure>
+  </div>
+
+  <div class="row sec" style="margin-top:16px;gap:18px;align-items:flex-start">
+    <div class="col" style="flex:1.15">
+      <h3>Hard gates: never learned, never scored</h3>
+      <ul class="bul">
+        <li>Same mode, and at least one shared activity: the context of the match</li>
+        <li>Within walking distance: the shorter of both walk settings (Now), or a venue within 15 minutes of both (Plan)</li>
+        <li>Adults are never matched with minors; Date is 18+ only</li>
+        <li>Gender and age preferences accepted both ways; not blocked, not paused</li>
+      </ul>
+    </div>
+    <div class="col" style="flex:1">
+      <h3>The explainable score</h3>
+      <div class="formula">compat = <span>0.7</span> × Jaccard(interests)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span>0.3</span> × shared intent<br>match &nbsp;⇔ gates pass ∧ compat ≥ <span>0.45</span></div>
+      <p class="note">Example: 3 shared of 7 distinct interests and a shared intent → 0.7 × 0.43 + 0.3 = 0.60, a match.</p>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:16px">
+    <h3>The learned model: a Siamese network for Now</h3>
+    <div class="pipe" style="margin-top:8px">
+      <div><b>Two texts</b>who I am (self) and who I'm looking for (target)</div>
+      <div><b>Embeddings</b>OpenAI text-embedding-3-small</div>
+      <div><b>Shared encoder</b>projects both into one compatibility space</div>
+      <div><b>Match head</b>scores A's target against B's self, both ways</div>
+      <div><b>ONNX over HTTP</b>a scorer container the server calls</div>
+    </div>
+  </div>
+
+  <table class="sec" style="margin-top:14px">
+    <tr><th style="width:30%">Where</th><th style="width:34%">What scores the pair</th><th>Why</th></tr>
+    <tr><td>Now, real accounts</td><td>The Siamese model</td><td>Falls back to the explainable score when no model score exists</td></tr>
+    <tr><td>Plans</td><td>The explainable score</td><td>Shown as a match percentage, defensible line by line</td></tr>
+    <tr><td>Stage demo</td><td>The explainable score</td><td>Deterministic for Tomek and Ola</td></tr>
+  </table>
+  <p class="note" style="margin-top:8px"><b style="color:var(--fg-1)">Honest limit.</b> Before launch there are no real meetings to learn from, so the model is trained on synthetic profiles with rule-based labels. We make no quality claims from those labels. Retraining on real outcomes (who met, who said same again) is <span class="prod" style="margin-left:0">production path</span>.</p>
+
+  <div class="foot"><span>The model's code and training pipeline are in ml/ · the server calls it from server/src/matching</span><span class="num"></span></div>
+</section>
+
+<!-- 7 · safety and privacy -->
+<section class="page">
+  <div class="eyebrow">05 · Safety and privacy by design</div>
+  <h2>Meeting strangers is the risk. Safety is the architecture.</h2>
+  <p class="lede">The first question about any proximity app is "isn't this a stalker tool?" JustMate is built so the answer is no by construction. Every safety feature is free, forever.</p>
+
+  <div class="cards c3" style="margin-top:26px;gap:24px 16px">
+    <div class="card"><span class="k">Consent</span><h3>Mutual by construction</h3><p>Both must accept before anything unlocks: a plan, a compass. A pass is never forwarded.</p></div>
+    <div class="card"><span class="k">Location</span><h3>A bearing, never a position</h3><p>The server relays a direction and a distance bucket. A partner's lat/lng never reaches a phone; the protocol has no field for it.</p></div>
+    <div class="card"><span class="k">History</span><h3>No location history</h3><p>Positions live in server memory only while you search or walk, and are dropped when the session ends. Nothing to leak.</p></div>
+    <div class="card"><span class="k">Exit</span><h3>Vanish</h3><p>One tap, no confirmation: the session ends for both, instantly, and looks the same whichever side pressed it.</p></div>
+    <div class="card"><span class="k">Content</span><h3>Moderation, no chat</h3><p>No messaging means no DM channel. Every saved profile passes OpenAI moderation; flagged people are never matched.</p></div>
+    <div class="card"><span class="k">Age</span><h3>Age gates</h3><p>Adults are never matched with minors, enforced on the server. Date requires 18+.</p></div>
+    <div class="card"><span class="k">Report</span><h3>Report → block</h3><p>From the compass or after meeting. It blocks that person for you and ends the session.</p></div>
+    <div class="card"><span class="k">Abuse</span><h3>Two reports → pause</h3><p>Two independent reports pause the reported person from matching and plans.</p></div>
+    <div class="card"><span class="k">Help</span><h3>Support lines</h3><p>Settings carries "Need to talk to someone?" with 116 123 for adults and 116 111 for children and teens.</p></div>
+  </div>
+
+  <div class="row sec" style="margin-top:34px;gap:18px;align-items:flex-start">
+    <table style="flex:1.2">
+      <tr><th style="width:42%">Production path</th><th>What it adds</th></tr>
+      <tr><td>Phone and ID verification</td><td>One account per number; an optional ID check. Today the selfie check is simulated.</td></tr>
+      <tr><td>Women-only plans</td><td>A free filter, with verified-only matching</td></tr>
+      <tr><td>Meeting point first</td><td>The first compass leads both to a public spot, not to each other</td></tr>
+      <tr><td>Trusted contact</td><td>Share the plan's venue and time through the share sheet</td></tr>
+      <tr><td>Human review</td><td>A person reviews a paused account before any ban; an appeal path</td></tr>
+    </table>
+    <div class="col" style="flex:1;gap:10px">
+      <div class="tile"><span class="k">Stored</span><p>Account email and password hash; profile: mode, first name, age, interests, answers, vibe, preferences; plans: who and which venue, never where they are.</p></div>
+      <div class="tile"><span class="k">Never</span><p>Any photo of you. Location history. Messages. Mood or health data. Anyone's coordinates on your phone.</p></div>
+    </div>
+  </div>
+
+  <p class="note sec" style="margin-top:28px">GDPR / RODO: location is processed only inside an explicit, session-scoped choice to search or walk, and never stored. A data protection impact assessment before launch is <span class="prod" style="margin-left:0">production path</span>. The demo runs on test data only.</p>
+
+  <div class="foot"><span>"No pins" is a hard rule of the protocol: the client never receives or holds a partner's position</span><span class="num"></span></div>
+</section>
+
+<!-- 8 · health -->
+<section class="page">
+  <div class="glow mint" style="width:520px;height:520px;right:-240px;top:-220px"></div>
+  <div class="eyebrow">06 · Health, sport and wellbeing</div>
+  <h2>Meet, move, look up. And come back again.</h2>
+  <p class="lede">JustMate changes what people do, not how they feel about it: they meet someone in person, walk to get there, and put the phone away while they talk. The value comes from repeated, active, in-person contact.</p>
+
+  <div class="cards c3 glance" style="margin-top:24px">
+    <div class="stat"><b class="num">16 of 44</b><p>Mate activities are sport or outdoors</p></div>
+    <div class="stat"><b class="num">5–15 min</b><p>on foot before every meeting</p></div>
+    <div class="stat"><b class="num">0</b><p>feeds, likes or streaks to keep you on the phone</p></div>
+  </div>
+
+  <table style="margin-top:24px">
+    <tr><th style="width:17%">Pathway</th><th style="width:47%">What JustMate does</th><th>Why it matters</th></tr>
+    <tr><td>Meet</td><td>Every flow ends face to face. No chat to get stuck in; "Same again next week?" points at the second meeting.</td><td>Stronger social relationships: 50% higher likelihood of survival<sup>4</sup>. Friendship takes ~50 hours together<sup>3</sup>.</td></tr>
+    <tr><td>Move</td><td>Every meeting starts on foot: a 5-, 10- or 15-minute walk. 16 of 44 Mate activities are sport or outdoors (running, climbing, padel, football, yoga, cycling…), each with a public venue in Kraków.</td><td>31% of adults don't get enough physical activity<sup>5</sup>. A partner turns "I should" into a fixed time.</td></tr>
+    <tr><td>Look up</td><td>No feed, no likes, no streaks: nothing to scroll. Time in the app is an anti-metric.</td><td>Time in company with the phone away.</td></tr>
+    <tr><td>Small step</td><td>A vibe instead of a face, a mutual yes, a fixed time and a public place. Declines are silent.</td><td>Going out becomes possible on a low-energy day.</td></tr>
+  </table>
+
+  <div class="tile dark sec" style="margin-top:26px;padding:16px 18px">
+    <span class="k amber">The line we hold</span>
+    <h3 style="font-size:16px">Not therapy. A reason to go out.</h3>
+    <div class="cards c4" style="margin-top:6px;gap:12px">
+      <div><p><b style="color:var(--on-ink-1)">No health claims.</b> Software that treats a condition is a medical device under EU MDR 2017/745. We never say JustMate treats anything.</p></div>
+      <div><p><b style="color:var(--on-ink-1)">No mood data.</b> Mood and health are special-category data under GDPR Art. 9. We never ask how you feel.</p></div>
+      <div><p><b style="color:var(--on-ink-1)">No guilt mechanics.</b> No streaks to lose, no "you haven't gone out in a week".</p></div>
+      <div><p><b style="color:var(--on-ink-1)">Signposting.</b> Support lines in Settings. The app never plays counsellor.</p></div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:26px">
+    <div class="row" style="align-items:baseline;justify-content:space-between"><h3>How we will measure it, without health data</h3><span class="plan">Planned</span></div>
+    <div class="cards c3" style="margin-top:10px">
+      <div class="card"><span class="k">Show-ups</span><p>Share of confirmed plans where both people tap We met. Target: at least 80% of confirmed attendees.</p></div>
+      <div class="card"><span class="k">Repeat meetings</span><p>Share of active users who meet the same person at least twice in 30 days. Repetition is how a friendship starts.</p></div>
+      <div class="card"><span class="k">Loneliness · UCLA-3</span><p>The 3-item UCLA Loneliness Scale at sign-up and after 8 weeks: opt-in, anonymous, aggregated, never stored on a profile.</p></div>
+    </div>
+    <p class="note" style="margin-top:10px">Also watched: the share of meetings that are sport or outdoors, and minutes walked to meet, in aggregate only. Anti-metric: time in the app should not grow.</p>
+  </div>
+
+  <div class="foot"><span class="src">[3] Hall, 2018 · [4] Holt-Lunstad et al., 2010 · [5] WHO, 26 Jun 2024 · activity count from the CATEGORIES list in @justmate/protocol</span><span class="num"></span></div>
+</section>
+
+<!-- 9 · business -->
+<section class="page">
+  <div class="eyebrow">07 · Business model</div>
+  <h2>Venues pay. People meet for free.</h2>
+  <p class="lede">Meeting is never paywalled and safety is never paywalled. Those who earn from people going out, venues and events, pay most. Every figure on this page is <b style="color:var(--fg-1)">our estimate</b>, to be replaced with real quotes.</p>
+
+  <table style="margin-top:26px">
+    <tr><th style="width:24%">Stream</th><th>How it works</th><th class="r" style="width:18%">Price (est.)</th></tr>
+    <tr><td>Partner venues <span class="k amber" style="font-size:7.5px">primary</span></td><td>Cafés, board-game bars, climbing gyms list plan slots for off-peak tables. They see counts and check-ins, never identities.</td><td class="r">~€39 / month</td></tr>
+    <tr><td>Prepaid first round</td><td>An optional €5 voucher at partner venues, sold as a wallet top-up; doubles as a commitment device.</td><td class="r">15% kept</td></tr>
+    <tr><td>JustMate+</td><td>Reach and convenience, not access: several open invitations at once, travel mode, private plans.</td><td class="r">€4.99 / month</td></tr>
+    <tr><td>Events and festivals</td><td>Official plans for a known, opt-in crowd.</td><td class="r">€500–2,000</td></tr>
+  </table>
+
+  <div class="sec" style="margin-top:32px">
+    <h3>Back of the envelope: one city, 5,000 monthly active users</h3>
+    <div class="row" style="margin-top:8px;gap:18px;align-items:flex-start">
+      <table style="flex:1">
+        <tr><th>Monthly cost</th><th>Assumption</th><th class="r">€</th></tr>
+        <tr><td>Hosting</td><td>API, PostgreSQL, backups</td><td class="r">~100</td></tr>
+        <tr><td>LLM</td><td>~1,000 new users × ~€0.01</td><td class="r">~20</td></tr>
+        <tr><td>Phone checks</td><td>1,000 × ~€0.07</td><td class="r">~70</td></tr>
+        <tr><td>ID checks</td><td>40% of new users × ~$0.80</td><td class="r">~300</td></tr>
+        <tr><td>Moderation</td><td>20 h × €15</td><td class="r">~300</td></tr>
+        <tr><td>Stores, email</td><td>Apple fee, email plan</td><td class="r">~30</td></tr>
+        <tr class="tot"><td>Total</td><td></td><td class="r">~820</td></tr>
+      </table>
+      <table style="flex:1">
+        <tr><th>Monthly revenue</th><th>Assumption</th><th class="r">€</th></tr>
+        <tr><td>Venues</td><td>25 × €39</td><td class="r">~975</td></tr>
+        <tr><td>Prepaid round</td><td>900 vouchers, net of card fees</td><td class="r">~380</td></tr>
+        <tr><td>JustMate+</td><td>150 × €4.99, net of VAT and fees</td><td class="r">~520</td></tr>
+        <tr><td>Events</td><td>1 festival a quarter</td><td class="r">~330</td></tr>
+        <tr class="tot"><td>Total</td><td></td><td class="r">~2,200</td></tr>
+      </table>
+    </div>
+    <p class="note" style="margin-top:8px">Readout: about 21 partner venues at ~€39 cover a city's ~€820 running cost on their own; everything else is margin toward a team. Source: our estimates in docs/PRODUCT.md §16.3.</p>
+  </div>
+
+  <div class="cards c2 sec" style="margin-top:34px">
+    <div class="card"><span class="k">Rejected on purpose</span><p>"Five free connections, then pay". It charges lonely people for the one thing they came for and rewards rationing meetings. Never: ads in the meeting flow, selling data, a paid safety feature.</p></div>
+    <div class="card"><span class="k">Launch: plans lower the density bar</span><p>Now needs two people in the same minute; a plan needs one compatible person within a walk over a day or two. A city opens with plans, one campus and a few partner venues first.</p></div>
+  </div>
+
+  <div class="foot"><span>All revenue streams are production path · core matching, plans and safety stay free</span><span class="num"></span></div>
+</section>
+
+<!-- 10 · built vs production path, references -->
+<section class="page ink">
+  <div class="glow" style="width:520px;height:520px;right:-240px;top:-240px;opacity:.38"></div>
+  <div class="eyebrow">08 · What's built, what's next</div>
+  <h2>Built and demoed, or labelled production path.</h2>
+
+  <div class="row" style="margin-top:24px;gap:22px;align-items:flex-start">
+    <div class="col grow">
+      <span class="k" style="color:var(--success)">Built and demoed</span>
+      <ul class="bul">
+        <li><b>Plans, 1:1:</b> proposed from real profiles and free times, Accept plan, you're both in, Suggest this place, silent Pass, Plan for later one person at a time</li>
+        <li><b>Now:</b> both phones pinged at once, mutual accept, 10-minute session</li>
+        <li><b>Compass:</b> bearing + bucket relay, haptics; Vanish</li>
+        <li><b>After meeting:</b> first name and distance walked</li>
+        <li><b>Safety:</b> Report blocks and ends the session; two reports pause; moderation; age gates; support lines</li>
+        <li><b>Matching:</b> explainable score; Siamese model for Now on real accounts</li>
+        <li><b>Onboarding:</b> LLM questions and vibe line</li>
+        <li>18 public venues in Kraków · English, Polish, Slovak · 134+ server tests in CI · demo mode with Tomek and Ola</li>
+      </ul>
+    </div>
+    <div class="col grow">
+      <span class="k amber">Production path</span>
+      <ul class="bul">
+        <li>"Same again next week?" scheduling (today a button)</li>
+        <li>Phone and ID verification (selfie check simulated today)</li>
+        <li>Women-only plans, meeting point first, trusted contact, human review</li>
+        <li>Group plans, status chips, push reminders</li>
+        <li>Partner venues and prepaid first round</li>
+        <li>UCLA-3 outcome survey with a research partner</li>
+        <li>Retraining the model on real meetings; DPIA</li>
+      </ul>
+      <span class="k" style="margin-top:6px">Stack</span>
+      <p class="note">Expo dev-client app (iOS, Android) · Bun + Elysia + Drizzle on PostgreSQL · one WebSocket per phone · a typed protocol package shared by app and server · OpenAI gpt-4o-mini and moderation · ONNX scorer over HTTP</p>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:30px">
+    <span class="k amber">References</span>
+    <div class="refs" style="margin-top:8px">
+      <p><b>[1]</b>WHO, Social connection linked to improved health and reduced risk of early death, news release, 30 June 2025. <a href="https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death">https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death</a> · report: <a href="https://www.who.int/groups/commission-on-social-connection/report">https://www.who.int/groups/commission-on-social-connection/report</a></p>
+      <p><b>[2]</b>European Commission JRC, Loneliness prevalence in the EU, EU Loneliness Survey 2022. <a href="https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en">https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en</a></p>
+      <p><b>[3]</b>Hall, J. A. (2018). How many hours does it take to make a friend? Journal of Social and Personal Relationships. <a href="https://doi.org/10.1177/0265407518761225">https://doi.org/10.1177/0265407518761225</a></p>
+      <p><b>[4]</b>Holt-Lunstad, J., Smith, T. B., Layton, J. B. (2010). Social Relationships and Mortality Risk: A Meta-analytic Review. PLoS Medicine. <a href="https://doi.org/10.1371/journal.pmed.1000316">https://doi.org/10.1371/journal.pmed.1000316</a></p>
+      <p><b>[5]</b>WHO, Nearly 1.8 billion adults at risk of disease from not doing enough physical activity, news release, 26 June 2024. <a href="https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity">https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity</a></p>
+    </div>
+    <p class="note" style="margin-top:8px">Figures from the repository, not external: 16 of 44 Mate activities, 18 venues, 134+ tests. Business figures are our estimates.</p>
+  </div>
+
+  <p class="note sec" style="margin-top:20px">AI use: AI tools helped with ideation and boilerplate; the idea, mechanic and solution are the team's. In the product, gpt-4o-mini writes onboarding questions and vibe lines, and OpenAI moderation screens profiles. A Siamese model trained on synthetic profiles scores Now matches; plans use an explainable score. Maps: Apple Maps and Google Maps. Type: Inter.</p>
+
+  <div class="row" style="margin-top:24px;gap:8px;flex-wrap:wrap">
+    <span class="chip">Arthur Kozubov</span><span class="chip">Jozef Zvalo</span><span class="chip">Andrej Zak</span><span class="chip">Nikita Orlov</span><span class="chip">Serhii Vielkin</span>
+  </div>
+
+  <p style="margin-top:40px;font-size:22px;line-height:1.25;font-weight:600;letter-spacing:-.02em;max-width:560px">Not therapy. A reason to go out, <span style="color:var(--glow)">and someone waiting when you get there.</span></p>
+
+  <div class="foot"><span>github.com/uteg-labs/just-mate · MIT licence · Meet for real.</span><span class="num"></span></div>
+</section>
+
+</body>
+</html>

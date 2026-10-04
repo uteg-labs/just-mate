@@ -318,11 +318,21 @@ function openSession(pair: Pair, ttlMs: number, planId?: string) {
 }
 
 function endSession(session: Session, reason: SessionEndReason) {
-  for (const client of session.pair) {
+  const [a, b] = session.pair
+  for (const [client, them] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const partnerName = reason === "met" ? them.profile?.name.split(" ")[0] : undefined
     client.session = undefined
     client.planGo = undefined
     stopSearch(client)
-    client.conn.send({ t: "session_end", sessionId: session.id, reason })
+    client.conn.send({
+      t: "session_end",
+      sessionId: session.id,
+      reason,
+      ...(partnerName && { partnerName }),
+    })
   }
   coolDown(session.pair)
   if (session.planId) planSessionEnded(planLink, session.planId, reason === "met")

@@ -1,7 +1,7 @@
 /** Wire contract from `docs/PROTOCOL.md`. Change the doc first, then this file. */
 
 /** Every profile, search and match lives in exactly one mode. */
-export const MODES = ["date", "mate"] as const
+export const MODES = ["mate", "date"] as const
 export type Mode = (typeof MODES)[number]
 
 /** "something else": a valid pick in every category; it only matches another `"other"`. */
@@ -258,7 +258,7 @@ export type Profile = {
 
 /** Prototype defaults for a fresh onboarding draft. Not a valid profile until filled in. */
 export const DEFAULT_PROFILE: Profile = {
-  mode: "date",
+  mode: "mate",
   name: "",
   gender: "woman",
   age: 25,
@@ -727,7 +727,7 @@ export type ServerMsg =
       /** dev/demo builds only, never rendered */
       distanceM?: number
     }
-  | { t: "session_end"; sessionId: string; reason: SessionEndReason }
+  | { t: "session_end"; sessionId: string; reason: SessionEndReason; partnerName?: string }
   | { t: "plans"; plans: Plan[] }
   | { t: "plan_update"; plan: Plan }
   | { t: "plan_removed"; planId: string; reason: PlanRemovedReason }

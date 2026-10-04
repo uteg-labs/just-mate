@@ -255,8 +255,12 @@ describe("sessions", () => {
     await receive(b.client, { t: "met", sessionId })
     await receive(b.client, { t: "met", sessionId })
 
-    expect(all(a, "session_end")).toEqual([{ t: "session_end", sessionId, reason: "met" }])
-    expect(all(b, "session_end")).toEqual([{ t: "session_end", sessionId, reason: "met" }])
+    expect(all(a, "session_end")).toEqual([
+      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
+    ])
+    expect(all(b, "session_end")).toEqual([
+      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
+    ])
     expect([a.client.search, b.client.position, a.client.autoStop]).toEqual([
       undefined,
       undefined,

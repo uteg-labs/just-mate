@@ -259,7 +259,7 @@ function walk(ws: Socket, planId?: string) {
       distance -= WALK_M_PER_TICK
       if (distance <= 0) {
         stop(ws)
-        send(ws, { t: "session_end", sessionId: "s1", reason: "met" })
+        send(ws, { t: "session_end", sessionId: "s1", reason: "met", partnerName: "Sam" })
         endPlan(ws)
         return
       }

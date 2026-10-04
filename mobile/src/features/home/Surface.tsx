@@ -57,6 +57,7 @@ type Place =
   | { at: "map" }
   | { at: "settings" }
   | { at: "edit"; step: OnboardingStep }
+  | { at: "setup"; step: OnboardingStep }
   | { at: "plans" }
   | { at: "plan"; id: string }
   | { at: "offer"; id: string; back: Back }
@@ -92,13 +93,18 @@ function resetTokenOf(url: string | null) {
 // STRUCTURE.md › screen map: a live match outranks where you are; settings outrank the search
 function shapeOf(profile: Profile | null | undefined, place: Place, live: Live): Shape | null {
   if (profile === undefined) return null
-  if (profile === null || place.at === "edit") return "onboard"
+  if (profile === null || place.at === "edit" || place.at === "setup") return "onboard"
   if (live.session) return "compass"
   if (live.met && live.match) return "postmeet"
   if (live.offer && live.match) return "match"
   const shape = PLACE_SHAPE[place.at]
   if (shape) return shape
   return live.search ? "search" : "select"
+}
+
+// the date and mate flows share name, interests, questions and the selfie; only `who` onward differs
+function isSetUp(profile: Profile, mode: Mode) {
+  return mode === "date" ? !!profile.taste : profile.mate.when.length > 0
 }
 
 function planAt(place: Place, plans: LivePlan[]) {
@@ -219,9 +225,19 @@ export const Surface = () => {
 
   const switchMode = (next: Mode) => {
     haptic.select()
+    if (profile && (next === "mate" || profile.adult) && !isSetUp(profile, next)) {
+      setDraft({ ...profile, mode: next })
+      return setPlace({ at: "setup", step: "who" })
+    }
     setTab(next)
     setCategory(null)
     setPicks([])
+  }
+
+  const changeStartMode = (startMode: Mode) => {
+    switchMode(startMode)
+    if (profile && isSetUp(profile, startMode))
+      updateProfile((p) => ({ ...p, settings: { ...p.settings, startMode } }))
   }
 
   const pickCategory = (id: string | null) => {
@@ -329,6 +345,16 @@ export const Surface = () => {
         )
 
       case "onboard":
+        if (place.at === "setup")
+          return (
+            <Onboarding
+              startStep={place.step}
+              profile={draft}
+              setProfile={setDraft}
+              onDone={finishOnboarding}
+              onExit={() => setPlace(MAP)}
+            />
+          )
         return place.at === "edit" ? (
           <Onboarding
             single
@@ -355,6 +381,7 @@ export const Surface = () => {
               setProfile={updateProfile}
               onBack={() => setPlace(MAP)}
               onEdit={edit}
+              onStartMode={changeStartMode}
               onLogout={() => {
                 resetMap()
                 setAuthTab("login")
@@ -553,6 +580,7 @@ export const Surface = () => {
           shape={shape ?? "auth"}
           live={live}
           picks={picksLabel(t, live.search?.intents ?? [])}
+          hasActivity={!!category || !!live.search}
           initials={profile?.name.slice(0, 1) ?? ""}
           mode={mode}
           onMode={switchMode}

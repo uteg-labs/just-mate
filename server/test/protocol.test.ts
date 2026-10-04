@@ -25,6 +25,15 @@ describe("parseProfile", () => {
     expect(parsed).toEqual({ ok: true, value: makeProfile() })
   })
 
+  test("verified is server-owned, so the client's value is dropped", () => {
+    const { verified: _, ...unsent } = makeProfile()
+    expect(parseProfile({ ...makeProfile(), verified: true })).toEqual({
+      ok: true,
+      value: makeProfile(),
+    })
+    expect(parseProfile(unsent)).toEqual({ ok: true, value: makeProfile() })
+  })
+
   test("anything but an object is rejected", () => {
     expect(parseProfile("hi")).toEqual({ ok: false, error: "invalid_profile" })
     expect(parseProfile(null)).toEqual({ ok: false, error: "invalid_profile" })

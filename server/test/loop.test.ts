@@ -578,17 +578,28 @@ describe("sessions", () => {
     expect((bearings[0] ?? 1) % 10).toBe(0)
   })
 
+  test("a bucket measures to the partner's geohash-8 cell, so its edge can't pin them", async () => {
+    const { a, b } = await session(150)
+    const centre = cellCentre(offset(ARENA, 90, 100), 8)
+    now += 60_000
+    await move(a, offset(centre, 270, 32))
+    const buckets = []
+    for (const at of [offset(centre, 270, 5), offset(centre, 90, 5)]) {
+      now += 60_000
+      await move(b, at)
+      tick()
+      buckets.push(lastOf(a, "partner_position")?.bucket)
+    }
+    expect(buckets).toEqual(["hot", "hot"])
+  })
+
   test("met from one side ends it as met for both and ends both searches", async () => {
     const { a, b, sessionId } = await session()
     await receive(b.client, { t: "met", sessionId })
     await receive(b.client, { t: "met", sessionId })
 
-    expect(all(a, "session_end")).toEqual([
-      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
-    ])
-    expect(all(b, "session_end")).toEqual([
-      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
-    ])
+    expect(all(a, "session_end")).toEqual([{ t: "session_end", sessionId, reason: "met" }])
+    expect(all(b, "session_end")).toEqual([{ t: "session_end", sessionId, reason: "met" }])
     expect([a.client.search, b.client.position, a.client.autoStop]).toEqual([
       undefined,
       undefined,
@@ -597,6 +608,21 @@ describe("sessions", () => {
 
     tick()
     expect(all(a, "partner_position").length).toBe(0)
+  })
+
+  test("met unlocks the partner's first name only once the compass reached burning", async () => {
+    const { a, b, sessionId } = await session(10)
+    tick()
+    expect(lastOf(a, "partner_position")?.bucket).toBe("burning")
+
+    now += 60_000
+    await move(b, offset(ARENA, 90, 150))
+    tick()
+    await receive(a.client, { t: "met", sessionId })
+    expect([lastOf(a, "session_end"), lastOf(b, "session_end")]).toEqual([
+      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
+      { t: "session_end", sessionId, reason: "met", partnerName: "Alex" },
+    ])
   })
 
   test("vanish ends it as vanished for both", async () => {
@@ -710,7 +736,7 @@ describe("positions", () => {
     const a = await join("u_a")
     await receive(a.client, beer)
     await receive(a.client, { t: "position", ...ARENA, acc: 40 })
-    now += 1000
+    now += 4000
     await receive(a.client, { t: "position", ...offset(ARENA, 90, 60), acc: 40 })
     expect(all(a, "error")).toEqual([])
     expect(a.client.position?.lng).toBeGreaterThan(ARENA.lng)
@@ -718,6 +744,34 @@ describe("positions", () => {
     now += 1000
     await receive(a.client, { t: "position", ...offset(ARENA, 90, 5000), acc: 9000 })
     expect(lastOf(a, "error")?.code).toBe("position_too_fast")
+  })
+
+  test("accuracy slack accrues with time, so quick fixes can't stack it into a fast walk", async () => {
+    const a = await join("u_a")
+    await receive(a.client, beer)
+    await receive(a.client, { t: "position", ...ARENA, acc: 50 })
+    for (let step = 1; step <= 5; step++) {
+      now += 1000
+      await receive(a.client, { t: "position", ...offset(ARENA, 90, 50 * step), acc: 50 })
+    }
+    expect(lastOf(a, "error")?.code).toBe("position_too_fast")
+    expect(a.client.position?.lng).toBeCloseTo(ARENA.lng, 6)
+  })
+
+  test("a standing phone's jitter and a walker are never refused", async () => {
+    const a = await join("u_a")
+    await receive(a.client, beer)
+    for (let second = 0; second < 10; second++) {
+      now += 1000
+      const jitter = offset(ARENA, second % 2 ? 0 : 180, 8)
+      await receive(a.client, { t: "position", ...jitter, acc: 10 })
+    }
+    for (let second = 1; second <= 10; second++) {
+      now += 1000
+      await receive(a.client, { t: "position", ...offset(ARENA, 90, 1.5 * second), acc: 10 })
+    }
+    expect(all(a, "error")).toEqual([])
+    expect(a.client.position?.lng).toBeGreaterThan(ARENA.lng)
   })
 
   test("fixes sent faster than the interval are dropped", async () => {
@@ -789,9 +843,9 @@ describe("demo", () => {
     expect(Math.abs(((back - (relay[0]?.bearing ?? 0) + 360) % 360) - 180)).toBeLessThanOrEqual(1)
 
     await receive(b.client, { t: "met", sessionId })
-    expect([lastOf(a, "session_end")?.reason, lastOf(b, "session_end")?.reason]).toEqual([
-      "met",
-      "met",
+    expect([lastOf(a, "session_end")?.partnerName, lastOf(b, "session_end")?.partnerName]).toEqual([
+      "Ola",
+      "Tomek",
     ])
   })
 })

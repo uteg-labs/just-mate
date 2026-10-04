@@ -44,6 +44,7 @@ const DEMO_LEAD_MS = 2 * MIN_MS
 const PASSED_PAIR_MS = 7 * DAY_MS
 const CLASH_MS = 2 * HOUR_MS
 const FLEX_MIN = 30
+const OPEN_INVITES_MAX = Number(process.env.PLAN_OPEN_INVITES_MAX ?? 5)
 
 export const planStore: { repo: PlanRepo } = { repo: memoryRepo() }
 
@@ -221,6 +222,7 @@ function invite(link: PlanLink, client: Client, msg: unknown) {
   const { mode, category, intents, venueId, flex, until } = parsed.value
   if (mode === "date" && !client.profile?.adult) return error(link, me, "adult_required")
   if (!venueById.get(venueId)?.modes.includes(mode)) return error(link, me, "invalid_venue")
+  if (openInvites(me) >= OPEN_INVITES_MAX) return error(link, me, "too_many_invites")
 
   const slots = parsed.value.slots.map((s) => Date.parse(s))
   const row: PlanRow = {
@@ -497,6 +499,12 @@ function freeTimes(a: Profile, b: Profile, mode: Mode, now: number): number[] {
   return Array.from({ length: count }, (_, i) => first + i * GRID_MS).filter(
     (t) => isFree(a, mode, t) && isFree(b, mode, t),
   )
+}
+
+function openInvites(userId: string): number {
+  return [...plans.values()].filter(
+    (r) => r.kind === "invite" && r.ownerId === userId && r.state !== "confirmed",
+  ).length
 }
 
 // an invitation still held out holds all its times

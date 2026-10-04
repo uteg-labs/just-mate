@@ -14,7 +14,7 @@ import {
 import type { ServerWebSocket } from "bun"
 
 import { bucketFor } from "../src/matching/geo"
-import { VENUES } from "../src/plans/venues"
+import { KRAKOW_VENUES } from "../test/venues"
 
 // replays the PROTOCOL.md happy path so mobile can run without the real backend
 
@@ -283,7 +283,7 @@ function endPlan(ws: Socket) {
 Bun.serve<State>({
   port,
   fetch(req, server) {
-    if (new URL(req.url).pathname === "/api/venues") return Response.json(VENUES)
+    if (new URL(req.url).pathname === "/api/venues") return Response.json(KRAKOW_VENUES)
     const data: State = { timers: [], mode: "mate", intent: "beer", plans: seedPlans() }
     if (server.upgrade(req, { data })) return
     return new Response("justmate mock: connect over ws", { status: 426 })

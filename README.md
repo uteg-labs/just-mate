@@ -6,6 +6,13 @@ Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków) 
 
 **Submission:** [deck (PDF)](docs/submission/JustMate-Deck.pdf) · [whitepaper (PDF)](docs/submission/JustMate-Whitepaper.pdf) · [cover image](docs/submission/cover.png) · [website](https://just-mate-site.vercel.app) · [submission pack and sources](docs/SUBMISSION.md)
 
+**Five minutes in the repo:**
+
+- **The privacy rule in code:** `relay()` in [`server/src/realtime/session.ts`](server/src/realtime/session.ts) sends a partner only a 10° bearing and a distance bucket measured to a ~20 m cell, never a position; [`server/test/loop.test.ts`](server/test/loop.test.ts) pins it, including spoofed jumps and bucket edges.
+- **One contract:** [`docs/PROTOCOL.md`](docs/PROTOCOL.md), typed and validated once in [`packages/protocol`](packages/protocol), used by both the app and the server.
+- **No phones needed:** `bun install && bun run test` runs 186 server tests that drive the real matching loop on a fake clock; `bun run dev:mock` replays the happy path over a WebSocket.
+- **The model, honestly:** [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md) §5.1 says what synthetic training can and can't show.
+
 ## The problem
 
 Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed ([WHO, 2025](https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death)). In the EU, 13% feel lonely most or all of the time ([JRC, EU Loneliness Survey 2022](https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en)). The hard part is not meeting someone online. It is the step out of the door: no reason to go, no one sure to be there, and a fear of being judged.

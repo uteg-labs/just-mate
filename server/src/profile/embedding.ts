@@ -12,8 +12,8 @@ const TIMEOUT_MS = 10_000
 
 type Embeddings = { data: { embedding: number[] }[] }
 
-export async function saveEmbeddings(userId: string, profile: Profile): Promise<void> {
-  if (!apiKey) return
+export async function saveEmbeddings(userId: string, profile: Profile): Promise<boolean> {
+  if (!apiKey) return false
 
   const response = await fetch("https://api.openai.com/v1/embeddings", {
     method: "POST",
@@ -37,4 +37,5 @@ export async function saveEmbeddings(userId: string, profile: Profile): Promise<
       target: profileEmbedding.userId,
       set: { selfEmb: self, targetEmb: target, softJacc: null, updatedAt: new Date() },
     })
+  return true
 }

@@ -35,6 +35,11 @@ How the Bun/Elysia backend would talk to `match_scorer` and `interest_matcher`, 
    - 8.1 [Environment variables](#81-environment-variables)
    - 8.2 [Monitoring](#82-monitoring)
    - 8.3 [Scaling](#83-scaling)
+9. [Testing](#9-testing)
+   - 9.1 [Unit tests — in-process](#91-unit-tests--in-process)
+   - 9.2 [Live container tests](#92-live-container-tests)
+   - 9.3 [What the live tests cover](#93-what-the-live-tests-cover)
+   - 9.4 [Throughput sanity](#94-throughput-sanity)
 
 ---
 
@@ -473,3 +478,90 @@ Track at minimum:
 - **Horizontal (single host)**: bump `replicas` on the `scorer` service in `docker-compose.yml`. ~450 pair/sec/replica on a laptop CPU; ~10× on a beefy box. Put a load balancer or your orchestrator's round-robin in front.
 - **Horizontal (multi-host)**: externalize the scorer behind a load balancer; the scorer is stateless (no shared cache between replicas). The Bun client only needs `MATCH_SCORER_URL` to point at the LB.
 - **Embedding cache** is the actual scaling bottleneck: re-embedding at 1536-d on every pair is O(few ms), so the server caches it per-user in Postgres. Invalidated on profile change only.
+---
+
+## 9. Testing
+
+Two layers of tests cover the container. Both are pytest; both exit non-zero on failure so CI can gate on them.
+
+### 9.1 Unit tests — in-process
+
+`tests/test_scorer_server.py` and `tests/test_interest_matcher_server.py` boot the request handlers in-process (`ThreadingHTTPServer` on an ephemeral port) and hit them with `urllib`. No Docker, no model file outside the build context.
+
+```bash
+cd ml
+uv run pytest tests/test_scorer_server.py tests/test_interest_matcher_server.py
+# → 17/17 passed
+```
+
+Use this for fast iteration on the handler code (input validation, JSON shape, error responses). The ONNX session is loaded once at module level and reused across tests.
+
+### 9.2 Live container tests
+
+`tests/test_live_container.py` talks to a real `match-scorer` container over HTTP. The handlers, the HTTP transport, the port mapping and the model load path are all exercised end-to-end.
+
+```bash
+# 1. build the image (one-off)
+docker build -f ml/Dockerfile.scorer -t match-scorer:test ml/
+
+# 2. start the container with both ports mapped
+docker run -d --rm --name match-scorer \
+  -p 8765:8000 -p 8766:8001 \
+  match-scorer:test
+# (or via compose: docker compose up -d scorer)
+
+# 3. wait for both daemons to come up
+until curl -fsS http://localhost:8765/ready >/dev/null \
+   && curl -fsS http://localhost:8766/ready >/dev/null; do sleep 1; done
+
+# 4. run the suite
+cd ml
+uv run pytest tests/test_live_container.py -v
+# → 22/22 passed in ~0.4 s
+
+# 5. tear down
+docker rm -f match-scorer
+```
+
+The tests assume `localhost:8765` and `localhost:8766`. Override by exporting `MS_URL` / `IM_URL` if you mapped the ports elsewhere (the file uses these constants at the top — adjust before running if needed).
+
+### 9.3 What the live tests cover
+
+22 assertions across both daemons:
+
+| Daemon | Count | What it checks |
+|---|---|---|
+| `match_scorer` (`:8000`) | 10 | health/ready, score in unit range, default soft_jacc=0, identical-pair symmetry, `/pair` field consistency, per-direction soft_jacc propagation (same embeddings + different soft_ab/soft_ba → different pair_score), `/batch` N-out, wrong-dim → 400, unknown path → 404 |
+| `interest_matcher` (`:8001`) | 10 | health/ready with `mode`/`vocab_size`, identical interests → score ≥ 0.95 + full `matched_exact`, disjoint → score < 0.5 + empty `matched_exact`, numeric 1536-d path, wrong-dim → 400, labels propagate to `word_jacc`/`intersection`, breakdown cos ≥ 0.5, `/batch` N-out, unknown path → 404 |
+| cross-cutting | 2 | end-to-end soft_jacc pipeline (matcher → soft_jacc → match_scorer `/pair` returns valid pair_score); 50 sequential `/score` finish in < 2 s |
+
+The per-direction test (`ms_07_pair_uses_supplied_soft_jacc_per_direction`) is the one most worth keeping around — it pins the asymmetric match-head behaviour from §6.1 against accidental regressions where someone averages `soft_ab` and `soft_ba`.
+
+### 9.4 Throughput sanity
+
+Single-threaded ONNX, `--cpus=1` constraint:
+
+```bash
+python -c '
+import json, time, urllib.request, numpy as np
+rng = np.random.default_rng(0)
+payload = {"target_emb": rng.standard_normal(1536).tolist(),
+           "self_emb":   rng.standard_normal(1536).tolist(),
+           "soft_jacc":  0.5}
+t0 = time.time()
+for _ in range(1000):
+    urllib.request.urlopen(urllib.request.Request(
+        "http://localhost:8765/score",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")).read()
+print(f"{(time.time()-t0):.2f}s, {1000/(time.time()-t0):.0f} req/s")
+'
+# → 1.7s, ~580 req/s on a laptop CPU
+```
+
+If the number drops by an order of magnitude, suspect:
+- model loaded from a different release (older/slower checkpoint)
+- host under contention (other containers)
+- ONNX session built without `ORT_ENABLE_ALL` graph optimization
+
+Pair-mode `/pair` is two forward passes per call, so expect roughly half the per-request rate.

@@ -1,0 +1,23 @@
+# Keep the scorer image small. Only the runtime bits and the ONNX model
+# need to land in /app; training, notebooks, .venv, source trees for
+# building triplets, etc. all stay on the build host.
+*
+*/*/.DS_Store
+!scripts
+!scripts/match_scorer_server.py
+!scripts/interest_matcher_server.py
+!scripts/run_servers.py
+!pyproject.toml
+!uv.lock
+!checkpoints
+!data
+!data/interest_embeddings.npz
+!data/interest_index.json
+!src
+!src/just_mate_ml
+!src/just_mate_ml/models
+!src/just_mate_ml/models/interest_matcher.py
+!src/just_mate_ml/models/__init__.py
+!src/just_mate_ml/data
+!src/just_mate_ml/data/embed.py
+!src/just_mate_ml/data/__init__.py

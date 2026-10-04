@@ -33,12 +33,34 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
+
+
+def default_model_path() -> Path:
+    """Path to the bundled ONNX model.
+
+    In source runs: <repo>/checkpoints/model_v0.onnx
+    In PyInstaller --onedir builds: <dist>/match_scorer/checkpoints/model_v0.onnx
+      (we put the model there via `pyinstaller --add-data ...:checkpoints`,
+       and `sys.executable.parent` resolves to `<dist>/match_scorer/`).
+
+    Override at runtime by passing the path explicitly, or by setting the
+    `MATCH_SCORER_MODEL` environment variable (e.g. for a/b-testing
+    checkpoints without rebuilding the binary).
+    """
+    override = os.environ.get("MATCH_SCORER_MODEL")
+    if override:
+        return Path(override)
+
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent / "checkpoints" / "model_v0.onnx"
+    return Path(__file__).resolve().parents[1] / "checkpoints" / "model_v0.onnx"
 
 
 def load_session(model_path: Path) -> ort.InferenceSession:
@@ -146,8 +168,8 @@ def self_test(sess) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Standalone match-scorer (ONNX).")
-    parser.add_argument("model", nargs="?", default="checkpoints/model_v0.onnx",
-                        help="path to ONNX model")
+    parser.add_argument("model", nargs="?", default=str(default_model_path()),
+                        help="path to ONNX model (default: bundled via default_model_path())")
     parser.add_argument("--self-test", action="store_true",
                         help="run a sanity check and exit")
     parser.add_argument("--score", type=str, default=None,

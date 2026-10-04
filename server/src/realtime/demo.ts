@@ -17,7 +17,7 @@ export const DEMO_PROFILES: Record<"a" | "b", Profile> = {
     ...base,
     name: "Ola",
     gender: "woman",
-    interests: ["photography", "coffee", "travel", "hiking"],
+    interests: ["photography", "coffee", "travel", "running"],
     qa: [
       { q: "Perfect first hour with someone new?", a: "a long walk, no plan" },
       { q: "Your friends would call you…", a: "the planner" },
@@ -29,7 +29,7 @@ export const DEMO_PROFILES: Record<"a" | "b", Profile> = {
     mode: "mate",
     name: "Kuba",
     gender: "man",
-    interests: ["coffee", "hiking", "street food", "cinema"],
+    interests: ["coffee", "running", "street food", "cinema"],
     qa: [
       { q: "Nothing planned tonight. What's the move?", a: "grab a pint" },
       { q: "Pick a deal-breaker.", a: "no banter" },
@@ -39,7 +39,7 @@ export const DEMO_PROFILES: Record<"a" | "b", Profile> = {
 }
 
 function stage(name: string, fallback: string): LatLng {
-  const [lat = Number.NaN, lng = Number.NaN] = (process.env[name] ?? fallback)
+  const [lat = Number.NaN, lng = Number.NaN] = (process.env[name] || fallback)
     .split(",")
     .map(Number)
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error(`${name} must be "lat,lng"`)
@@ -47,7 +47,7 @@ function stage(name: string, fallback: string): LatLng {
 }
 
 export const STAGE_A = stage("STAGE_A", "50.0680,19.9120")
-const STAGE_B = stage("STAGE_B", "50.0684,19.9135")
+export const STAGE_B = stage("STAGE_B", "50.0684,19.9135")
 
 // b walks the stage line, so the scripted bearing matches the direction B physically walks
 const WALK_BEARING = bearing(STAGE_A, STAGE_B)
@@ -61,6 +61,11 @@ const TRACK = [
   { s: 10, toM: 30 },
   { s: 12, toM: 2 },
 ]
+
+// demo socket ids are `<account id>~a|b`
+export function demoAccountOf(id: string): string | undefined {
+  return id.includes("~") ? id.split("~")[0] : undefined
+}
 
 export function trackDistanceM(walkingMs: number): number {
   let left = walkingMs / 1000

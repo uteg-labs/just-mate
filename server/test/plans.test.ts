@@ -12,6 +12,7 @@ import {
   connect,
   cooldowns,
   disconnect,
+  forgetUser,
   receive,
   tick,
 } from "../src/realtime/session"
@@ -207,6 +208,29 @@ describe("proposals", () => {
     expect(lastOf(a, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "expired" })
   })
 
+  test("a confirmed pair isn't proposed again", async () => {
+    await confirmed()
+    jump(config.planProposeIntervalMs)
+    expect(plans.size).toBe(1)
+  })
+
+  test("a cancelled pair isn't proposed again", async () => {
+    const { a, planId } = await confirmed()
+    await send(a, { t: "plan_cancel", planId })
+    jump(config.planProposeIntervalMs)
+    expect(plans.size).toBe(0)
+  })
+
+  test("a new proposal keeps clear of times already booked", async () => {
+    const { a } = await confirmed()
+    const c = await join("u_c")
+    await send(c, { t: "plans_get", ...RYNEK })
+
+    const plan = planOf(c)
+    expect(plan?.partner).toEqual(partnerCard(a.client.profile as Profile))
+    expect(plan?.startsAt).toBe("2026-10-05T17:00:00.000Z")
+  })
+
   test("plans come back in the snapshot after a reconnect", async () => {
     const { b, planId } = await confirmed()
     disconnect(b.client)
@@ -300,6 +324,25 @@ describe("invitations", () => {
     expect(lastOf(a, "error")?.code).toBe("invalid_venue")
   })
 
+  test("it is offered at a time that doesn't clash with the guest's plans", async () => {
+    await confirmed()
+    const c = await join("u_c")
+    anchors.set("u_c", RYNEK)
+    await send(c, {
+      t: "plan_invite",
+      mode: "date",
+      category: "food",
+      intents: ["wine"],
+      slots: [MONDAY_17, TUESDAY_19],
+      flex: false,
+      venueId: "dvor",
+      until: "2h",
+    })
+    const offered = [...plans.values()].find((p) => p.ownerId === "u_c")
+    expect(offered?.state).toBe("offered")
+    expect(offered?.startsAt).toBe(Date.parse(TUESDAY_19))
+  })
+
   test("withdrawing tells whoever took it that it's cancelled", async () => {
     const { a, b, planId } = await invited()
     await send(b, { t: "plan_accept", planId })
@@ -357,6 +400,30 @@ describe("plan compass", () => {
   })
 })
 
+describe("account deletion", () => {
+  test("a confirmed plan is cancelled for the other side", async () => {
+    const { b, planId } = await confirmed()
+    forgetUser("u_a")
+    expect(lastOf(b, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "cancelled" })
+    expect([plans.size, anchors.has("u_a")]).toEqual([0, false])
+  })
+
+  test("an invitation offered to them moves on to the next person", async () => {
+    const { a, c, planId } = await invited()
+    forgetUser("u_b")
+    expect(planOf(c, planId)?.state).toBe("offered")
+    expect(all(a, "plan_removed")).toEqual([])
+  })
+
+  test("their own invitation goes, and whoever took it hears it's cancelled", async () => {
+    const { b, planId } = await invited()
+    await send(b, { t: "plan_accept", planId })
+    forgetUser("u_a")
+    expect(lastOf(b, "plan_removed")).toEqual({ t: "plan_removed", planId, reason: "cancelled" })
+    expect(plans.size).toBe(0)
+  })
+})
+
 test("a flagged profile is never proposed or offered", async () => {
   const a = await join("u_a")
   const b = await join("u_b", wineLover(), undefined, true)
@@ -387,6 +454,8 @@ test("demo sockets get a proposal two minutes out, only with each other", async 
 
   const plan = planOf(b)
   expect(plan?.startsInMs).toBe(2 * MIN)
+  expect(plan).toMatchObject({ intents: ["running"], venueId: "blonia" })
+  expect(plan?.partnerWalkMin).not.toBe(planOf(a, plan?.id)?.partnerWalkMin)
   expect(planOf(a, plan?.id)).toBeDefined()
   expect([...plans.values()].map((p) => [p.ownerId, p.guestId])).toEqual([["acct~a", "acct~b"]])
 })

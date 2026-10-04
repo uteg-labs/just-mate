@@ -3,12 +3,16 @@ import { CloseCode, DEFAULT_CONFIG, type ServerMsg } from "@justmate/protocol"
 
 import { bearing, bucketFor, distanceM } from "../src/matching/geo"
 import { DEMO_PROFILES } from "../src/realtime/demo"
-import { type Client, config, connect, receive } from "../src/realtime/session"
+import { type Client, clients, config, connect, disconnect, receive } from "../src/realtime/session"
 import { makeProfile } from "./fixtures"
 
 const USERS: Record<string, string> = { "session=test": "u_test", "session=new": "u_new" }
 
-function fakeClient(profile = makeProfile(), demo?: "a" | "b") {
+function fakeClient(
+  profile = makeProfile(),
+  demo?: "a" | "b",
+  isDangerous: (userId: string) => Promise<boolean> = async () => false,
+) {
   const sent: ServerMsg[] = []
   const closed: number[] = []
   const client = connect(
@@ -16,6 +20,7 @@ function fakeClient(profile = makeProfile(), demo?: "a" | "b") {
     {
       userIdForCookie: async (cookie) => USERS[cookie],
       profileFor: async (userId) => (userId === "u_test" ? profile : undefined),
+      isDangerous,
     },
     demo,
   )
@@ -30,6 +35,7 @@ const beerSearch = { t: "search_on", mode: "mate", category: "food", intents: ["
 
 afterEach(() => {
   config.autoStopMs = DEFAULT_CONFIG.autoStopMs
+  for (const client of [...clients.values()]) disconnect(client)
 })
 
 describe("hello", () => {
@@ -58,6 +64,28 @@ describe("hello", () => {
     await hello(client, "session=new")
     expect(sent[0]?.t).toBe("ready")
     expect(client.profile).toBe(DEMO_PROFILES.b)
+  })
+
+  test("two quick hellos on one socket get one ready", async () => {
+    const { client, sent } = fakeClient()
+    await Promise.all([hello(client), hello(client)])
+    expect(sent.filter((m) => m.t === "ready").length).toBe(1)
+  })
+
+  test("a socket that closes during hello is never registered", async () => {
+    const { client, sent } = fakeClient()
+    const pending = hello(client)
+    disconnect(client)
+    await pending
+    expect([sent, clients.has("u_test")]).toEqual([[], false])
+  })
+
+  test("a failing lookup closes with 1011 and leaves nothing behind", async () => {
+    const { client, sent, closed } = fakeClient(makeProfile(), undefined, async () => {
+      throw new Error("db down")
+    })
+    await hello(client)
+    expect([sent, closed, clients.has("u_test")]).toEqual([[], [CloseCode.ServerError], false])
   })
 
   test("any frame before hello closes with 4003", async () => {

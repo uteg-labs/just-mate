@@ -61,11 +61,6 @@ export const CATEGORIES = {
   ],
   mate: [
     {
-      id: "food",
-      label: "Food and drink",
-      intents: ["beer", "coffee", "lunch", "street food", "pizza", "brunch", "wine", "ramen"],
-    },
-    {
       id: "sports",
       label: "Sports",
       intents: [
@@ -81,6 +76,16 @@ export const CATEGORIES = {
       ],
     },
     {
+      id: "out",
+      label: "Outdoors",
+      intents: ["hike", "cycling", "walk", "frisbee", "skate", "kayak", "picnic"],
+    },
+    {
+      id: "food",
+      label: "Food and drink",
+      intents: ["coffee", "beer", "lunch", "street food", "pizza", "brunch", "wine", "ramen"],
+    },
+    {
       id: "games",
       label: "Games",
       intents: [
@@ -93,11 +98,6 @@ export const CATEGORIES = {
         "cards",
         "video games",
       ],
-    },
-    {
-      id: "out",
-      label: "Outdoors",
-      intents: ["hike", "cycling", "walk", "frisbee", "skate", "kayak", "picnic"],
     },
     {
       id: "music",
@@ -722,6 +722,7 @@ export type ServerMsg =
   | {
       t: "partner_position"
       sessionId: string
+      /** a multiple of 10°; in `cold`, towards the centre of the partner's geohash-7 cell */
       bearing: number
       bucket: Bucket
       /** dev/demo builds only, never rendered */
@@ -733,6 +734,8 @@ export type ServerMsg =
   | { t: "plan_removed"; planId: string; reason: PlanRemovedReason }
 
 export const CloseCode = {
+  /** the server failed while handling `hello`; reconnect */
+  ServerError: 1011,
   NoProfile: 4002,
   ProtocolViolation: 4003,
   Unauthorized: 4004,

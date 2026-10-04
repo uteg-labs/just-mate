@@ -198,7 +198,6 @@ export const sk = {
     minutes: "{{count}} min",
     autoStop: "Prestať hľadať po 30 min",
     haptics: "Vibrácie",
-    sounds: "Zvuky",
     reduceMotion: "Obmedziť pohyb",
     photos: "Vkus a fotky",
     photosValue: "nikdy sa neukladajú",
@@ -410,6 +409,17 @@ export const sk = {
     },
     over: "nad {{m}} m",
     under: "pod {{m}} m",
+    sides: {
+      ahead: "rovno pred tebou",
+      right: "po tvojej pravej",
+      behind: "za tebou",
+      left: "po tvojej ľavej",
+    },
+  },
+  location: {
+    off: "Poloha je vypnutá",
+    denied: "Zapni ju v Nastaveniach, aby ťa ľudia nablízku mohli nájsť.",
+    openSettings: "Otvoriť Nastavenia",
   },
   postmeet: {
     yourVibe: "tvoj vibe",

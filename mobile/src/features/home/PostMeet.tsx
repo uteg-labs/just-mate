@@ -19,6 +19,8 @@ export type PostMeetProps = {
   pronoun: Pronoun
   partnerName?: string
   walkedM?: number
+  isReported: boolean
+  onReport: () => void
   onBack: () => void
 }
 
@@ -32,13 +34,14 @@ export const PostMeet = ({
   pronoun,
   partnerName,
   walkedM,
+  isReported,
+  onReport,
   onBack,
 }: PostMeetProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
   const [isAgain, setIsAgain] = useState(false)
-  const [isReported, setIsReported] = useState(false)
   const { partner, mode } = match
 
   return (
@@ -108,12 +111,7 @@ export const PostMeet = ({
         {isReported ? (
           <Text style={[type.footnote, { color: c.fg2 }]}>{t("postmeet.reported")}</Text>
         ) : (
-          <Button
-            title={t("postmeet.report")}
-            variant="ghost"
-            size="sm"
-            onPress={() => setIsReported(true)}
-          />
+          <Button title={t("postmeet.report")} variant="ghost" size="sm" onPress={onReport} />
         )}
       </View>
 

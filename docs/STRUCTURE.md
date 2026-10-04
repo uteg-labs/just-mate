@@ -206,6 +206,7 @@ The sheet springs up into an ink card at the top; a scrim dims the map; the stat
 - **Distance bucket** (deliberately imprecise): `cold` over 200 m · `warm` under 200 m · `hot` under 80 m · `burning` under 30 m. Colour + word + haptic escalation (heartbeat 3 s → 1.5 s → 0.7 s). Never colour alone.
 - **Vibe card**, compact: "you're looking for" + their line.
 - **Vanish** (danger, x): always visible, bottom-left, one tap, no confirmation. It ends the session for both and returns to select.
+- **Report** (ghost, ban): under the buttons, one tap. It ends the session for both (they see a plain vanish) and blocks them; select's footer reads "Reported. You won't be matched with them again. Feeling unsafe? Call 112."
 - **We met** (hand): disabled until the bucket is `burning`, then the glow button → post-meet. Either side's tap ends the session for both.
 - States: `waiting-for-signal` · `active` · `expired` · `vanished` · `disconnected` (their socket closed; never shown as "vanished").
 - Every end (`session_end`) also ends the search for both: select comes back invisible, and finding people again sends a fresh `search_on`. The select footer swaps "You're invisible until you pick something." for one calm line until the next pick: vanished "The compass closed. You're invisible again." · expired "Time ran out. You're invisible again." · disconnected "The signal dropped. You're invisible again." · auto-stop "Stopped after 30 min. You're invisible again."
@@ -230,7 +231,7 @@ Back arrow "Back to the map" · large title "Settings".
 | your profile | Name · Interests ("a, b +n") · Questions and vibe ("{n} answers") · Who you're after (date "{seek} · {min}–{max}", mate "{anyone\|same gender} · {one-on-one\|small group}") · date: Appearance taste ("never shown") / mate: When you're around |
 | the map | Open the map in: Date / Mate · Walk up to: 5 min / 10 min / 15 min · Stop searching after 30 min (switch) |
 | feel | Haptics · Sounds · Reduce motion (switches) |
-| privacy and safety | Taste and photos ("never stored") · Blocked people ("0") · Download my data |
+| privacy and safety | Taste and photos ("never stored") · Blocked people (how many you reported, from `ready`) · Download my data |
 | account | Email · Log out |
 
 - Footer: ghost **Delete account** · mono "just-mate · prototype · production path simulated".
@@ -451,7 +452,7 @@ sequenceDiagram
 | search | searching (clock running) | offer → match · Stop searching / auto-stop → select |
 | match | offered / accepted ("waiting for them…") / expired | both accepted → compass · Dismiss / expired → search |
 | compass | waiting-for-signal / active / expired / vanished / disconnected | We met → postmeet · Vanish / time up / their phone drops → select |
-| postmeet | same again: idle / noted · report: idle / noted | Back to the map → select |
+| postmeet | same again: idle / noted · report: idle / reported ("Reported. You won't be matched with them again. Feeling unsafe? Call 112.") | Back to the map → select |
 | settings | — | Back to the map → select · row → onboard (editing) |
 
 ## Message contract (client ↔ Elysia)
@@ -460,12 +461,13 @@ sequenceDiagram
 
 | Shape / action | Events |
 |---|---|
-| App open with a profile | `hello {sessionCookie}` → `ready {userId, config}` · close `4002` → onboarding · `4004` → auth |
+| App open with a profile | `hello {sessionCookie}` → `ready {userId, config, blockedCount}` · close `4002` → onboarding · `4004` → auth |
 | Select → **Find people for …** / search → **Stop searching** | `search_on {mode, category, intents}` / `search_off` · `search_stopped {auto_stop}` → select |
 | Search | `position` every 2 s → `zones` every 2 s |
 | Match card | `match_offer` → `accept` \| `dismiss` → `session_start` \| `offer_expired` |
 | Compass | `position` every 1 s → `partner_position {bearing, bucket}` (never lat/lng) → `session_end {met\|expired\|vanished\|disconnected}` |
 | Vanish / We met | `vanish {sessionId}` / `met {sessionId}` |
+| Report (compass, post-meet) | `report {sessionId, reason}` → `reported {sessionId, blockedCount}` |
 
 Server truths (today): positions in-memory per socket only · match gate = same mode + category, a shared intent, within the shorter walk radius (zones are display only) · socket close = search off; an open session ends as `disconnected` for the partner · offer TTL 45 s · session TTL 10 min · pair cooldown 5 min · one active offer/session per user · ghosts never match · k-anonymity (zones < 3 stay dark) in production.
 
@@ -486,4 +488,4 @@ What the design needs that `PROTOCOL.md` / `@justmate/protocol` don't carry yet.
 11. ~~**18+ in mate mode.**~~ Resolved: the gate is per mode. Date needs `adult`; mate doesn't, but a non-adult only ever matches another non-adult in mate mode. Close code `4001` is retired.
 12. **Verification.** Partly open: `verified` is stored on the profile and shown on badges, but it's client-set ("simulated in this build"); production needs the verifier as its source of truth.
 13. ~~**Auth.**~~ Resolved: email + password (6+ characters) with "Forgot password" by email; magic links stay available.
-14. **Account actions.** Partly resolved: `DELETE /api/account` and `GET /api/account/export` (Download my data) exist. Blocked people is still open.
+14. **Account actions.** Partly resolved: `DELETE /api/account` and `GET /api/account/export` (Download my data) exist. Blocked people shows the count from `ready.blockedCount`; listing and unblocking them is still open.

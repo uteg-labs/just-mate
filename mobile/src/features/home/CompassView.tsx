@@ -23,6 +23,7 @@ export type CompassViewProps = {
   /** a plan's venue, shown with the intent */
   place?: string
   onVanish: () => void
+  onReport: () => void
   onMet: () => void
 }
 
@@ -57,6 +58,7 @@ export const CompassView = ({
   buckets,
   place,
   onVanish,
+  onReport,
   onMet,
 }: CompassViewProps) => {
   const { t } = useTranslation()
@@ -121,6 +123,14 @@ export const CompassView = ({
           />
         </View>
       </View>
+      <Button
+        title={t("compass.report")}
+        variant="ghost"
+        size="sm"
+        leadingIcon="ban"
+        onPress={onReport}
+        style={styles.report}
+      />
     </View>
   )
 }
@@ -130,4 +140,5 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 20 },
   buttons: { flexDirection: "row", gap: 10, marginTop: 14 },
   grow: { flex: 1 },
+  report: { alignSelf: "center", marginTop: space.s },
 })

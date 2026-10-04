@@ -1,0 +1,18 @@
+/* Element defaults + type role classes. */
+html,body{margin:0;background:var(--background);color:var(--foreground);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3{text-wrap:balance}p{text-wrap:pretty}
+a{color:var(--link);text-decoration:none}a:hover{color:var(--fg-1)}
+:focus-visible{outline:1px solid var(--focus-ring);outline-offset:2px}
+.t-display{font-size:var(--fs-display);line-height:var(--lh-display);letter-spacing:var(--ls-display);font-weight:700;font-variation-settings:var(--fw-bold);font-variant-numeric:tabular-nums}
+.t-large-title{font-size:var(--fs-large-title);line-height:var(--lh-large-title);letter-spacing:var(--ls-large-title);font-weight:700;font-variation-settings:var(--fw-bold)}
+.t-title{font-size:var(--fs-title);line-height:var(--lh-title);letter-spacing:var(--ls-title);font-weight:600;font-variation-settings:var(--fw-semibold)}
+.t-vibe{font-size:var(--fs-vibe);line-height:var(--lh-vibe);letter-spacing:var(--ls-vibe);font-weight:500;font-style:italic;font-variation-settings:var(--fw-medium)}
+.t-headline{font-size:var(--fs-headline);line-height:var(--lh-headline);letter-spacing:var(--ls-headline);font-weight:600;font-variation-settings:var(--fw-semibold)}
+.t-body{font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:var(--ls-body)}
+.t-footnote{font-size:var(--fs-footnote);line-height:var(--lh-footnote);letter-spacing:var(--ls-footnote);color:var(--text-secondary)}
+.t-caption{font-size:var(--fs-caption);line-height:var(--lh-caption);letter-spacing:var(--ls-caption);font-weight:600;text-transform:uppercase}
+.t-mono{font-family:var(--font-mono);font-size:11px;line-height:14px;letter-spacing:0.6px;text-transform:uppercase}
+.tabular{font-variant-numeric:tabular-nums}
+@keyframes jm-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+@keyframes jm-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:0s!important}}

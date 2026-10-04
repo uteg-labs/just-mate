@@ -6,6 +6,7 @@ import { StyleSheet, View } from "react-native"
 import Animated, { ZoomIn } from "react-native-reanimated"
 
 import { Button, Chip, PulseDot, useScheme } from "@/components/ui"
+import { wordLabel } from "@/features/home/categories"
 import { api } from "@/lib/api"
 import { radius, space } from "@/theme/layout"
 import { duration } from "@/theme/motion"
@@ -108,7 +109,7 @@ export const StepInterests = ({ profile, set, next, eyebrow }: StepProps) => {
               entering={slot.isRelated ? ZoomIn.duration(duration.default) : undefined}
             >
               <Chip
-                label={slot.item}
+                label={wordLabel(t, slot.item)}
                 selected={picked.includes(slot.item)}
                 icon={slot.isRelated && !picked.includes(slot.item) ? "plus" : undefined}
                 onPress={() => toggle(slot.item)}

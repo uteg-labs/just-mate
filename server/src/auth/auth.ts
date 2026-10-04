@@ -8,11 +8,16 @@ import * as schema from "../db/schema"
 import { resolveLanguage } from "../localization/i18n"
 import { sendAuthEmail } from "./email"
 
+const isProduction = process.env.NODE_ENV === "production"
 const secret = process.env.BETTER_AUTH_SECRET
-const baseURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
-const extraOrigins = process.env.AUTH_TRUSTED_ORIGINS?.split(",") ?? []
+const baseURL = process.env.BETTER_AUTH_URL || (isProduction ? "" : "http://localhost:3000")
+const extraOrigins = (process.env.AUTH_TRUSTED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 if (!secret) throw new Error("BETTER_AUTH_SECRET is required")
+if (!baseURL) throw new Error("BETTER_AUTH_URL is required in production")
 
 export const auth = betterAuth({
   appName: "JustMate",
@@ -22,7 +27,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "justmate://",
     "justmate://*",
-    ...(process.env.NODE_ENV === "development" ? ["exp://", "exp://**"] : []),
+    ...(isProduction ? [] : ["exp://", "exp://**"]),
     ...extraOrigins,
   ],
   emailAndPassword: {

@@ -6,7 +6,17 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/ios", "!**/android", "!**/.expo", "!ml", "!**/bun.lock", "!**/assets"]
+    "includes": [
+      "**",
+      "!**/ios",
+      "!**/android",
+      "!**/.expo",
+      "!ml",
+      "!**/bun.lock",
+      "!**/assets",
+      "!server/drizzle/meta",
+      "!video/Just-Mate App Prototype"
+    ]
   },
   "formatter": {
     "indentStyle": "space",

@@ -1,39 +1,53 @@
-import type { Venue } from "@justmate/protocol"
+import type { ServerMsg, Venue } from "@justmate/protocol"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
 import ngeohash from "ngeohash"
-import { useState } from "react"
+import { type RefObject, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Platform, StyleSheet, View } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
+import { IconButton } from "@/components/ui"
 import { useLastPosition, useOwnPosition } from "@/lib/location"
 import { colors } from "@/theme/colors"
+import { layout } from "@/theme/layout"
 
 // the only map in the app: swap the map provider here and nowhere else (BUILD-PLAN risks)
 
-type Zone = { h: string; n: number }
+type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 
 type Coordinates = { latitude: number; longitude: number }
 
 type Circle = { id: string; center: Coordinates; radius: number; color: string; lineWidth: 0 }
 
 export type ZoneMapProps = {
+  /** watch your position; off, the dot stays at the last fix */
+  track: boolean
   zones?: Zone[]
+  /** stand-in crowd while `zones` is empty; off until an activity is picked */
+  hasDummy?: boolean
   onZone?: (n: number) => void
   /** public venues, the only other points this map ever draws */
   venues?: Venue[]
   selected?: Venue
   onVenue?: (id: string) => void
+  /** shows the button that brings the camera back to you */
+  canRecenter?: boolean
 }
 
 const KRAKOW_ARENA = { latitude: 50.0676, longitude: 19.9917 }
 const ZOOM = 15
 const M_PER_DEG = 111_320
 const TAP_M = 300
+const BUTTON_TOP = 54
 
 // DESIGN.md §13.2 — points stretch along the street grid's two directions
 const STREETS = [32, -58].map((a) => (a * Math.PI) / 180)
 const DENSE = 12
+
+const DUMMY_CELLS = 6
+const DUMMY_RADIUS_M = 1100
 
 // greyscale base so the amber heat and the mint dot are the only colour
 const GREY = JSON.stringify([
@@ -61,6 +75,17 @@ function offset({ latitude, longitude }: Coordinates, east: number, north: numbe
     latitude: latitude + north / M_PER_DEG,
     longitude: longitude + east / (M_PER_DEG * Math.cos((latitude * Math.PI) / 180)),
   }
+}
+
+// stand-in crowd until the server sends real zones; the same spot always draws the same cells
+function dummyZones(center: Coordinates): Zone[] {
+  const rnd = seeded(ngeohash.encode(center.latitude, center.longitude, 5))
+  return Array.from({ length: DUMMY_CELLS }, () => {
+    const angle = rnd() * 2 * Math.PI
+    const reach = Math.sqrt(rnd()) * DUMMY_RADIUS_M
+    const at = offset(center, Math.cos(angle) * reach, Math.sin(angle) * reach)
+    return { h: ngeohash.encode(at.latitude, at.longitude, 6), n: 1 + Math.floor(rnd() * 5) }
+  })
 }
 
 function distanceM(a: Coordinates, b: Coordinates) {
@@ -111,6 +136,28 @@ function heat({ h, n }: Zone): Circle[] {
   return [halo, ...field.flat()]
 }
 
+// two circles per cell: the stand-in crowd must stay cheap to draw
+function lightHeat({ h, n }: Zone): Circle[] {
+  const center = ngeohash.decode(h)
+  const d = Math.min(n, DENSE)
+  return [
+    {
+      id: `${h}~halo`,
+      center,
+      radius: 220 + 18 * d,
+      color: withAlpha(colors.glowCore, 0.12 + 0.012 * d),
+      lineWidth: 0,
+    },
+    {
+      id: `${h}~core`,
+      center,
+      radius: 90 + 6 * d,
+      color: withAlpha(colors.glow, 0.2 + 0.012 * d),
+      lineWidth: 0,
+    },
+  ]
+}
+
 function coordsOf({ lat, lng }: { lat: number; lng: number }): Coordinates {
   return { latitude: lat, longitude: lng }
 }
@@ -156,6 +203,8 @@ function self(at: Coordinates): Circle[] {
 
 type Camera = { coordinates: Coordinates; zoom: number }
 
+type MapHandle = { setCameraPosition: (config?: Partial<Camera>) => void }
+
 type CanvasProps = {
   camera: Camera
   circles: Circle[]
@@ -163,9 +212,10 @@ type CanvasProps = {
   polylines?: ReturnType<typeof routeOf>
   onMap?: (at: Coordinates) => void
   onVenue?: (id: string) => void
+  mapRef?: RefObject<MapHandle | null>
 }
 
-const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasProps) => {
+const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue, mapRef }: CanvasProps) => {
   const tapCircle = ({ center }: { center: Partial<Coordinates> }) =>
     center.latitude !== undefined &&
     center.longitude !== undefined &&
@@ -180,6 +230,9 @@ const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasP
   if (Platform.OS === "ios") {
     return (
       <AppleMaps.View
+        ref={(map) => {
+          if (mapRef) mapRef.current = map
+        }}
         style={StyleSheet.absoluteFill}
         cameraPosition={camera}
         colorScheme={AppleMaps.MapColorScheme.LIGHT}
@@ -207,6 +260,9 @@ const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasP
 
   return (
     <GoogleMaps.View
+      ref={(map) => {
+        if (mapRef) mapRef.current = map
+      }}
       style={StyleSheet.absoluteFill}
       cameraPosition={camera}
       colorScheme={GoogleMaps.MapColorScheme.LIGHT}
@@ -232,11 +288,35 @@ const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasP
   )
 }
 
-export const ZoneMap = ({ zones = [], onZone, venues = [], selected, onVenue }: ZoneMapProps) => {
-  const position = useOwnPosition()
+export const ZoneMap = ({
+  track,
+  zones = [],
+  hasDummy = false,
+  onZone,
+  venues = [],
+  selected,
+  onVenue,
+  canRecenter = false,
+}: ZoneMapProps) => {
+  const { t } = useTranslation()
+  const insets = useSafeAreaInsets()
+  const position = useOwnPosition(track)
+  const mapRef = useRef<MapHandle | null>(null)
   const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
   const [isCentered, setIsCentered] = useState(false)
   const me = position && { latitude: position.lat, longitude: position.lng }
+  const dummy = useMemo(() => dummyZones(camera.coordinates), [camera.coordinates])
+  const isDummy = !zones.length && hasDummy
+  const shown = isDummy ? dummy : zones
+  const lat = me?.latitude
+  const lng = me?.longitude
+  const circles = useMemo(
+    () => [
+      ...shown.flatMap(isDummy ? lightHeat : heat),
+      ...(lat === undefined || lng === undefined ? [] : self({ latitude: lat, longitude: lng })),
+    ],
+    [shown, isDummy, lat, lng],
+  )
 
   if (me && !isCentered) {
     setIsCentered(true)
@@ -245,21 +325,36 @@ export const ZoneMap = ({ zones = [], onZone, venues = [], selected, onVenue }: 
 
   const tap = (at: Coordinates) => {
     if (!onZone) return
-    const nearest = zones
+    const nearest = shown
       .map((z) => ({ n: z.n, d: distanceM(at, ngeohash.decode(z.h)) }))
       .sort((a, b) => a.d - b.d)[0]
     if (nearest && nearest.d < TAP_M) onZone(nearest.n)
   }
 
+  const recenter = () => {
+    if (me) mapRef.current?.setCameraPosition({ coordinates: me, zoom: ZOOM })
+  }
+
   return (
-    <Canvas
-      camera={camera}
-      circles={[...zones.flatMap(heat), ...(me ? self(me) : [])]}
-      markers={markersOf(venues, selected)}
-      polylines={routeOf(me, selected)}
-      onMap={tap}
-      onVenue={onVenue}
-    />
+    <>
+      <Canvas
+        camera={camera}
+        circles={circles}
+        markers={markersOf(venues, selected)}
+        polylines={routeOf(me, selected)}
+        onMap={tap}
+        onVenue={onVenue}
+        mapRef={mapRef}
+      />
+      {canRecenter && me && (
+        <View
+          pointerEvents="box-none"
+          style={[styles.recenter, { top: insets.top + BUTTON_TOP, right: layout.gutter }]}
+        >
+          <IconButton icon="locate-fixed" label={t("home.recenter")} onPress={recenter} />
+        </View>
+      )}
+    </>
   )
 }
 
@@ -281,3 +376,7 @@ export const VenueMap = ({ venue }: VenueMapProps) => {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  recenter: { position: "absolute" },
+})

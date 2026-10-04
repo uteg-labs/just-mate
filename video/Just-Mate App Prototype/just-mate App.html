@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>just-mate · app frames</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="assets/brand/favicon.svg">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/colors.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/typography.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/motion.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/base.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/_ds_bundle.js"></script>
+<script src="app/icons-extra.js"></script>
+<style>
+html,body{height:100%}
+body{background:var(--surface-chip);display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;overflow:hidden}
+a{color:var(--link)}a:hover{color:var(--fg-1)}
+.jm-input::placeholder{color:var(--fg-3)}
+.jm-other::placeholder{color:color-mix(in oklab,var(--background) 45%,transparent)}
+@keyframes ob-next{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes ob-back{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes jm-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes jm-fade{from{opacity:0}to{opacity:1}}
+@keyframes jm-pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes badge-drop{0%{transform:translateY(-110%) rotate(0deg)}45%{transform:translateY(2%) rotate(-6deg)}62%{transform:translateY(-1%) rotate(4deg)}78%{transform:translateY(0) rotate(-2deg)}90%{transform:rotate(.8deg)}100%{transform:none}}
+@keyframes badge-turn{from{transform:rotateY(-110deg);opacity:.2}to{transform:none;opacity:1}}
+</style></head>
+<body><div id="root" style="display:contents"></div>
+<script type="text/babel" src="app/tweaks-panel.jsx"></script>
+<script type="text/babel" src="app/ios-frame.jsx"></script>
+<script type="text/babel" src="app/shared.jsx"></script>
+<script type="text/babel" src="app/llm.jsx"></script>
+<script type="text/babel" src="app/Morph.jsx"></script>
+<script type="text/babel" src="app/Auth.jsx"></script>
+<script type="text/babel" src="app/Heat.jsx"></script>
+<script type="text/babel" src="app/Badge.jsx"></script>
+<script type="text/babel" src="app/Bento.jsx"></script>
+<script type="text/babel" src="app/Home.jsx"></script>
+<script type="text/babel" src="app/Onboarding.jsx"></script>
+<script type="text/babel" src="app/ObSteps.jsx"></script>
+<script type="text/babel" src="app/Settings.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "matchDelay": 5,
+  "slowmo": "1×",
+  "liveLLM": true,
+  "modeSwitch": "map"
+}/*EDITMODE-END*/;
+const JM_DEFAULT_PROFILE = { mode: "date", name: "", gender: "woman", interests: [], qa: [], vibe: "", seek: "everyone", age: [24, 35], looking: "see where it goes", mateWho: "anyone", group: "small", energy: "both", when: [], length: "few", verified: false, adult: false, taste: 0 };
+const jmPick = (a) => a[Math.floor(Math.random() * a.length)];
+const jmNewMatch = (tab, pronoun) => ({ state: "offered", left: 45, ...jmPick(JM_MATCH_VIBES[tab]), name: jmPick(JM_NAMES[pronoun] || JM_NAMES.their) });
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [settings, setSettings] = React.useState(() => { try { return { haptics: true, sounds: false, reduceMotion: false, autoStop: true, walk: "10", startMode: null, ...JSON.parse(localStorage.getItem("jm-proto-settings") || "{}") }; } catch (e) { return { haptics: true, sounds: false, reduceMotion: false, autoStop: true, walk: "10", startMode: null }; } });
+  const setSetting = (k, v) => setSettings((s) => ({ ...s, [k]: v }));
+  React.useEffect(() => { localStorage.setItem("jm-proto-settings", JSON.stringify(settings)); }, [settings]);
+  const dur = settings.reduceMotion ? 220 : 520 * ({ "1×": 1, "½×": 2, "¼×": 4 }[t.slowmo] || 1);
+  const [obEdit, setObEdit] = React.useState(null);
+  const [shape, setShape] = React.useState(() => { const s = localStorage.getItem("jm-proto-shape"); return ["auth", "onboard", "select", "settings"].includes(s) ? s : "auth"; });
+  const [authMode, setAuthMode] = React.useState("login");
+  const [profile, setProfile] = React.useState(() => { try { return { ...JM_DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem("jm-proto-profile") || "{}") }; } catch (e) { return JM_DEFAULT_PROFILE; } });
+  const [obKey, setObKey] = React.useState(0);
+  const [tab, setTab] = React.useState(profile.mode);
+  const [cat, setCat] = React.useState(null);
+  const [intent, setIntent] = React.useState([]);
+  const [searchOn, setSearchOn] = React.useState(false);
+  const [elapsed, setElapsed] = React.useState(0);
+  const [match, setMatch] = React.useState(null);
+  const [matchKey, setMatchKey] = React.useState(0);
+  const [scale, setScale] = React.useState(1);
+  const shapeRef = React.useRef(shape); shapeRef.current = shape;
+  const pronounRef = React.useRef("their");
+  const changeTab = (v) => { if (v !== tab) { setTab(v); setCat(null); setIntent([]); } };
+
+  React.useEffect(() => { localStorage.setItem("jm-proto-shape", ["auth", "onboard", "settings"].includes(shape) ? shape : "select"); }, [shape]);
+  React.useEffect(() => { localStorage.setItem("jm-proto-profile", JSON.stringify(profile)); }, [profile]);
+  React.useEffect(() => {
+    const f = () => { const w = window.innerWidth, h = window.innerHeight; if (!w || !h) return; setScale(Math.max(0.2, Math.min(1, (h - 32) / JM_PH, (w - 32) / JM_PW))); };
+    f(); window.addEventListener("resize", f); document.addEventListener("visibilitychange", f);
+    const ro = new ResizeObserver(f); ro.observe(document.documentElement);
+    return () => { window.removeEventListener("resize", f); document.removeEventListener("visibilitychange", f); ro.disconnect(); };
+  }, []);
+
+  // search clock + match arrival
+  React.useEffect(() => { if (!searchOn) return; const i = setInterval(() => setElapsed((e) => e + 1), 1000); return () => clearInterval(i); }, [searchOn]);
+  React.useEffect(() => {
+    if (!searchOn) return;
+    const tm = setTimeout(() => {
+      if (shapeRef.current !== "search") return;
+      setMatch(jmNewMatch(tab, pronounRef.current));
+      setShape("match");
+    }, t.matchDelay * 1000 * (matchKey ? 1.6 : 1) + (matchKey ? 0 : dur));
+    return () => clearTimeout(tm);
+  }, [searchOn, matchKey, t.matchDelay]);
+  const mstate = match && match.state;
+  React.useEffect(() => {
+    if (mstate !== "offered") return;
+    const i = setInterval(() => setMatch((m) => (m && m.state === "offered" ? (m.left <= 1 ? { ...m, left: 0, state: "expired" } : { ...m, left: m.left - 1 }) : m)), 1000);
+    return () => clearInterval(i);
+  }, [mstate]);
+  React.useEffect(() => {
+    if (mstate !== "expired") return;
+    const tm = setTimeout(() => { if (shapeRef.current === "match") { setShape("search"); setMatchKey((k) => k + 1); } }, 2400);
+    return () => clearTimeout(tm);
+  }, [mstate]);
+
+  const login = () => { setTab(settings.startMode || profile.mode); setShape("select"); };
+  const openEdit = (step) => { if (step === "questions") setProfile((p) => ({ ...p, qa: [], vibe: "" })); setObEdit(step); setObKey((k) => k + 1); setShape("onboard"); };
+  const register = () => { setObEdit(null); setProfile({ ...JM_DEFAULT_PROFILE, mode: profile.mode }); setObKey((k) => k + 1); setShape("onboard"); };
+  const find = () => { setElapsed(0); setMatch(null); setMatchKey(0); setSearchOn(true); setShape("search"); };
+  const stop = () => { setSearchOn(false); setShape("select"); };
+  const accept = () => { setMatch((m) => ({ ...m, state: "accepted" })); setTimeout(() => { setSearchOn(false); setShape("compass"); }, 1600); };
+  const dismiss = () => { setMatch((m) => ({ ...m, state: "dismissed" })); setShape("search"); setMatchKey((k) => k + 1); };
+  const jumpOb = (mode) => { setObEdit(null); setSearchOn(false); setProfile({ ...JM_DEFAULT_PROFILE, mode }); setObKey((k) => k + 1); setShape("onboard"); };
+  const ensureIntent = () => { if (!intent.length) { const c = JM_CATS[tab][0]; setCat(c.id); setIntent([c.intents[0]]); } };
+  const triggerMatch = () => { ensureIntent(); setSearchOn(true); setMatch(jmNewMatch(tab, pronoun)); setShape("match"); };
+
+  const icon = jmIntentIcon(tab, cat, intent[0]);
+  const il = intent.length ? jmPicksLabel(intent) : "beer";
+  const initials = (profile.name.trim() || "Alex").slice(0, 2);
+  const pronoun = tab === "date" ? ({ women: "her", men: "his" }[profile.seek] || "their") : "their";
+  pronounRef.current = pronoun;
+  const render = (n) => {
+    switch (n) {
+      case "auth": return <AuthSheet mode={authMode} setMode={setAuthMode} onLogin={login} onRegister={register} />;
+      case "select": return <SelectSheet tab={tab} onTab={changeTab} cat={cat} setCat={setCat} intent={intent} setIntent={setIntent} onFind={find} modeSwitch={t.modeSwitch} />;
+      case "onboard": return <Onboarding key={obKey} profile={profile} setProfile={setProfile} live={t.liveLLM} startStep={obEdit} single={!!obEdit}
+        onDone={() => { if (obEdit) { setShape("settings"); return; } setTab(profile.mode); setCat(null); setIntent([]); setShape("select"); }}
+        onExit={() => { if (obEdit) { setShape("settings"); return; } setAuthMode("register"); setShape("auth"); }} />;
+      case "settings": return <SettingsContent profile={profile} settings={settings} setSetting={setSetting} onBack={() => setShape("select")} onEdit={openEdit}
+        onLogout={() => { setSearchOn(false); setAuthMode("login"); setShape("auth"); }} />;
+      case "search": return <SearchSheet tab={tab} cat={cat} picks={intent} setPicks={setIntent} label={il} icon={icon} elapsed={elapsed} onStop={stop} />;
+      case "match": return match ? <MatchBadge match={{ ...match, state: match.state === "dismissed" ? "offered" : match.state }} intent={il} pronoun={pronoun} adult={tab === "date"} onAccept={accept} onDismiss={dismiss} /> : null;
+      case "compass": return <CompassContent intent={il} quote={(match && match.q) || JM_MATCH_VIBES[tab][0].q} onVanish={() => setShape("select")} onMet={() => setShape("postmeet")} />;
+      case "postmeet": return <PostMeetContent match={match} me={profile.name.trim() || "Alex"} myDesign={jmBadgeDesign(profile)} pronoun={pronoun} onBack={() => setShape("select")} />;
+      default: return null;
+    }
+  };
+  const night = shape === "compass" || shape === "postmeet";
+  const islandish = shape === "match";
+
+  return (
+    <>
+      <div style={{ width: JM_PW * scale, height: JM_PH * scale, flexShrink: 0 }}>
+        <div style={{ width: JM_PW, height: JM_PH, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+          <IOSDevice dark={night} statusHidden={islandish}>
+            <div data-screen-label={shape} style={{ position: "relative", zIndex: 0, height: JM_PH, overflow: "hidden", fontFamily: "var(--font-sans)", color: "var(--fg-1)" }}>
+              <MapChrome shape={shape} live={shape === "search"} initials={initials} intent={il} tab={tab} onTab={changeTab} modeSwitch={t.modeSwitch} onProfile={() => setShape("settings")} />
+              <Morph shape={shape} render={render} dur={dur} />
+            </div>
+          </IOSDevice>
+        </div>
+      </div>
+      <TweaksPanel>
+        <TweakSection label="Jump to" />
+        <TweakButton label="Log in / register" onClick={() => { setSearchOn(false); setAuthMode("login"); setShape("auth"); }} />
+        <TweakButton label="Onboarding · date" secondary onClick={() => jumpOb("date")} />
+        <TweakButton label="Onboarding · mate" secondary onClick={() => jumpOb("mate")} />
+        <TweakButton label="Home" secondary onClick={() => { setSearchOn(false); setShape("select"); }} />
+        <TweakButton label="Trigger match" secondary onClick={triggerMatch} />
+        <TweakButton label="Settings" secondary onClick={() => { setSearchOn(false); setShape("settings"); }} />
+        <TweakSection label="Home" />
+        <TweakRadio label="Date / Mate switch" value={t.modeSwitch} options={["map", "header"]} onChange={(v) => setTweak("modeSwitch", v)} />
+        <TweakSection label="Motion" />
+        <TweakRadio label="Morph speed" value={t.slowmo} options={["1×", "½×", "¼×"]} onChange={(v) => setTweak("slowmo", v)} />
+        <TweakSlider label="Match arrives after" value={t.matchDelay} min={2} max={15} unit="s" onChange={(v) => setTweak("matchDelay", v)} />
+        <TweakSection label="Onboarding" />
+        <TweakToggle label="Live LLM questions" value={t.liveLLM} onChange={(v) => setTweak("liveLLM", v)} />
+      </TweaksPanel>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script></body></html>

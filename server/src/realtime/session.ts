@@ -22,7 +22,7 @@ import {
   partnerCard,
   sharedIntents,
 } from "../matching/compat"
-import { bearing, bucketFor, distanceM, geohash } from "../matching/geo"
+import { bearing, bucketFor, cellCentre, distanceM, geohash } from "../matching/geo"
 import {
   type PlanLink,
   planDisconnect,
@@ -30,9 +30,10 @@ import {
   planReceive,
   planSessionEnded,
   planTick,
+  purgeUser,
   rememberProfile,
 } from "../plans/plans"
-import { DEMO_PROFILES, demoPosition, ghostPositions } from "./demo"
+import { DEMO_PROFILES, demoAccountOf, demoPosition, ghostPositions } from "./demo"
 
 export type Conn = {
   send(msg: ServerMsg): void
@@ -62,11 +63,15 @@ export type Client = {
   conn: Conn
   deps: Deps
   demo?: "a" | "b"
+  isGreeting?: boolean
+  isClosed?: boolean
   profile?: Profile
   dangerous?: boolean
   search?: Search
   autoStop?: Timer
   position?: Position
+  /** when `position` was kept */
+  fixAt?: number
   offer?: Offer
   session?: Session
   /** the confirmed plan this client opened the compass for */
@@ -79,6 +84,13 @@ type Searcher = Client & { profile: Profile; search: Search; position: Position 
 type Candidate = { a: Searcher; b: Searcher; intent: Intent; score: number; meters: number }
 
 const ZONE_RADIUS_M = 2000
+
+// faster than a sprint is a spoofed fix, the kind that walks a fake baseline for triangulation
+const MAX_SPEED_MPS = 10
+
+// coarse enough that cold bearings from far-apart spots can't be intersected into a pin
+const BEARING_STEP = 10
+const COLD_CELL_PRECISION = 7
 
 export const config: Config = { ...DEFAULT_CONFIG }
 
@@ -103,15 +115,18 @@ export function connect(conn: Conn, deps: Deps, demo?: "a" | "b"): Client {
 }
 
 export function disconnect(client: Client) {
+  client.isClosed = true
   leave(client, "disconnected")
   if (clients.get(client.id) !== client) return
   clients.delete(client.id)
   planDisconnect(client.id)
 }
 
-export function closeUser(userId: string, code: number, reason: string) {
+export function forgetUser(userId: string) {
+  purgeUser(planLink, userId)
   for (const client of clients.values()) {
-    if (client.id.split("~")[0] === userId) client.conn.close(code, reason)
+    if (client.id.split("~")[0] === userId)
+      client.conn.close(CloseCode.Unauthorized, "account deleted")
   }
 }
 
@@ -165,12 +180,27 @@ export async function receive(client: Client, frame: unknown) {
 }
 
 async function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
-  if (client.profile) return
+  if (client.profile || client.isGreeting) return
+  client.isGreeting = true
+  try {
+    await greet(client, msg.sessionCookie)
+  } catch (err) {
+    console.error("hello failed", err)
+    if (!client.isClosed) client.conn.close(CloseCode.ServerError, "try again")
+  } finally {
+    client.isGreeting = false
+  }
+}
 
-  const userId = await client.deps.userIdForCookie(msg.sessionCookie)
+async function greet(client: Client, sessionCookie: string) {
+  const userId = await client.deps.userIdForCookie(sessionCookie)
+  if (client.isClosed) return
   if (!userId) return client.conn.close(CloseCode.Unauthorized, "authentication required")
 
-  const profile = client.demo ? DEMO_PROFILES[client.demo] : await client.deps.profileFor(userId)
+  const [profile, isDangerous] = client.demo
+    ? [DEMO_PROFILES[client.demo], false]
+    : await Promise.all([client.deps.profileFor(userId), client.deps.isDangerous?.(userId)])
+  if (client.isClosed) return
   if (!profile) return client.conn.close(CloseCode.NoProfile, "finish onboarding first")
 
   const id = client.demo ? `${userId}~${client.demo}` : userId
@@ -183,14 +213,14 @@ async function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
   clients.delete(client.id)
   client.id = id
   client.profile = profile
-  client.dangerous = !client.demo && (await client.deps.isDangerous?.(userId))
+  client.dangerous = !!isDangerous
   clients.set(client.id, client)
   client.conn.send({
     t: "ready",
     userId: id,
     config: client.demo ? { ...config, demo: true } : config,
   })
-  planHello(planLink, id, profile, !!client.dangerous)
+  planHello(planLink, id, profile, client.dangerous)
 }
 
 function searchOn(client: Client, profile: Profile, msg: unknown) {
@@ -217,7 +247,21 @@ function position(client: Client, msg: unknown) {
 
   const parsed = parsePosition(msg)
   if (!parsed.ok) return error(client, parsed.error, "see PROTOCOL.md › position")
+
+  const now = clock.now()
+  const last = client.position
+  const elapsedMs = now - (client.fixAt ?? 0)
+  if (last && elapsedMs < fixIntervalMs(client) / 2) return
+  if (last && distanceM(last, parsed.value) > (MAX_SPEED_MPS * elapsedMs) / 1000) {
+    return error(client, "position_too_fast", "see PROTOCOL.md › position")
+  }
+
   client.position = parsed.value
+  client.fixAt = now
+}
+
+function fixIntervalMs(client: Client): number {
+  return client.session || client.planGo ? config.sessionIntervalMs : config.positionIntervalMs
 }
 
 function accept(client: Client, offerId: string) {
@@ -239,6 +283,7 @@ function stopSearch(client: Client) {
   client.autoStop = undefined
   client.search = undefined
   client.position = undefined
+  client.fixAt = undefined
 }
 
 // the search ends with the session instead
@@ -318,11 +363,21 @@ function openSession(pair: Pair, ttlMs: number, planId?: string) {
 }
 
 function endSession(session: Session, reason: SessionEndReason) {
-  for (const client of session.pair) {
+  const [a, b] = session.pair
+  for (const [client, them] of [
+    [a, b],
+    [b, a],
+  ] as const) {
+    const partnerName = reason === "met" ? them.profile?.name.split(" ")[0] : undefined
     client.session = undefined
     client.planGo = undefined
     stopSearch(client)
-    client.conn.send({ t: "session_end", sessionId: session.id, reason })
+    client.conn.send({
+      t: "session_end",
+      sessionId: session.id,
+      reason,
+      ...(partnerName && { partnerName }),
+    })
   }
   coolDown(session.pair)
   if (session.planId) planSessionEnded(planLink, session.planId, reason === "met")
@@ -338,6 +393,19 @@ function coolDown(pair: Pair) {
 }
 
 export function tick() {
+  guarded("session", sessionTick)
+  guarded("plans", () => planTick(planLink))
+}
+
+function guarded(name: string, step: () => void) {
+  try {
+    step()
+  } catch (err) {
+    console.error(`tick: ${name} failed`, err)
+  }
+}
+
+function sessionTick() {
   const now = clock.now()
   for (const [key, until] of cooldowns) if (until <= now) cooldowns.delete(key)
 
@@ -351,7 +419,6 @@ export function tick() {
   for (const client of clients.values()) if (client.session) relay(client, client.session)
 
   pairUp(now)
-  planTick(planLink)
 
   const window = Math.floor(now / config.positionIntervalMs)
   for (const client of clients.values()) {
@@ -380,7 +447,8 @@ function isSearching(client: Client): client is Searcher {
 
 function isCompatible(a: Searcher, b: Searcher): boolean {
   if (a.dangerous || b.dangerous) return false
-  return !a.demo === !b.demo && canMatch(a, b) && compat(a, b) >= COMPAT_THRESHOLD
+  const isSameSide = demoAccountOf(a.id) === demoAccountOf(b.id)
+  return isSameSide && canMatch(a, b) && compat(a, b) >= COMPAT_THRESHOLD
 }
 
 function relay(me: Client, session: Session) {
@@ -389,11 +457,15 @@ function relay(me: Client, session: Session) {
   if (!me.position || !them.position) return
 
   const meters = distanceM(me.position, them.position)
+  const bucket = bucketFor(meters, config.buckets)
+  const towards =
+    me.demo || bucket !== "cold" ? them.position : cellCentre(them.position, COLD_CELL_PRECISION)
+  const degrees = Math.round(bearing(me.position, towards) / BEARING_STEP) * BEARING_STEP
   me.conn.send({
     t: "partner_position",
     sessionId: session.id,
-    bearing: Math.round(bearing(me.position, them.position)) % 360,
-    bucket: bucketFor(meters, config.buckets),
+    bearing: degrees % 360,
+    bucket,
     ...(me.demo && { distanceM: Math.round(meters) }),
   })
 }

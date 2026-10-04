@@ -10,7 +10,7 @@ Better Auth owns `/api/auth/*`, its PostgreSQL tables, cookie sessions and verif
 - **Forgot password:** `POST /api/auth/request-password-reset` `{ email, redirectTo }` emails a single-use link (valid 1 h). The link lands on `redirectTo?token=…`; the app then calls `POST /api/auth/reset-password` `{ newPassword, token }`. A reset signs out every other session.
 - **Magic link** stays available: `POST /api/auth/sign-in/magic-link` `{ email, callbackURL }`. With a `justmate://` `callbackURL` the verified link lands on `justmate://…?cookie=…`; the app stores that cookie as its session.
 - Auth emails go out over SMTP (`SMTP_*`). Without `SMTP_HOST` the server prints them to its console instead; production refuses to start without it.
-- Trusted origins: `justmate://`, plus `exp://` in development, plus `AUTH_TRUSTED_ORIGINS` (comma-separated, e.g. `http://localhost:8081` for web).
+- Trusted origins: `justmate://`, plus `exp://` outside production, plus `AUTH_TRUSTED_ORIGINS` (comma-separated, e.g. `http://localhost:8081` for web). Production refuses to start without `BETTER_AUTH_URL`.
 
 The Expo client persists the session cookie in the device's secure store. Every route below (HTTP and WebSocket) requires that session; HTTP routes answer `401 { error: "unauthorized" }` without it.
 
@@ -22,7 +22,7 @@ The onboarding profile lives server-side, one per user. The client writes the **
 |---|---|---|
 | `GET /api/profile` | — | `200 Profile` · `404 { error: "no_profile" }` before onboarding |
 | `PUT /api/profile` | `Profile` | `200 Profile` (as stored) · `400 { error: "invalid_<field>" }` |
-| `DELETE /api/account` | — | `204`. Deletes the user, profile, sessions and sign-in methods; a live socket is closed with `4004` |
+| `DELETE /api/account` | — | `204`. Deletes the user, profile, sessions and sign-in methods; a live socket is closed with `4004`. Their plans go too, each as if they sent `plan_cancel`: the other side gets `plan_removed`, and an invitation they were offered or had taken goes back to `open` |
 | `GET /api/account/export` | — | `200 { user, profile, sessions, accounts }` — everything stored about the user, minus password hashes and tokens |
 
 ```ts
@@ -80,7 +80,7 @@ Live text for onboarding, written by an LLM. Each call has a hard timeout; on a 
 ## WebSocket
 
 ```
-ws://<host>:3000/ws?demo=a|b        (demo query param optional, dev builds only)
+ws://<host>:3000/ws?demo=a|b        (demo query param optional; honoured only with DEMO_MODE on)
 ```
 
 ## Conventions
@@ -115,10 +115,10 @@ Every search runs in one **mode**, `date` or `mate`, and one **category** of tha
 
 | Mate category (`id`) | Intents |
 |---|---|
-| Food and drink (`food`) | beer · coffee · lunch · street food · pizza · brunch · wine · ramen |
 | Sports (`sports`) | running · gym · climbing · football · padel · tennis · basketball · yoga · swim |
-| Games (`games`) | board games · pub quiz · chess · arcade · darts · pool · cards · video games |
 | Outdoors (`out`) | hike · cycling · walk · frisbee · skate · kayak · picnic |
+| Food and drink (`food`) | coffee · beer · lunch · street food · pizza · brunch · wine · ramen |
+| Games (`games`) | board games · pub quiz · chess · arcade · darts · pool · cards · video games |
 | Music (`music`) | gig · jam session · record shop · open mic · karaoke · festival |
 | Culture (`culture`) | cinema · exhibition · workshop · museum · talk · comedy |
 
@@ -134,7 +134,7 @@ Interests (onboarding base lists; related picks extend them open-endedly):
 | `hello` | `{ sessionCookie }` | First frame. The Better Auth session cookie must be valid or the socket closes with `4004`. The server loads the user's stored profile; none (onboarding unfinished) closes with `4002`. |
 | `search_on` | `{ mode, category, intents: string[], walkMin?: 5 \| 10 \| 15 }` | Enter search mode. `category` is a category `id` of `mode`; `intents` are ≥ 1 unique words of that category or `"other"`. `walkMin` defaults to the profile's `settings.walkMin`. Errors (non-fatal, search state unchanged): `invalid_mode` · `invalid_category` · `invalid_intents` · `invalid_walk` · `adult_required` (date mode, non-adult profile). Sending `search_on` while already searching **replaces** the search (UC11) and keeps the auto-stop clock running; an open offer expires first, and an active session ends as `vanished` (which ends the old search, so the clock starts fresh). Matchable from the first `position`. |
 | `search_off` | `{}` | Leave search mode. Expires an open offer and ends an active session as `vanished`. The last position is dropped. |
-| `position` | `{ lat, lng, acc, heading?: number }` | Every ~2 s while searching, and every ~1 s while in an active session or after `plan_go`. `heading` (0–360, magnetometer) is optional and only informational. Errors (non-fatal, position unchanged): `position_before_search_on` · `invalid_position` (`lat` −90…90, `lng` −180…180, `acc` ≥ 0, all finite). Demo sockets' positions are ignored. |
+| `position` | `{ lat, lng, acc, heading?: number }` | Every ~2 s (`positionIntervalMs`) while searching, and every ~1 s (`sessionIntervalMs`) while in an active session or after `plan_go`. `heading` (0–360, magnetometer) is optional and only informational. A fix sent sooner than half that interval after the last kept one is silently dropped. A fix more than 10 m per elapsed second away from the last kept one is dropped too, with `position_too_fast`; the next plausible fix is kept as usual. Errors (non-fatal, position unchanged): `position_before_search_on` · `invalid_position` (`lat` −90…90, `lng` −180…180, `acc` ≥ 0, all finite) · `position_too_fast`. Demo sockets' positions are ignored. |
 | `accept` | `{ offerId: string }` | Accept a match offer. Idempotent. |
 | `dismiss` | `{ offerId: string }` | Decline. **Server never forwards a dismiss**; the other side only ever sees `offer_expired`. Idempotent. |
 | `vanish` | `{ sessionId: string }` | Kill the active session for both. Idempotent. |
@@ -151,8 +151,8 @@ Interests (onboarding base lists; related picks extend them open-endedly):
 | `match_offer` | `{ offerId, sharedIntent: string, partner: MatchPartner, expiresInMs: number }` | Sent to **both** parties within the same tick, each with the *other* person as `partner`. `expiresInMs` = `config.offerTtlMs` (45000); render the countdown from it. |
 | `offer_expired` | `{ offerId }` | Offer TTL ran out, or the other side dismissed, or the other side went `search_off` / replaced its search / disconnected. The client shows the same neutral "offer expired" for all of them. Both sides keep searching. |
 | `session_start` | `{ sessionId, expiresInMs: number, planId?: string }` | Both accepted, or both sent `plan_go` (then `planId` is set). Compass unlocks in state `waiting` until the first `partner_position`. |
-| `partner_position` | `{ sessionId, bearing: number, bucket: "cold"\|"warm"\|"hot"\|"burning", distanceM?: number }` | Every `sessionIntervalMs` (1 s) once both members have a position. **Server sends bearing + bucket, never the partner's lat/lng** — the "no pins" rule is enforced at the protocol layer, not in the UI. `bearing` is whole degrees. `bucket` from `config.buckets`: under `burning` m → `burning`, under `hot` → `hot`, under `warm` → `warm`, else `cold`. `distanceM` (whole metres) is sent only to demo sockets (`config.demo: true`) for tuning and must not be rendered. |
-| `session_end` | `{ sessionId, reason: "met"\|"expired"\|"vanished"\|"disconnected" }` | Sent to both (the remaining one, on `disconnected`). `met`: either side's `met`. `expired`: session TTL. `vanished`: either side's `vanish`, `search_off` or replacing `search_on`. `disconnected`: the partner's socket closed. Client discards all session state. `vanished` is shown identically whichever side pressed it. The search ends with the session for both (auto-stop clock cleared, positions dropped); the client returns to select and sends `search_on` to search again. |
+| `partner_position` | `{ sessionId, bearing: number, bucket: "cold"\|"warm"\|"hot"\|"burning", distanceM?: number }` | Every `sessionIntervalMs` (1 s) once both members have a position. **Server sends bearing + bucket, never the partner's lat/lng** — the "no pins" rule is enforced at the protocol layer, not in the UI. `bearing` is a multiple of 10°; while the bucket is `cold` it points at the centre of the partner's geohash-7 cell rather than at the partner (demo sockets: always at the partner), so bearings from faked far-apart spots can't be intersected into a pin. `bucket` from `config.buckets`: under `burning` m → `burning`, under `hot` → `hot`, under `warm` → `warm`, else `cold`. `distanceM` (whole metres) is sent only to demo sockets (`config.demo: true`) for tuning and must not be rendered. |
+| `session_end` | `{ sessionId, reason: "met"\|"expired"\|"vanished"\|"disconnected", partnerName?: string }` | Sent to both (the remaining one, on `disconnected`). `met`: either side's `met`; only then `partnerName` carries the other person's first name (names unlock in person, never before). `expired`: session TTL. `vanished`: either side's `vanish`, `search_off` or replacing `search_on`. `disconnected`: the partner's socket closed. Client discards all session state. `vanished` is shown identically whichever side pressed it. The search ends with the session for both (auto-stop clock cleared, positions dropped); the client returns to select and sends `search_on` to search again. |
 
 ### `MatchPartner` — the other person's badge, and nothing else
 
@@ -202,12 +202,12 @@ Client reads thresholds from `config` instead of hard-coding them, so tuning on 
    - Mate: `who: "same gender"` requires equal genders (checked both ways), and each side's age is inside the other's `mate` range.
 3. **Scoring (M0):** `compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)`, threshold `0.45`. If the stretch model is enabled it is called behind the same function, returns the same shape, and uses its own calibrated threshold (`ML-MATCHING.md` §8); on any ML error the server falls back to the formula. The score is never sent.
 4. **Ghosts** add to `zones.n` only. They never appear in `match_offer`.
-   **Moderation:** `PUT /api/profile` runs the free-text parts of the profile (answers, `character`, `partnerCharacter`, `vibe`, `name`) through the OpenAI moderation model. A hit on harassment, hate, violence or sexual content involving minors sets the server-only `dangerous` flag on the stored profile. It is never part of the wire `Profile`, never returned by `GET /api/profile`, and sticky: a later clean save does not clear it. A `dangerous` user is silently excluded from the match gate, from other users' `zones`, from `match_offer`, and from plans: they are never proposed, never offered an invitation, and their own invitations are never offered to anyone. They still connect, search and plan, and simply never see anyone. Without `OPENAI_API_KEY`, or when the moderation call fails, nothing is flagged.
+   **Moderation:** `PUT /api/profile` runs the free-text parts of the profile (answers, `character`, `partnerCharacter`, `vibe`, `name`, `interests`) through the OpenAI moderation model. A hit on harassment, hate, violence or sexual content involving minors sets the server-only `dangerous` flag on the stored profile. It is never part of the wire `Profile`, never returned by `GET /api/profile`, and sticky: a later clean save does not clear it. A `dangerous` user is silently excluded from the match gate, from other users' `zones`, from `match_offer`, and from plans: they are never proposed, never offered an invitation, and their own invitations are never offered to anyone. They still connect, search and plan, and simply never see anyone. Without `OPENAI_API_KEY`, or when the moderation call fails, nothing is flagged.
 5. **Offer TTL** 45 s. Any of: TTL, `dismiss`, `search_off`, a replacing `search_on`, disconnect, auto-stop → `offer_expired` to the *other* side (and to the dismissing side too, for symmetry of client code). Pair enters cooldown (`pairCooldownMs`, 5 min).
 6. **Session TTL** 10 min from `session_start`. Server emits `session_end{expired}` to both. Every session end puts the pair in cooldown too.
 7. **Position relay** happens *only* inside an active session, *only* as bearing + bucket, *only* to the two members. The server keeps the last position per socket in memory and nothing else; on `session_end`/close it is dropped.
 8. **One offer or one session per user** at a time. A user with an open offer is not a candidate for others.
-9. **Bearing** = initial bearing from *recipient* to *partner*, degrees clockwise from true north, computed server-side. Client arrow rotation = `bearing − deviceHeading`.
+9. **Bearing** = initial bearing from *recipient* to *partner* (in `cold`: to the centre of the partner's geohash-7 cell), degrees clockwise from true north, rounded to 10°, computed server-side. Client arrow rotation = `bearing − deviceHeading`.
 10. **Auto-stop:** with `settings.autoStop` on, searching ends `autoStopMs` after it started (`search_stopped{auto_stop}`). Replacing the search does not restart the clock. An open offer expires first; an active session is never cut short (the search ends with it).
 11. **Loop:** the server ticks every `sessionIntervalMs` (1 s): expire offers and sessions, relay `partner_position`, pair searchers, and every `positionIntervalMs` send `zones`. Pairing is greedy by score: of all pairs passing the match gate, the highest `compat` goes first (ties: the shorter distance), and each user gets at most one offer per tick. `sharedIntent` is the first intent both picked in the category's list order, `"other"` last.
 
@@ -244,7 +244,7 @@ Venues are public places. They are the only coordinates a client ever receives.
 }
 ```
 
-`VENUE_KINDS`: `wine_bar` · `cafe` · `board_game_cafe` · `beer_bar` · `cinema` · `climbing_gym` · `riverside` · `rooftop_bar` · `park` · `restaurant` · `bowling` · `museum` · `jazz_club`.
+`VENUE_KINDS`: `wine_bar` · `cafe` · `board_game_cafe` · `beer_bar` · `cinema` · `climbing_gym` · `riverside` · `rooftop_bar` · `park` · `restaurant` · `bowling` · `museum` · `jazz_club` · `sports_centre` · `pool`.
 
 ### `Plan` — one recipient's view
 
@@ -287,7 +287,7 @@ Each side gets its own view of a plan. `partner` is always the *other* person, a
 | `plans_get` | `{ lat?: number, lng?: number }` | When the select sheet opens. The position, if given, becomes your **anchor**: rounded to its geohash-6 cell, kept with your plans, and used only to pick venues halfway. It is never sent to anyone. Reply: `plans`. Error: `invalid_position`. |
 | `plan_accept` | `{ planId, venueId?: string }` | **Proposal:** accept it at its venue. With `venueId` set to one of its `alts`, you suggest that venue instead: the venue changes, and only your accept stands. **Invitation offered to you:** take it at the time shown. Idempotent. |
 | `plan_pass` | `{ planId }` | **Proposal:** decline. Both sides get `plan_removed {expired}`. **Offered to you:** decline. You get `plan_removed {expired}`; the owner sees nothing. **Your own invitation, `taken`:** pass on the person who took it. They get `plan_removed {filled}`, and it goes back to `open`. |
-| `plan_invite` | `{ mode, category, intents, slots: string[], flex: boolean, venueId, until: "2h" \| "day" }` | Put an invitation out. Reply: `plan_update` with `state: "open"`. The `mode`, `category` and `intents` rules and errors are the same as for `search_on`. `slots` holds 1–40 unique ISO times. A time is offerable until 2 h before it (`2h`) or until local midnight before its day (`day`), and at least one must still be offerable. `venueId` must be a venue of that mode. Errors: `invalid_slots` · `invalid_venue` · `invalid_until` · `adult_required`. |
+| `plan_invite` | `{ mode, category, intents, slots: string[], flex: boolean, venueId, until: "2h" \| "day" }` | Put an invitation out. Reply: `plan_update` with `state: "open"`. The `mode`, `category` and `intents` rules and errors are the same as for `search_on`. `slots` holds 1–40 unique ISO times. A time is offerable until 2 h before it (`2h`) or until local midnight before its day (`day`), and at least one must still be offerable. `venueId` must be a venue of that mode. Errors: `invalid_slots` · `invalid_venue` · `invalid_flex` (`flex` not a boolean) · `invalid_until` · `adult_required`. |
 | `plan_confirm` | `{ planId }` | Your own invitation, `taken`: confirm the person who took it. Both get `confirmed`. |
 | `plan_cancel` | `{ planId }` | Withdraw your invitation, take back your yes, or "Can't make it" on a confirmed plan. The other side gets `plan_removed`: `cancelled` if it was `taken` or `confirmed`, otherwise `expired`. |
 | `plan_go` | `{ planId }` | "Open compass" on a confirmed plan. Allowed from `startsAt − config.planCompassLeadMs` until `startsAt + config.planSessionTtlMs`; earlier gives `plan_not_yet`. Once both have sent it, both get `session_start {planId}` and the compass runs exactly as in a match. From your `plan_go` until the session ends, send `position` as in a session; no `search_on` is needed. |
@@ -308,30 +308,31 @@ Any `planId` you can't act on (unknown, not yours, or the wrong state) gives `in
 
 1. **Proposals** run every `config.planProposeIntervalMs`, and for you on `plans_get`. They pair two anchored people who:
    - each have no open proposal;
+   - have no live plan with each other, and haven't ended one (`done` or `cancelled`) in the last 7 days;
    - pass rule 2 in the plan's mode (each profile's own mode when they agree, else `mate`);
    - share an intent, the first of that mode's category intents in list order that is in both people's interests;
    - reach `compat ≥ threshold`;
-   - have a common free time in the next 7 days, at least 3 h ahead.
-2. **Free times** are windows in the city's time zone, checked on a 30-minute grid:
+   - have a common free time in the next 7 days, at least 3 h ahead, that doesn't clash with either person's live plans.
+2. **Free times** are windows in the city's time zone, checked on a 30-minute grid. A time **clashes** with a live plan when it is less than 2 h from the plan's `startsAt`, or, for your own invitation still `open` or `offered`, from any of its `slots`.
    - Mate, from `profile.mate.when`: `weekday mornings` Mon–Fri 08:00–11:00, `lunch breaks` Mon–Fri 11:30–14:00, `after work` Mon–Fri 17:00–20:00, `late nights` every day 20:00–23:30, `weekends` Sat–Sun 10:00–22:00.
    - Date, or an empty `when`: every day 17:00–23:00.
 3. **Venue choice.** Among venues of the mode that fit the intent and are open for at least the first hour, pick the one that minimises the longer of the two walks (80 m a minute), with both walks ≤ 15 min. The next two become `alts`. A proposal expires after `config.planProposalTtlMs`, or at `startsAt − planCompassLeadMs`, whichever is first. A passed pair is not proposed to each other again for 7 days.
 4. **Invitations** are offered to one person at a time: the best `compat` among anchored people who:
    - pass rule 2 against the invitation's `mode` and `intents`;
-   - are free at one of its offerable times (windows widened by 30 min with `flex`);
+   - are free at one of its offerable times (windows widened by 30 min with `flex`) that doesn't clash with their live plans;
    - haven't passed on it before;
    - have nothing else `offered` to them.
 5. **Offer timing.** An offer lasts `config.planOfferTtlMs`, but never past that time's cutoff. Then the next person gets it. The invitation ends (`expired`) once no time is offerable.
 6. **Visibility.** People who aren't connected get their plans in the next `plans` snapshot. The owner of an invitation never learns who passed.
-7. **Demo sockets** are planned only with each other. Their anchor is `STAGE_A`, walks are not limited, and a proposal starts at now + 2 min, so `plan_go` is allowed straight away.
+7. **Demo sockets** are planned only with demo sockets of the same account. Their anchor is `STAGE_A` (`a`) or `STAGE_B` (`b`), walks are not limited, and a proposal starts at now + 2 min, so `plan_go` is allowed straight away. The seeded profiles share `running`, so their proposal is a run at a park.
 
 ## Demo mode (dev builds)
 
-`?demo=a` / `?demo=b` on the socket URL. The socket still needs a valid session, but uses a seeded demo profile (A: Ola, B: Kuba; adults, compatible both ways in both modes) instead of the stored one, under the id `<account id>~a|b`, so one account can drive both phones. Its `ready.config` has `demo: true`. The server ignores incoming `position` from that socket and feeds a scripted track instead, through the identical pipeline:
+`?demo=a` / `?demo=b` on the socket URL, honoured only when the server runs with `DEMO_MODE=true` (the default outside production, off in production unless set); otherwise the parameter is ignored and the socket is an ordinary one (`config.demo: false`). The socket still needs a valid session, but uses a seeded demo profile (A: Ola, B: Kuba; adults, compatible both ways in both modes) instead of the stored one, under the id `<account id>~a|b`, so one account can drive both phones. Its `ready.config` has `demo: true`. The server ignores incoming `position` from that socket and feeds a scripted track instead, through the identical pipeline:
 
 - `a` stands still at `STAGE_A`. `b` waits 280 m from `a` on the `STAGE_A` → `STAGE_B` line (inside every walk radius) and, from `session_start`, converges on `a` over 40 s: 280 → 200 m in 8 s (`cold`), → 80 m in 10 s (`warm`), → 30 m in 10 s (`hot`), → 2 m in 12 s (`burning`), then stays.
 - `STAGE_A` / `STAGE_B` are env vars (`"lat,lng"`) set *after* seeing the stage: A = stage-left end, B = stage-right end, both facing the audience. Only their direction matters for `b`: because the arrow uses the real magnetometer, the scripted bearing must match the physical direction B actually walks — otherwise the arrow visibly points off-stage.
-- Demo sockets are matched only with each other, so neither phone can be offered anyone else, and a demo pair skips the pair cooldown so the run can be rehearsed back to back.
+- Demo sockets are matched only with demo sockets of the same account, so neither phone can be offered anyone else, and a demo pair skips the pair cooldown so the run can be rehearsed back to back.
 - Ghosts: 9 server-side wanderers circling around `STAGE_A`. They count in demo sockets' `zones` (whatever the search) and nowhere else, and never match.
 
 ## Taste samples (HTTP)
@@ -361,8 +362,8 @@ B← session_start {sessionId:"s1", expiresInMs:600000}
 A← partner_position {sessionId:"s1", bearing:271, bucket:"cold"}   (every 1 s)
      … bucket → warm → hot → burning …
 B→ met {sessionId:"s1"}
-A← session_end {sessionId:"s1", reason:"met"}
-B← session_end {sessionId:"s1", reason:"met"}
+A← session_end {sessionId:"s1", reason:"met", partnerName:"Kuba"}
+B← session_end {sessionId:"s1", reason:"met", partnerName:"Ola"}
 ```
 
 ## Close codes
@@ -374,3 +375,4 @@ B← session_end {sessionId:"s1", reason:"met"}
 | `4003` | protocol violation (e.g. frame before `hello`) |
 | `4004` | missing, invalid, or expired authentication session, or the account was deleted |
 | `1000` | normal close |
+| `1011` | the server failed while handling `hello`; reconnect |

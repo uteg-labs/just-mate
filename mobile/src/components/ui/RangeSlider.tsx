@@ -24,7 +24,7 @@ export type RangeSliderProps = {
   value: Range
   onChange: (value: Range) => void
   step?: number
-  labels?: [string, string]
+  labels: [string, string]
 }
 
 const THUMB = 28
@@ -42,14 +42,7 @@ function toValue(px: number, min: number, max: number, step: number, width: numb
 }
 
 // two-thumb pan slider; thumbs track the finger 1:1 and snap to the step on release
-export const RangeSlider = ({
-  min,
-  max,
-  value,
-  onChange,
-  step = 1,
-  labels = ["minimum", "maximum"],
-}: RangeSliderProps) => {
+export const RangeSlider = ({ min, max, value, onChange, step = 1, labels }: RangeSliderProps) => {
   const { c, shadow } = useScheme()
   const width = useSharedValue(0)
   const low = useSharedValue(0)

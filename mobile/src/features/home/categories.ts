@@ -70,8 +70,12 @@ export function bentoCategories(t: TFunction, mode: Mode): BentoCategory[] {
   }))
 }
 
+export function wordLabel(t: TFunction, word: string): string {
+  return t(`vocab.${word}`, { defaultValue: word })
+}
+
 export function intentLabel(t: TFunction, intent: string) {
-  return intent === OTHER_INTENT ? t("picks.other") : intent
+  return intent === OTHER_INTENT ? t("picks.other") : wordLabel(t, intent)
 }
 
 // "beer" · "beer or coffee" · "beer, coffee +2"

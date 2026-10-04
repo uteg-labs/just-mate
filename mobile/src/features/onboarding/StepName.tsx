@@ -49,8 +49,9 @@ export const StepName = ({ profile, set, next, eyebrow }: StepProps) => {
           <TextField
             label={t("onboarding.name.label")}
             kind="name"
-            textContentType="givenName"
-            autoComplete="given-name"
+            textContentType="none"
+            autoComplete="off"
+            importantForAutofill="no"
             maxLength={40}
             value={profile.name}
             onChangeText={(v) => set({ name: v })}

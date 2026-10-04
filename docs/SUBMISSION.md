@@ -6,11 +6,11 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 |---|---|
 | Task | OPEN: Sport & Healthcare — loneliness and social connection |
 | Pitch structure | Problem → User → Value → Solution → Reality → Next (after the HackYeah workshop "Pitch Like an Architect") |
-| One-liner | A plan near you, a person who fits, and someone waiting when you get there. |
+| One-liner | For anyone lonely in a new city: a plan near you, a person who fits, and someone waiting when you get there. |
 | Deck | [`submission/JustMate-Deck.pdf`](submission/JustMate-Deck.pdf) — 10 slides, source [`submission/deck.html`](submission/deck.html) |
 | Whitepaper | [`submission/JustMate-Whitepaper.pdf`](submission/JustMate-Whitepaper.pdf) |
 | Images | [`submission/cover.png`](submission/cover.png) first, then app screens in [`submission/screens/`](submission/screens/) |
-| Website | [`site/`](../site/) — Vercel, with the launch film, use-case clips and a waitlist |
+| Website | https://just-mate-site.vercel.app — source in [`site/`](../site/), with the launch film, use-case clips and a waitlist |
 | Video | [`video/motion`](../video/motion) — Remotion launch film; script in `DEMO.md` › Launch video |
 | Repo | https://github.com/uteg-labs/just-mate |
 
@@ -18,7 +18,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 `JustMate: Meet For Real` (4 words)
 
-## Description (final, 491 words incl. team and sources)
+## Description (final, 493 words incl. team and sources)
 
 > Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
@@ -34,7 +34,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Team: Arthur Kozubov, Jozef Zvalo, Andrej Zak, Nikita Orlov, Serhii Vielkin.
 >
-> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md
+> Sources: [1] WHO, 30 Jun 2025 · [2] JRC EU Loneliness Survey 2022 · [3] Hall, JSPR 2018 · [4] Holt-Lunstad et al., PLoS Med 2010 · [5] WHO, 26 Jun 2024. Links: github.com/uteg-labs/just-mate/blob/main/docs/SUBMISSION.md · just-mate-site.vercel.app
 
 ## Sources
 

@@ -119,6 +119,19 @@
   .tbl .h { font-family: var(--mono); font-size: 18px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-2); padding-top: 16px; padding-bottom: 16px; }
   .tbl .c { color: var(--fg-1); font-weight: 600; font-size: 25px; }
 
+  .tbl.t4 { grid-template-columns: 360px repeat(3, 1fr); margin-top: 56px; }
+  .tbl.t4 > div { font-size: 24px; padding: 22px 32px 24px 0; }
+  .tbl.t4 .h { font-size: 18px; padding: 16px 32px 16px 0; }
+  .tbl.t4 .c { font-size: 28px; }
+
+  .biz { margin-top: 44px; }
+  .biz .card p { font-size: 25px; line-height: 1.38; }
+  .tbl.cmp { margin-top: 44px; grid-template-columns: 300px repeat(3, 1fr); }
+  .tbl.cmp > div { padding: 12px 24px 12px 0; font-size: 22px; }
+  .tbl.cmp .c { font-size: 24px; }
+  .tbl.cmp .y { color: var(--fg-1); font-weight: 600; border-bottom: 0; }
+  .tbl.cmp .c.y { color: var(--link); }
+
   /* 9 · reality */
   .reality { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 52px; }
   .reality > div { display: flex; flex-direction: column; gap: 16px; padding-top: 24px; border-top: 3px solid; }
@@ -264,32 +277,18 @@
   <div class="foot"><span>Today: trained on 25,000 synthetic profiles · scores Now for real accounts · plans use an explainable score · next: real meetings</span><span class="num">06 / 10</span></div>
 </section>
 
-<!-- 7 · trade-offs -->
+<!-- 7 · choices & risk -->
 <section class="slide">
-  <div class="eyebrow">Design choices</div>
-  <h2 style="margin-top:28px">Four choices, and what they cost us.</h2>
-  <div class="tbl">
-    <div class="h">Choice</div><div class="h">Reason</div><div class="h">Gain</div><div class="h">Cost</div><div class="h">Mitigation</div>
-    <div class="c">A vibe line, no photos</div><div>Judgment stops shy people before they start</div><div>Met for who you are; no appearance economy</div><div>Less to go on, especially in Date mode</div><div>LLM-written vibe; taste training on generated samples</div>
-    <div class="c">The app proposes; no chat</div><div>Initiative is the hardest step</div><div>One tap from couch to plan</div><div>Less control over who and when</div><div>Plan for later, Suggest this place, Pass is silent</div>
-    <div class="c">1:1 plans first</div><div>Groups need density we won't have at launch</div><div>Works with a few users per district</div><div>Higher stakes than a group table</div><div>Public venues, activity-first plans; groups in v1</div>
-    <div class="c">Now: invisible until you search</div><div>Proximity apps feel creepy</div><div>Nobody can find you unless you chose to, right now</div><div>Needs people searching at the same moment</div><div>Plans carry quiet hours; campuses and event zones first</div>
+  <div class="eyebrow">Design choices · Risk</div>
+  <h2 style="margin-top:28px">Easier to say yes. Safe to show up.</h2>
+  <div class="tbl t4">
+    <div class="h">Choice</div><div class="h">Why</div><div class="h">In the build</div><div class="h">Cost, and next</div>
+    <div class="c">A vibe line, no photos</div><div>Judgment stops shy people before they start</div><div>LLM-written vibe line; a selfie is described, then dropped</div><div>Less to go on, especially in Date mode</div>
+    <div class="c">The app proposes; no chat</div><div>Initiative is the hardest step</div><div>One tap from couch to plan; Pass is silent</div><div>Less control: Plan for later, Suggest this place</div>
+    <div class="c">No one's position, ever</div><div>Proximity apps feel creepy; stalking is the real risk</div><div>Invisible until you search; mutual accept first; one-tap Vanish ends it for both</div><div>Meeting point first, trusted contact; DPIA before launch</div>
+    <div class="c">Unsafe users</div><div>Meeting strangers is the risk</div><div>Moderated profiles; adults never matched with minors; two reports pause an account</div><div>Phone and ID verification; human review</div>
   </div>
-  <div class="foot"><span>Privacy rule behind all four: the server relays a bearing and a distance bucket, never a person's position</span><span class="num">07 / 10</span></div>
-</section>
-
-<!-- 8 · safety & risk -->
-<section class="slide">
-  <div class="eyebrow">Risk</div>
-  <h2 style="margin-top:28px">Meeting strangers is the risk. We designed for it.</h2>
-  <div class="tbl" style="grid-template-columns: 300px repeat(3, 1fr)">
-    <div class="h">Risk</div><div class="h">Mitigation in the build</div><div class="h">Production path</div><div class="h">How we validate</div>
-    <div class="c">Stalking, location misuse</div><div>Mutual accept before anything unlocks; bearing and bucket only; no location history; one-tap Vanish ends it for both</div><div>Meeting point first; trusted contact</div><div>Red-team test; DPIA before launch</div>
-    <div class="c">Unsafe or abusive users</div><div>Profile answers pass OpenAI moderation; flagged users are never matched; adults never matched with minors; Report on the compass or after meeting blocks them for you, two independent reports pause them; support lines (116 123)</div><div>Phone and ID verification; women-only plans; human review of paused accounts</div><div>Report rate per 100 meetings</div>
-    <div class="c">No-shows</div><div>A plan is on only when both accept; "Can't make it" reaches the other side in one tap</div><div>Push reminders 2 h before; prepaid first round at partner venues</div><div>Show-up rate with real users</div>
-    <div class="c">Empty city at launch</div><div>Plans need a few compatible people within a walk over days, not two in the same minute</div><div>Launch per campus with venue partners</div><div>Plans proposed per user per week</div>
-  </div>
-  <div class="foot"><span>Not therapy: no health claims, no mood or health data (EU MDR, GDPR Art. 9)</span><span class="num">08 / 10</span></div>
+  <div class="foot"><span>The server relays a bearing and a distance bucket, never a position · not therapy: no health claims, no health data (GDPR Art. 9)</span><span class="num">07 / 10</span></div>
 </section>
 
 <!-- 9 · reality -->
@@ -311,8 +310,7 @@
         <li><b>People accept plans an app makes for them,</b> if the plan is concrete and small</li>
         <li><b>A vibe line is enough</b> to want to meet someone</li>
         <li><b>People switch on Now</b> when they're out, if a match is a short walk away</li>
-        <li><b>Venues pay</b> to fill off-peak tables (price assumption: €39 a month)</li>
-        <li><b>Running cost</b> for one city: our estimate ~€820 a month (hosting, LLM, verification, moderation)</li>
+        <li><b>Venues pay</b> to fill off-peak tables</li>
       </ul>
     </div>
     <div class="open"><span class="eyebrow" style="color:var(--fg-1)">To validate · next</span>
@@ -324,7 +322,28 @@
       </ul>
     </div>
   </div>
-  <div class="foot"><span>Production path: "same again next week?" scheduling (today a button), verification, group plans, push reminders</span><span class="num">09 / 10</span></div>
+  <div class="foot"><span>Production path: "same again next week?" scheduling (today a button), verification, group plans, push reminders</span><span class="num">08 / 10</span></div>
+</section>
+
+<!-- 9 · business -->
+<section class="slide">
+  <div class="glow" style="width:900px;height:900px;right:-380px;top:-460px;opacity:.45"></div>
+  <div class="eyebrow">Business · competition</div>
+  <h2 style="margin-top:28px;max-width:1700px">One buyer brings both the density and the revenue.</h2>
+  <div class="cards c3 biz">
+    <div class="card"><span class="k">Go-to-market · B2B2C</span><p>Universities onboarding international students, employers relocating staff, city loneliness programmes.</p></div>
+    <div class="card"><span class="k">Launch · one campus at a time</span><p>Plans work at low density, over days. Now lights up as density grows.</p></div>
+    <div class="card"><span class="k">Revenue · our estimates</span><p>Partner venues ~€39 a month each; one city runs ~€820 a month, so ~21 venues cover it.</p></div>
+  </div>
+  <div class="tbl cmp">
+    <div class="h">Today</div><div class="h">Format</div><div class="h">Starts with</div><div class="h">Getting to a meeting</div>
+    <div class="c">Timeleft</div><div>Group dinner with strangers</div><div>An organised, fixed slot</div><div>A booked seat at a set time</div>
+    <div class="c">Bumble BFF</div><div>1:1 friends</div><div>Photo-first swiping</div><div>Chat, then plan it yourselves</div>
+    <div class="c">Meetup</div><div>Groups</div><div>An organiser's event</div><div>Someone has to organise</div>
+    <div class="c">happn</div><div>1:1 dating</div><div>Photos of people you passed</div><div>After the fact, then chat</div>
+    <div class="c y">JustMate</div><div class="y">1:1, Mate or Date</div><div class="y">A vibe line, no photo</div><div class="y">The app makes the plan; meet on foot</div>
+  </div>
+  <div class="foot"><span>Later: prepaid first round at partner venues, JustMate+, event zones · all figures are estimates to replace with real quotes</span><span class="num">09 / 10</span></div>
 </section>
 
 <!-- 10 · next -->

@@ -26,6 +26,7 @@ export type ScoreRow = {
 
 const FETCH_TIMEOUT_MS = 5_000
 const READY_TIMEOUT_MS = 15_000
+const BATCH_CAP = 256
 
 export class InterestMatcherHttp {
   constructor(private readonly base: string) {}
@@ -53,6 +54,13 @@ export class InterestMatcherHttp {
   }
 
   async scoreBatch(reqs: Array<StringScore | NumericScore>): Promise<ScoreRow[]> {
+    const chunks = Array.from({ length: Math.ceil(reqs.length / BATCH_CAP) }, (_, i) =>
+      reqs.slice(i * BATCH_CAP, (i + 1) * BATCH_CAP),
+    )
+    return (await Promise.all(chunks.map((rows) => this.postBatch(rows)))).flat()
+  }
+
+  private async postBatch(reqs: Array<StringScore | NumericScore>): Promise<ScoreRow[]> {
     const r = await this.fetch("/batch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

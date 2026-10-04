@@ -113,6 +113,8 @@ const MAX_WAIT_BONUS = 0.1
 
 // faster than a sprint is a spoofed fix, the kind that walks a fake baseline for triangulation
 const MAX_SPEED_MPS = 10
+// caps the accuracy slack, so a spoofed `acc` can't buy a jump
+const MAX_FIX_SLACK_M = 100
 
 // coarse enough that cold bearings from far-apart spots can't be intersected into a pin
 const BEARING_STEP = 10
@@ -309,12 +311,18 @@ function position(client: Client, msg: unknown) {
   const last = client.position
   const elapsedMs = now - (client.fixAt ?? 0)
   if (last && elapsedMs < fixIntervalMs(client) / 2) return
-  if (last && distanceM(last, parsed.value) > (MAX_SPEED_MPS * elapsedMs) / 1000) {
+  if (last && isTooFast(last, parsed.value, elapsedMs)) {
     return error(client, "position_too_fast", "see PROTOCOL.md › position")
   }
 
   client.position = parsed.value
   client.fixAt = now
+}
+
+// two fixes of one standing phone sit up to their accuracies apart, so that much is not movement
+function isTooFast(from: Position, to: Position, elapsedMs: number): boolean {
+  const slackM = Math.min(from.acc + to.acc, MAX_FIX_SLACK_M)
+  return distanceM(from, to) > (MAX_SPEED_MPS * elapsedMs) / 1000 + slackM
 }
 
 function fixIntervalMs(client: Client): number {

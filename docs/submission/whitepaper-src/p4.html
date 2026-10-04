@@ -1,0 +1,147 @@
+<!-- ============ 06 EXPERIENCE ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">06</span> Experience &amp; design</div>
+  <h1>Not a profile-picture app</h1>
+  <p class="lede">The whole funnel says it before you ever see the map. A two-minute onboarding turns your interests and a few answers into a <span class="hl">vibe on a lanyard badge</span> — the only thing anyone else ever sees.</p>
+
+  <div class="split" style="grid-template-columns:1.1fr 1fr">
+    <div>
+      <h2 class="mt0">Onboarding in about two minutes</h2>
+      <ol class="steps">
+        <li><b>Mode first.</b> Date ("Someone to fall for, a few streets away") or Mate ("People to grab a beer or a game with, right now"). Switchable on the map any time.</li>
+        <li><b>First name and interests.</b> The name stays hidden until you've met. At least three interests; each pick opens three related ones.</li>
+        <li><b>Four live questions.</b> An LLM writes each question from your previous answers, with four tap-able options — a conversation, not a form.</li>
+        <li><b>Your badge.</b> One wry line in two lowercase clauses — <i>"plans the trip — forgets the charger"</i>. Reroll until it fits, then <b>Keep this vibe</b>.</li>
+        <li><b>Who you're after.</b> Date: who, an age range, what you're looking for. Mate: anyone or same gender, group size, energy, and when you're usually around. "Used for matching only. Nobody sees your settings."</li>
+        <li><b>Taste (Date).</b> Swipe six <i>generated</i> sample faces — never real users. Only the traits they share are kept, as one line of words.</li>
+        <li><b>One selfie.</b> Described once (hair, face shape) for matching, then dropped — never stored, never shown. Date adds the blocking <b>"I'm 18 or older"</b> check.</li>
+      </ol>
+    </div>
+    <div>
+      <figure>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2mm">
+          <img src="assets/tomek-quote.webp" style="width:100%">
+          <img src="assets/sam-quote.webp" style="width:100%">
+          <img src="assets/mia-quote.webp" style="width:100%">
+        </div>
+        <figcaption><b>Vibe badges.</b> Colours, pattern, icon and serial number are designed deterministically from your interests and answers (<code>badgeSeed</code>) — no two alike. At a match you see their badge and the shared intent; nothing else.</figcaption>
+      </figure>
+      <div class="card mt4">
+        <div class="cap">What a match receives — the whole payload</div>
+        <pre class="mono" style="font-size:7pt;line-height:1.45;margin:2mm 0 0;white-space:pre-wrap">{ vibe: "techno on fridays — crosswords on sundays",
+  interests: ["concerts","pub quiz","coding"],
+  badgeSeed: 2915,
+  tags: { verified: true, adult: true } }</pre>
+        <p class="small mt2 mb0">No name, no answers, no score, no position.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Design principles</h2>
+  <div class="grid3">
+    <div class="card"><div class="cap">Layout · Bolt</div><h3 class="mt2">One surface over the map</h3><p class="small">The map is full-screen; a single surface morphs between shapes — auth, onboarding, select, search, plans, day-of, match, compass, post-meet, settings. One primary action at a time.</p></div>
+    <div class="card"><div class="cap">Feel · Apple fluid interfaces</div><h3 class="mt2">Instant, interruptible, tactile</h3><p class="small">Press feedback without latency, interruptible springs, translucent materials. Haptics are a language: <code>[200,100,200]</code> when a match lands, escalating pulses as the compass warms.</p></div>
+    <div class="card"><div class="cap">Tone · light, ink, night</div><h3 class="mt2">Paper by day, night for the walk</h3><p class="small">A pale greyscale map with warm amber glow, an ink match card, a night compass. Red is reserved for Vanish. English, Polish and Slovak; reduce-motion, haptics and sound switches.</p></div>
+  </div>
+</section>
+
+<!-- ============ 07 SAFETY ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">07</span> Safety &amp; privacy by design</div>
+  <h1>Safety is the architecture,<br><span class="soft">not a feature</span></h1>
+  <p class="lede">The jury's first question about any proximity app is "isn't this a stalker tool?" JustMate is built so the answer is <span class="hl">no, by construction</span> — and for women in particular, three layers sit on top: prove you're real, meet in public, remove someone from your world in one tap. <b>Every safety feature is free, forever.</b></p>
+
+  <div class="grid3">
+    <div class="card white"><span class="ico">{{i:users}}</span><h3 class="mt2">Mutual by construction</h3><p class="small mb0">Both are notified, both must accept before anything unlocks. A dismiss is never forwarded — the other side only sees "offer expired".</p></div>
+    <div class="card white"><span class="ico">{{i:nav}}</span><h3 class="mt2">A bearing, never a position</h3><p class="small mb0">The server sends a direction and a distance bucket — never the partner's coordinates. "No pins" is enforced in the protocol, not in the UI.</p></div>
+    <div class="card white"><span class="ico">{{i:pin-off}}</span><h3 class="mt2">Zones, not pins</h3><p class="small mb0">The map shows aggregate warmth per zone; zones with fewer than 3 searchers stay dark (k-anonymity), so a glow never points at one person.</p></div>
+    <div class="card white"><span class="ico">{{i:eye-off}}</span><h3 class="mt2">Invisible by default</h3><p class="small mb0">Nothing is discoverable until you start a search or join a plan. Search auto-stops after 30 minutes (on by default). Nobody can be searched or browsed — ever.</p></div>
+    <div class="card white"><span class="ico">{{i:clock}}</span><h3 class="mt2">Ephemeral and time-boxed</h3><p class="small mb0">45-second offers, 10-minute compass sessions, a 5-minute pair cooldown. Positions live in memory per socket and are dropped when a session ends.</p></div>
+    <div class="card white"><span class="ico" style="background:var(--danger)">{{i:x}}</span><h3 class="mt2">Vanish</h3><p class="small mb0">One tap, no confirmation: the session is destroyed for both, instantly. It looks identical whichever side pressed it.</p></div>
+  </div>
+
+  <h2>What we keep, what we hold briefly, what we never touch</h2>
+  <div class="grid3">
+    <div class="card" style="background:#fff;border:1px solid var(--line)">
+      <div class="cap" style="color:#0D6B3F">Stored · PostgreSQL</div>
+      <ul class="clean small mt2 mb0">
+        <li>Account: email and a password hash (Better Auth), sign-in sessions</li>
+        <li>Profile: mode, first name, age, gender, interests, answers, vibe line, preferences, settings</li>
+        <li>Text-only matching lines: appearance traits, taste traits, character — never shown to anyone</li>
+      </ul>
+    </div>
+    <div class="card" style="background:#fff;border:1px solid var(--line)">
+      <div class="cap" style="color:#8A5200">Memory only · discarded</div>
+      <ul class="clean small mt2 mb0">
+        <li>The current search: mode, category, intents</li>
+        <li>Your last position — only while searching or in a session</li>
+        <li>Offers, compass sessions, cooldowns</li>
+        <li>Plans: who is going, never where they are</li>
+      </ul>
+    </div>
+    <div class="card ink">
+      <div class="cap" style="color:#FFB23F">Never</div>
+      <ul class="clean small mt2 mb0" style="color:#e2e2e6">
+        <li>Any photo of you (the selfie is described once, then dropped)</li>
+        <li>Location history, or logs of positions</li>
+        <li>Messages — there is no chat</li>
+        <li>Mood or health data</li>
+        <li>Anyone's coordinates on your phone</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small mt2">Your data rights are endpoints, not a support ticket: <code>GET /api/account/export</code> returns everything stored about you; <code>DELETE /api/account</code> removes the user, profile, sessions and sign-in methods and closes the live socket.</p>
+</section>
+
+<section class="chapter">
+  <h2 class="mt0">Threat model</h2>
+  <table>
+    <thead><tr><th style="width:24%">Threat</th><th>Countermeasure</th></tr></thead>
+    <tbody>
+      <tr><td>Stalker follows a specific person</td><td>No identity, no search, no browsing; zones not pins; aggregate glow with k-anonymity; nothing discoverable when search is off; plans are proposed by the app, never browsable by person.</td></tr>
+      <tr><td>Compass abused to locate someone</td><td>Unlocks only after <b>mutual</b> accept; reveals a bearing, never a map position; 10-minute TTL; symmetric — the partner knows you're walking too. <span class="tag m1">M1</span> meeting point first.</td></tr>
+      <tr><td>Plan used to reach a specific person</td><td>Nobody picks a person: proposals come from the model, invitations are offered by the app ("you don't pick who"); the other side sees a vibe, a place and a time; a pass is never shown. <span class="tag m1">M1</span> people who met and didn't both keep in touch aren't grouped again for 30 days.</td></tr>
+      <tr><td>Harassment · hostile profiles</td><td>No chat, so no DM channel. Every saved profile passes OpenAI moderation; a flagged person silently drops out of matches, zones and plans. <b>Report</b>, from the compass or after meeting, ends the session and blocks the pair both ways, for good; the reported side is never told.</td></tr>
+      <tr><td>Serial abuser cycling matches</td><td>Two reports from <i>different</i> people pause the account from matching and plans at once. <span class="tag m1">M1</span> At most 5 compass sessions a day and 3 open plans; repeated vanishes flag the account.</td></tr>
+      <tr><td>Fake or bot profiles · ban evasion</td><td>Selfie liveness check (simulated in the build); <span class="tag m1">M1</span> one account per phone number, optional ID check, bans bound to phone and device.</td></tr>
+      <tr><td>Weaponised false reports</td><td>Auto-pause needs two independent reporters. <span class="tag m1">M1</span> Verified reporters weigh more; a human reviews before any ban; appeal path.</td></tr>
+      <tr><td>Data breach · subpoena</td><td>Positions are never persisted; plans hold who, never where. There is nothing to leak.</td></tr>
+      <tr><td>Minors</td><td>Every profile states an age (16+). Date requires an adult, checked server-side. In Mate, <b>a non-adult is only ever matched or grouped with another non-adult</b>. <span class="tag m1">M1</span> age assurance.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="grid2 mt4">
+    <div>
+      <h3 class="mt0">Verification ladder</h3>
+      <table>
+        <thead><tr><th>Level</th><th>Check</th><th>Stage</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Account</td><td>Email + password or magic link</td><td><span class="tag m0">M0</span></td></tr>
+          <tr><td>2 · Phone</td><td>SMS code, one account per number (~€0.05–0.10)</td><td><span class="tag m1">M1</span></td></tr>
+          <tr><td>3 · Liveness</td><td>One selfie, deleted after the check → "verified"</td><td><span class="tag m0">sim.</span> <span class="tag m1">M1</span></td></tr>
+          <tr><td>4 · ID</td><td>Document + selfie via an ID provider (~€0.70) → "ID verified"; required to host plans</td><td><span class="tag m1">M1</span></td></tr>
+        </tbody>
+      </table>
+      <p class="small mb0">The user never pays for a level. "Only match me with verified people" is a free filter.</p>
+    </div>
+    <div>
+      <h3 class="mt0">Block, report and meeting in public</h3>
+      <ul class="clean small">
+        <li><b>Report = block.</b> From the compass of a match or a plan, or from post-meet for 24 hours after: the session ends (the other side sees an ordinary vanish), and the pair never matches, is never proposed a plan or offered each other's invitations again. Settings shows how many people you've blocked. <span class="tag m0">M0</span></li>
+        <li><b>Auto-pause</b> once two different people have reported someone, effective at once. <span class="tag m0">M0</span> A human review before any ban <span class="tag m1">M1</span>.</li>
+        <li><b>Block from Recent</b> (last 7 days, badges only) and a reason note read only by reviewers. <span class="tag m1">M1</span></li>
+        <li><b>Meeting point first</b> (default in Date): the compass leads both to a public spot, not to each other. <b>Women-only plans</b> and a <b>trusted contact</b> share. <span class="tag m1">M1</span></li>
+      </ul>
+      <p class="small mb0">In the build: Vanish, Report → block, two-report pause, moderation, age gates and support lines.</p>
+    </div>
+  </div>
+
+  <div class="card glow mt4">
+    <div class="split" style="gap:6mm">
+      <div><div class="cap" style="color:#8A5200">For women specifically — today, in the build</div>
+      <p class="small mt2 mb0" style="color:#3b2d12">She is invisible unless she starts a search or joins a plan. She can dismiss any match invisibly — on the other side it simply "expires". Vanish is one tap and instant. Her first name appears only after she has met someone in person.</p></div>
+      <div><div class="cap" style="color:#8A5200">GDPR / RODO posture</div>
+      <p class="small mt2 mb0" style="color:#3b2d12">Location is personal data, so it is processed only inside an explicit, session-scoped consent and never stored. No special-category data. The photo goes to the LLM once and is not stored or logged. Production path: a DPIA before launch; the demo runs on test data only.</p></div>
+    </div>
+  </div>
+</section>

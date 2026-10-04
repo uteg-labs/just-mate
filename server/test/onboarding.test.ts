@@ -24,8 +24,17 @@ const {
 describe("without an API key", () => {
   test("questions fall back to the mode's sample for that step", async () => {
     const qa = [{ q: "Pick a deal-breaker.", a: "no banter" }]
-    expect(await writeQuestion({ mode: "mate", name: "Alex", interests: ["chess"], qa })).toEqual({
-      ...(SAMPLE_QUESTIONS.mate[1] as Question),
+    const req = { mode: "mate" as const, name: "Alex", interests: ["chess"], qa }
+    expect(await writeQuestion(req, "en")).toEqual({
+      ...(SAMPLE_QUESTIONS.en.mate[1] as Question),
+      source: "sample",
+    })
+  })
+
+  test("the sample question comes in the app's language", async () => {
+    const req = { mode: "date" as const, name: "Alex", interests: ["chess"], qa: [] }
+    expect(await writeQuestion(req, "sk")).toEqual({
+      ...(SAMPLE_QUESTIONS.sk.date[0] as Question),
       source: "sample",
     })
   })
@@ -87,6 +96,8 @@ describe("output rules", () => {
   test("a question is sentence case, short, new and has 4 lowercase options", () => {
     expect(isQuestion({ question: "Where do you go to think?", options }, [])).toBe(true)
     expect(isQuestion({ question: "Where Do You Go?", options }, [])).toBe(false)
+    expect(isQuestion({ question: "Čo ťa baví?", options }, [])).toBe(true)
+    expect(isQuestion({ question: "Čo Ťa baví?", options }, [])).toBe(false)
     expect(isQuestion({ question: "Where do you go?!", options }, [])).toBe(false)
     expect(isQuestion({ question: "Where do you go?", options: options.slice(1) }, [])).toBe(false)
     expect(

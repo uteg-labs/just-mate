@@ -73,7 +73,7 @@ Live text for onboarding, written by an LLM. Each call has a hard timeout; on a 
 
 `source` is `"live" | "sample"`. Invalid bodies get `400 { error: "invalid_request" }`. Each user gets at most 60 calls across these routes per 10 minutes (`ONBOARDING_LLM_CALLS_MAX`, `ONBOARDING_LLM_WINDOW_MS`); past that, `429 { error: "rate_limited" }` until the window resets.
 
-- **Question:** sentence case, under 60 characters, no emoji, no exclamation marks, never a topic already asked. Exactly 4 options, lowercase, under 26 characters each. Sample: the mode's fixed question number `qa.length` (mod 4).
+- **Question:** in the app's language, read from the `Accept-Language` header (`en`, `pl` or `sk`; anything else is `en`); every other helper writes English. Sentence case, under 60 characters, no emoji, no exclamation marks, never a topic already asked. Exactly 4 options, lowercase, under 26 characters each. Sample: the mode's fixed question number `qa.length` (mod 4), in that language.
 - **Vibe:** two short lowercase clauses joined by `" — "`, wry and specific, 60 characters at most, no names, emoji or quotes, not one of `avoid`. Sample: a fixed line not in `avoid`.
 - **Related:** 3 lowercase interests (≤ 24 chars) close to `item`, none already in `have`. Sample: the fixed related list for `item`, minus `have` (empty for unknown items).
 - **Character:** five lines, one sentence each, shaped "Trait — concrete detail.", third person, no looks, age, names or places; ≤ 1000 chars. Sample: the answers, one per line.

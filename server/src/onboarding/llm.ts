@@ -20,6 +20,7 @@ import {
   type VibeRequest,
 } from "@justmate/protocol"
 
+import type { SupportedLanguage } from "../localization/i18n"
 import {
   type Question,
   SAMPLE_ICEBREAKERS,
@@ -44,6 +45,11 @@ type Part = { type: "text"; text: string } | { type: "image_url"; image_url: { u
 
 const EMOJI = /\p{Extended_Pictographic}/u
 const QUOTES = /["“”«»]/
+const LANGUAGE_NAME: Record<SupportedLanguage, string> = {
+  en: "English",
+  pl: "Polish",
+  sk: "Slovak",
+}
 const MODE_PITCH = {
   date: "meet someone to date, a few streets away",
   mate: "find people nearby for a beer, a game or a run, right now",
@@ -55,7 +61,7 @@ Rules:
 - the question is in sentence case, under 60 characters, no emoji, no exclamation marks
 - never repeat a topic that was already asked
 - exactly 4 answer options, lowercase, under 26 characters each, distinct and specific
-- English only`
+- question and options in the language the request names`
 
 const VIBE_SYSTEM = `You write the vibe line on a JustMate badge: the one line a match sees about a person before meeting them.
 
@@ -181,20 +187,23 @@ function transcript(qa: QA[]): string {
   return qa.length ? qa.map(({ q, a }) => `- ${q} → ${a}`).join("\n") : "(nothing yet)"
 }
 
-export async function writeQuestion(req: QuestionRequest): Promise<QuestionReply> {
+export async function writeQuestion(
+  req: QuestionRequest,
+  language: SupportedLanguage,
+): Promise<QuestionReply> {
   const prompt = `They want to ${MODE_PITCH[req.mode]}.
 First name: ${req.name || "(not given)"}
 Interests: ${req.interests.join(", ") || "(none yet)"}
 Asked so far:
 ${transcript(req.qa)}
 
-Write question ${req.qa.length + 1} of 4.`
+Write question ${req.qa.length + 1} of 4, in ${LANGUAGE_NAME[language]}.`
 
   const live = await ask(QUESTION_SYSTEM, prompt, QUESTION_SCHEMA, QUESTION_TIMEOUT_MS)
   if (isQuestion(live, req.qa))
     return { question: live.question, options: live.options, source: "live" }
 
-  const sample = SAMPLE_QUESTIONS[req.mode][req.qa.length % 4] as Question
+  const sample = SAMPLE_QUESTIONS[language][req.mode][req.qa.length % 4] as Question
   return { ...sample, source: "sample" }
 }
 
@@ -202,7 +211,7 @@ export function isQuestion(value: unknown, asked: QA[]): value is Question {
   const { question, options } = (value ?? {}) as Partial<Question>
   if (typeof question !== "string" || !Array.isArray(options)) return false
 
-  const isSentenceCase = /^[A-Z][^A-Z!]*$/.test(question.replace(/\bI\b/g, "i"))
+  const isSentenceCase = /^\p{Lu}[^\p{Lu}!]*$/u.test(question.replace(/\bI\b/g, "i"))
   const isNew = asked.every(({ q }) => q.toLowerCase() !== question.toLowerCase())
   const isOptionOk = (o: unknown) =>
     typeof o === "string" &&

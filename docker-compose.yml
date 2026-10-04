@@ -1,0 +1,61 @@
+# Compose stack for local development + single-host production.
+#
+# Two services:
+#   - scorer: the Python ONNX HTTP scorer (ml/Dockerfile.scorer)
+#   - server: the Bun + Elysia backend (server/Dockerfile)
+#
+# Bun reaches the scorer by service name on the compose network. No ports
+# are published for the scorer — only the server is reachable from the host.
+#
+# Override for prod:
+#   - bump MATCH_SCORER_URL to http://scaler:8000 (or a load balancer)
+#   - mount a /var/run/docker.sock-free deploy; let external orchestrator
+#     scale `scorer` replicas.
+
+name: just-mate
+
+services:
+  scorer:
+    build:
+      context: ./ml
+      dockerfile: Dockerfile.scorer
+    image: match-scorer:local
+    environment:
+      - LOG_LEVEL=info
+      # Pick the model you want. v3_best is the DEPLOYMENT.md default.
+      # Other options in ml/checkpoints/: model_v0, model_v3_abs,
+      # model_v3_fix, model_v3_sym-loss-{0.5,1.0}.
+      - MATCH_SCORER_MODEL=/app/checkpoints/model_v3_best.onnx
+      - INTEREST_MATCHER_MODEL=/app/checkpoints/interest_matcher.onnx
+    # No `ports:` — internal only. Publish if you need to debug with curl.
+    expose:
+      - "8000"
+      - "8001"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: justmate-server:local
+    depends_on:
+      scorer:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MATCH_SCORER_URL=http://scorer:8000
+      - INTEREST_MATCHER_URL=http://scorer:8001
+      # DATABASE_URL etc. come from .env on the host (see variables: block)
+      # or from the deploy-time env file.
+    env_file:
+      - server/.env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

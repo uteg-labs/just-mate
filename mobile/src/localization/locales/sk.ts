@@ -125,7 +125,8 @@ export const sk = {
       done: "Vkus uložený",
       tally: "{{into}} áno · {{not}} nie",
       cta: "Over ma",
-      ctaLeft: "Zostáva posunúť {{count}}",
+      confirm: "Potvrdiť · {{count}} vybraných",
+      skip: "Preskočiť",
       traits: [
         "vysoký · tmavé vlasy · brada",
         "drobná · pehy · kučeravé ryšavé vlasy",
@@ -214,6 +215,7 @@ export const sk = {
     searchingFor: ": {{picks}}",
     offline: "offline",
     openSettings: "Otvoriť nastavenia",
+    recenter: "Vycentrovať na mňa",
     zone: "~{{n}} kompatibilných ľudí v okolí",
     headlines: {
       date: ["Na čo máš chuť?", "Kam dnes večer?", "Aký je plán?", "Skúsiš niečo nové?"],

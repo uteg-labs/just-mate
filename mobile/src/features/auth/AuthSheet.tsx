@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import Animated, { FadeIn } from "react-native-reanimated"
 
+import { LanguagePicker } from "@/components/LanguagePicker"
 import { Button, Segmented, TextField, useScheme } from "@/components/ui"
 import { authClient } from "@/lib/auth-client"
 import { loadProfile } from "@/lib/profile"
@@ -128,6 +129,7 @@ export const AuthSheet = ({ onLoggedIn, onRegistered, initialTab = "login" }: Au
           </Text>
         )}
       </Animated.View>
+      <LanguagePicker style={styles.language} />
     </View>
   )
 }
@@ -137,4 +139,5 @@ const styles = StyleSheet.create({
   under: { alignItems: "center", gap: 8 },
   center: { textAlign: "center" },
   note: { paddingHorizontal: 12 },
+  language: { alignSelf: "center" },
 })

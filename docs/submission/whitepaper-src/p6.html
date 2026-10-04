@@ -1,0 +1,270 @@
+<!-- ============ 10 ENGINEERING ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">10</span> Engineering</div>
+  <h1>Protocol first, tests that read like the spec</h1>
+  <p class="lede">Built in 24 hours by a team working in parallel. What made that possible: <span class="hl">the contract was written before the code</span>, a mock server replayed it so the app never waited on the backend, and the safety rules live in tests, not just in documents.</p>
+
+  <div class="split">
+    <div>
+      <h2 class="mt0">The repository</h2>
+      <table>
+        <thead><tr><th style="width:26%">Path</th><th>What lives there</th></tr></thead>
+        <tbody>
+          <tr><td><code>mobile/</code></td><td>Expo dev-client app: auth, onboarding (Date / Mate), map with categories and heat, Plans, match card, compass, post-meet, settings — one morphing surface</td></tr>
+          <tr><td><code>server/</code></td><td>Bun + Elysia + Drizzle: auth, profile, live onboarding text, zones, matching loop, compass relay, Plans; a mock that replays the protocol's happy path</td></tr>
+          <tr><td><code>packages/protocol</code></td><td>The wire types and validators shared by app and server</td></tr>
+          <tr><td><code>ml/</code></td><td>Synthetic data → embeddings → triplets → training → ONNX → evaluation notebook → HTTP scorer container</td></tr>
+          <tr><td><code>docs/</code></td><td>Product definition, screens and copy, design system, protocol, ML spec, demo script, build plan</td></tr>
+        </tbody>
+      </table>
+      <h2>Quality gates</h2>
+      <ul class="clean small">
+        <li><b>170 automated server tests</b> (Bun test) across pairing, offers, sessions, zones, matching rules, age ranges, Plans, report and block, profile validation, moderation, embeddings, onboarding fallbacks and the ice-breaker, the WebSocket handshake and localization.</li>
+        <li><b>Biome</b> lint and <b>TypeScript</b> typecheck on every package; <code>bun run lint &amp;&amp; bun run typecheck &amp;&amp; bun run test</code> before every push.</li>
+        <li><b>Drizzle</b> owns the schema with versioned SQL migrations; Better Auth owns its tables.</li>
+        <li><b>GitHub Actions</b>: conventional-commit version bumps and release-on-tag; EAS builds of the dev client for both demo phones.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="card ink">
+        <div class="cap">Test names, verbatim</div>
+        <ul class="clean small mt2 mb0" style="color:#e6e6ea">
+          <li>"partner_position carries bearing and bucket, never coordinates"</li>
+          <li>"an adult is never offered a non-adult"</li>
+          <li>"a dismiss reaches both sides as a plain expiry and both keep searching"</li>
+          <li>"cells with fewer than k compatible searchers stay hidden; the recipient never counts"</li>
+          <li>"the partner card carries the badge and nothing else"</li>
+          <li>"the match radius is the shorter of both walks"</li>
+          <li>"a dismissed pair is not offered again until the cooldown ends"</li>
+          <li>"the demo pair runs the whole happy path on the scripted track"</li>
+          <li>"the selfie is not described without a model"</li>
+        </ul>
+      </div>
+      <div class="card mt4">
+        <div class="cap">Run it</div>
+        <pre class="mono" style="font-size:7pt;line-height:1.55;margin:2mm 0 0;white-space:pre-wrap">bun install
+cp server/.env.example server/.env
+bun --cwd server db:migrate
+bun run dev:server
+bun run dev:mock
+bun --cwd mobile ios</pre>
+        <p class="small mt2 mb0">Server on :3000 (WebSocket at /ws), protocol mock on :3001. Needs Bun ≥ 1.3, PostgreSQL and Xcode or Android Studio. Without an LLM key, onboarding uses fixed samples.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 BUSINESS ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">11</span> Business model</div>
+  <h1>Venues pay. People meet for free.</h1>
+  <p class="lede">Four principles: <b>meeting is never paywalled; safety is never paywalled;</b> those who earn from people going out — venues and events — pay most; premium sells convenience and reach, not access.</p>
+
+  <div class="split">
+    <div>
+      <h2 class="mt0">Revenue streams</h2>
+      <table>
+        <thead><tr><th style="width:30%">Stream</th><th>How it works</th></tr></thead>
+        <tbody>
+          <tr><td>Partner venues <span class="tag ink">primary</span></td><td>Cafés, board-game bars, climbing gyms, cinemas list plan slots for ~€39 a month and fund perks on check-in. They fill off-peak tables; their slots seed density. Partners see counts and check-ins, never identities.</td></tr>
+          <tr><td>Prepaid first round</td><td>An optional €5 voucher at partner venues, sold as a €20 wallet top-up; JustMate keeps 15%. Doubles as a commitment device — prepaid people show up.</td></tr>
+          <tr><td>JustMate+</td><td>€4.99 a month: host your own group plans (ID-verified hosts, public venues), travel mode, private plans for existing friends. Proposals and 1:1 invitations stay free.</td></tr>
+          <tr><td>Events &amp; festivals</td><td>Licensed official zones and plans for an event, €500–2,000 each.</td></tr>
+          <tr><td>Later: B2B2C</td><td>Employers onboarding relocated staff, universities onboarding international students, city wellbeing programmes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card glow">
+        <div class="cap" style="color:#8A5200">Rejected on purpose</div>
+        <h3 class="mt2">"Five free connections, then pay"</h3>
+        <p class="small mb0" style="color:#3b2d12">It paywalls the north-star event and charges lonely people for the one thing they came for. It rewards rationing meetings — the swipe-app model we position against. Limits exist in JustMate, but for safety, not revenue.</p>
+      </div>
+      <div class="card mt4">
+        <div class="cap">Never</div>
+        <p class="small mt2 mb0">Ads in the meeting flow. Selling attention. Selling data. A paid safety feature. JustMate's success metric <i>decreases</i> phone usage, so attention is not our product.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Back of the envelope: one city, 5,000 monthly active users</h2>
+  <div class="grid2" style="gap:7mm">
+    <table>
+      <thead><tr><th style="width:27%">Monthly cost</th><th>Assumption</th><th class="num">€</th></tr></thead>
+      <tbody>
+        <tr><td>Hosting</td><td>API, PostgreSQL, backups</td><td class="num">100</td></tr>
+        <tr><td>LLM</td><td>~1,000 new × ~€0.01, ice-breakers</td><td class="num">20</td></tr>
+        <tr><td>Phone checks</td><td>1,000 × ~€0.07</td><td class="num">70</td></tr>
+        <tr><td>ID checks</td><td>40% of new users × ~$0.80</td><td class="num">300</td></tr>
+        <tr><td>Moderation</td><td>20 h × €15</td><td class="num">300</td></tr>
+        <tr><td>Stores, email</td><td>Apple fee, email plan</td><td class="num">30</td></tr>
+        <tr class="total"><td>Total</td><td></td><td class="num">~820</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th style="width:27%">Revenue</th><th>Assumption</th><th class="num">€</th></tr></thead>
+      <tbody>
+        <tr><td>Venues</td><td>25 × €39</td><td class="num">975</td></tr>
+        <tr><td>Prepaid round</td><td>900 × (€0.75 − card fee)</td><td class="num">380</td></tr>
+        <tr><td>JustMate+</td><td>150 × €4.99, net of VAT, fees</td><td class="num">520</td></tr>
+        <tr><td>Events</td><td>1 festival a quarter</td><td class="num">330</td></tr>
+        <tr class="total"><td>Total</td><td></td><td class="num">~2,200</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout small"><b>Readout:</b> ~21 partner venues × €39 cover a city's running costs on their own (820 ÷ 39); everything else is margin toward a team. All figures are labelled estimates to be replaced with real quotes.</div>
+</section>
+
+<!-- ============ 12 LAUNCH ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">12</span> Launch, density &amp; competition</div>
+  <h1>Plans lower the density bar</h1>
+  <p class="lede">The 2012 proximity apps died of empty rooms. JustMate's answer to cold start is structural: <span class="hl">a new city opens with plans; the Now loop lights up as density grows.</span></p>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="cap">Now · needs people in the same minute</div>
+      <div class="stat mt2"><div class="v">~9</div><div class="l">people searching at any evening minute in a district of 500 active users who each search 30 minutes a week — split across two modes and a dozen intents. A Now match is rare.</div></div>
+    </div>
+    <div class="card glow">
+      <div class="cap" style="color:#8A5200">Plan · needs people over two days</div>
+      <div class="stat mt2"><div class="v">~16</div><div class="l" style="color:#5b4520">people per intent over the next 48 hours if 40% of the same 500 are open to plans. A 1:1 plan needs one of them; a group of four fills easily.</div></div>
+    </div>
+  </div>
+
+  <h2>Go-to-market</h2>
+  <div class="grid2" style="gap:6mm">
+    <ul class="clean small mb0">
+      <li><b>Single-density launches:</b> one campus, one festival, one district — anywhere the glow is populated from day one.</li>
+      <li><b>Event mode:</b> festivals and conferences pre-seed official zones and plans for a known, opt-in crowd.</li>
+    </ul>
+    <ul class="clean small mb0">
+      <li><b>Venue partners:</b> board-game cafés, breweries and climbing gyms host plan slots — density and revenue at once.</li>
+      <li><b>Newcomer channels:</b> campus societies, expat communities, HR onboarding, international-student offices.</li>
+    </ul>
+  </div>
+
+  <div class="card glow mt4">
+    <div class="cap" style="color:#8A5200">Referral channel · psychologists and counsellors <span class="tag m1" style="margin-left:2mm">M1</span></div>
+    <h3 class="mt2">Referral, not treatment</h3>
+    <div class="grid2" style="gap:6mm">
+      <p class="small mb0" style="color:#3b2d12">Psychologists, counsellors, student counselling centres and GPs see lonely clients every week, and often suggest exactly what Plans make easy: small, concrete, scheduled activities. JustMate is a next step to recommend between sessions — the way they'd recommend a climbing club. Referring people to community activity is established practice: in England, GPs referred 1.3 million people to social prescribing in 2023 (UCL, 2025).</p>
+      <p class="small mb0" style="color:#3b2d12"><b>Without health data.</b> A referral kit (leaflet + a QR code per practice); the client signs up like anyone else — no "patient" flag, nothing reported back. Installs are counted per practice and never stored on a profile, because "referred by a therapist" is health data (GDPR Art. 9). No health claims and no clinical integration keep JustMate outside the EU MDR. Pilot: 3–5 practices and a university counselling centre in Kraków.</p>
+    </div>
+  </div>
+
+  <h2>Competitive positioning</h2>
+  <table>
+    <thead><tr><th style="width:30%"></th><th>JustMate</th><th>Timeleft</th><th>happn</th><th>Tinder</th><th>Meetup</th></tr></thead>
+    <tbody>
+      <tr><td>A concrete plan that gets you out</td><td class="yes">✓ app-made, nearby</td><td class="yes">✓ weekly slots</td><td class="no">✕</td><td class="no">✕</td><td class="meh">needs organiser</td></tr>
+      <tr><td>Real-time proximity</td><td class="yes">✓ live zones</td><td class="no">✕</td><td class="meh">retrospective</td><td class="no">✕</td><td class="no">✕</td></tr>
+      <tr><td>Faceless</td><td class="yes">✓ core</td><td class="meh">little info</td><td class="no">✕</td><td class="no">✕</td><td>n/a</td></tr>
+      <tr><td>Ends in person, not in chat</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">✕</td><td class="no">✕</td><td class="meh">partly</td></tr>
+      <tr><td>Walkable (5–15 min)</td><td class="yes">✓</td><td class="no">✕ city-wide</td><td class="meh">partly</td><td class="no">✕</td><td class="no">✕</td></tr>
+      <tr><td>Consent architecture</td><td class="yes">✓ mutual + zones</td><td class="meh">partly</td><td class="meh">partly</td><td class="no">✕</td><td>n/a</td></tr>
+      <tr><td>Core free to the user</td><td class="yes">✓</td><td class="no">✕ per seat</td><td class="meh">freemium</td><td class="meh">freemium</td><td class="yes">✓ to attend</td></tr>
+    </tbody>
+  </table>
+  <p class="small mb0"><b>Wedge:</b> consented serendipity, plus plans you only have to say yes to — proximity, skip-chat, faceless and live maps assembled into one walk, with Timeleft's proof that strangers show up when the plan is concrete.</p>
+</section>
+
+<!-- ============ 13 METRICS & ROADMAP ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">13</span> Metrics &amp; roadmap</div>
+  <h1>Measured on the street, not the screen</h1>
+
+  <div class="grid3">
+    <div class="card ink"><div class="cap">North star</div><h3 class="mt2" style="color:#fff">Completed real-world meetings per active user per week</h3><p class="small mb0" style="color:#c9c9cf">Plan and Now combined.</p></div>
+    <div class="card glow"><div class="cap" style="color:#8A5200">Mission metric · loneliness</div><h3 class="mt2">Repeat meetings</h3><p class="small mb0" style="color:#3b2d12">Share of active users who met the same person or group at least twice in 30 days. Repetition is how friendship starts.</p></div>
+    <div class="card"><div class="cap">Anti-metric, watched on purpose</div><h3 class="mt2">Time in app should not grow</h3><p class="small mb0">Engagement is measured on the street. The phone's job ends where the conversation starts.</p></div>
+  </div>
+  <table class="mt4">
+    <tbody>
+      <tr><td style="width:24%">Activation</td><td>Share of new users who attend a first plan or meeting within 7 days of signing up</td></tr>
+      <tr><td>Plan health</td><td>Proposal acceptance (proposed → both in); invitation take rate (sent → someone's in → confirmed); group fill rate; show-up rate ≥ 80% of confirmed people; <b>stood-up rate</b> (checked in, nobody else came) under 2%</td></tr>
+      <tr><td>Safety guardrails</td><td>Vanish rate under 10%; reports per 1,000 meetings; median time to review a report under 24 h; notification opt-out rate</td></tr>
+      <tr><td>Movement</td><td>Share of meetings that are sport or outdoors; minutes walked to meet — aggregate only, never a track</td></tr>
+      <tr><td>Outcome (research only)</td><td>Opt-in, anonymous 3-item UCLA Loneliness Scale and WHO-5 Well-Being Index at sign-up and after 8 weeks, with a research partner — aggregated, never stored on a profile</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Roadmap</h2>
+  <table>
+    <thead><tr><th style="width:17%">Stage</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag m0">M0</span> HackYeah</td><td>Native app (Date / Mate, categories, vibe badge, compass, haptics, 18+ gate, post-meet with an ice-breaker line), WebSocket server with distance-gated matching and TTLs, explainable scoring and our own model scoring Now for real accounts, demo mode; <b>1:1 Plans</b> (Date and Mate: proposals from real profiles and free times, Suggest this place, invitations with several times offered one person at a time, mutual confirm, plan-time compass; same again as a button); report → block and two-report pause; help row with support lines</td></tr>
+      <tr><td><span class="tag m1">M1</span> Production MVP</td><td>Remote push (background search, proposals, invitations and a reminder 2 h before a plan, while the app is closed); group plans for 3–4 (I'm in, go-ahead minimum, still-in, status chips); same-again scheduling and keep in touch; referral kit for psychologists and counsellors with a Kraków pilot; block from Recent and human review of reports; phone and ID verification; verified-only and women-only filters; meeting point first; trusted contact; rate limits; partner venues and perks; prepaid first round; verified-only Date plans; age assurance; DPIA; end-to-end encrypted positions between paired sessions; model v1 on real outcomes</td></tr>
+      <tr><td><span class="tag v1">v1</span></td><td>Circles (same 3–4 people weekly for four weeks), user-hosted group plans, opt-in calendar free/busy (busy blocks only, never titles or details) so plans skip times you're booked, JustMate+ (travel mode, private plans), a private "brave log" of badges you've met — it only grows, nothing to lose</td></tr>
+      <tr><td><span class="tag v1">v2</span></td><td>Venue and event platform (official zones, analytics), city heat events, social-prescribing partnerships (GP link workers, university counselling, employee assistance programmes), employer and university programmes, partner channels for older adults</td></tr>
+    </tbody>
+  </table>
+  <p class="small mb0"><b>Deliberately excluded, forever:</b> chat, photo profiles, browsing people, followers and likes, feeds, ads in the meeting flow, paywalled connections, streaks that reset, "you haven't gone out" nudges, health claims.</p>
+</section>
+
+<!-- ============ 14 HONESTY ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">14</span> Demo scope, honesty &amp; sources</div>
+  <h1>What's real, what's canned</h1>
+  <p class="lede">Rule for every sentence in this document, the deck and the description: <span class="hl">it describes what the demo does, or it is labelled production path.</span></p>
+
+  <div class="grid2">
+    <div class="card white">
+      <div class="cap" style="color:#0D6B3F">Real in the build</div>
+      <ul class="clean small mt2 mb0">
+        <li>Accounts, profiles, onboarding with live LLM text (fixed samples without a key)</li>
+        <li>Zone glow from live positions, with k-anonymity</li>
+        <li>Mutual match delivered live to both phones over WebSocket, with haptics</li>
+        <li>Every hard gate, incl. age segregation; the explainable score; our own model scoring Now for real accounts</li>
+        <li>Compass from the real magnetometer; bearing + bucket relay; Vanish; We met; post-meet with an ice-breaker; Report → block, two-report pause</li>
+        <li>1:1 Plans: proposals from real profiles, accepted on both phones; invitations with several times; the confirmed plan with its compass</li>
+        <li>Account export and delete</li>
+      </ul>
+    </div>
+    <div class="card white">
+      <div class="cap" style="color:#8A5200">Canned, and labelled as such</div>
+      <ul class="clean small mt2 mb0">
+        <li>Demo-mode positions (indoor GPS) on a scripted track relative to the stage</li>
+        <li>Nine ghost wanderers adding map density — they never match or join plans</li>
+        <li>A demo time-skip that starts a plan two minutes after it is proposed</li>
+        <li>The list of 18 public venues in Kraków, hand-tagged by the team</li>
+        <li>The selfie liveness check (simulated; production path)</li>
+        <li>The learned model's training labels: synthetic and rule-based, not real meetings</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid2 mt4">
+    <div>
+      <h3 class="mt0">AI-use disclosure</h3>
+      <p class="small">AI tools were used for ideation support and boilerplate; the core idea, mechanic and solution are the team's work. The product itself uses AI: an LLM (OpenAI <code>gpt-4o-mini</code>) interviews the user and writes their vibe line, matching traits and an ice-breaker line after meeting; OpenAI moderation screens every saved profile; OpenAI embeddings encode profiles for our own matching model, which scores Now matches for real accounts. Plan proposals and the stage demo use an explainable compatibility score. The model was trained during the event on synthetic profiles (OpenAI <code>text-embedding-3-small</code> embeddings, PyTorch).</p>
+      <h3>Credits &amp; licences</h3>
+      <p class="small mb0">Base maps by Apple Maps (iOS) and Google Maps (Android), attribution shown by the native map. Icons: Lucide. Type: Inter. Taste-swipe sample faces are generated, never real users. The demo runs on test data only.</p>
+    </div>
+    <div>
+      <h3 class="mt0">Sources</h3>
+      <ol class="small" style="padding-left:4.4mm">
+        <li>WHO Commission on Social Connection, <i>From loneliness to social connection</i>, and WHO news release, 30 June 2025 — prevalence (one in six; 17–21% of 13–29-year-olds), ~871,000 deaths a year, 2× depression, stroke, heart disease, diabetes, cognitive decline; social connection as a public-health priority.</li>
+        <li>Holt-Lunstad, Smith, Layton, <i>PLoS Medicine</i>, 2010 — meta-analysis of 148 studies (308,849 people): 50% higher odds of survival.</li>
+        <li>WHO news release, 26 June 2024 — 31% of adults (1.8 billion) insufficiently active in 2022.</li>
+        <li>Hall, <i>Journal of Social and Personal Relationships</i>, 2018 — ~50 hours together to a casual friend.</li>
+        <li>UCL, September 2025 — 1.3 million GP social-prescribing referrals in England in 2023.</li>
+        <li>EU MDR 2017/745; GDPR 2016/679, Art. 9. Pricing assumptions are the team's estimates.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card ink mt4">
+    <div class="split" style="align-items:center">
+      <div>
+        <div class="cap">Team</div>
+        <p class="mt2 mb0" style="font-size:10.5pt;color:#fff;line-height:1.6"><span style="white-space:nowrap">Arthur Kozubov</span> · <span style="white-space:nowrap">Jozef Zvalo</span> · <span style="white-space:nowrap">Andrej Zak</span> · <span style="white-space:nowrap">Nikita Orlov</span> · <span style="white-space:nowrap">Serhii Vielkin</span></p>
+      </div>
+      <div>
+        <div class="cap">Find everything</div>
+        <p class="small mt2 mb0" style="color:#d4d4da">Code and docs: <b style="color:#fff">github.com/uteg-labs/just-mate</b><br>Start with <code style="background:#25252a;color:#fff">README.md</code>, then <code style="background:#25252a;color:#fff">docs/PRODUCT.md</code> and <code style="background:#25252a;color:#fff">docs/PROTOCOL.md</code>.</p>
+      </div>
+    </div>
+  </div>
+  <p class="mt6" style="font-size:15pt;font-weight:700;letter-spacing:-.02em">Not therapy. A reason to go out — and someone waiting when you get there. <span style="color:var(--link)">Meet for real.</span></p>
+</section>

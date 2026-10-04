@@ -1,0 +1,166 @@
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="bg"></div>
+  <div class="inner">
+    <div class="brand"><img src="assets/just-mate-symbol.svg" alt=""> HackYeah 2026 · Kraków · Open task: Sport &amp; Healthcare</div>
+    <h1>JustMate</h1>
+    <div class="tag1">Meet for real.</div>
+    <div class="sub">A health &amp; wellbeing app for the loneliness epidemic. JustMate gets lonely people out of the door and in front of someone compatible — faceless, mutual and on foot. Right now, or at a small plan the app makes for you.</div>
+  </div>
+  <div class="meta">
+    <div><div class="cap">Document</div><div>Product &amp; technical whitepaper<br>The jury's reference to the project</div></div>
+    <div><div class="cap">Theme</div><div>Health &amp; wellbeing: loneliness<br>Meet, move, look up — not therapy</div></div>
+    <div><div class="cap">Repository</div><div>github.com/uteg-labs/just-mate<br>Version of 4 October 2026</div></div>
+  </div>
+  <div class="phones">
+    <div class="phone"><img src="assets/plan-bothin.jpg" alt="Plan: you're both in"></div>
+    <div class="phone mid"><img src="assets/screen_compass.png" alt="The compass, where both loops end"></div>
+    <div class="phone"><img src="assets/now-searching.jpg" alt="Now: searching nearby"></div>
+  </div>
+</section>
+
+<!-- ============ AT A GLANCE ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">00</span> At a glance</div>
+  <h1>Apps solved matching.<br><span class="soft">Nobody solved the door.</span></h1>
+  <p class="lede">Loneliness is a health risk on a par with smoking. A lonely person rarely goes out on a whim: they need <span class="hl">a reason, a time, a place, and proof that someone will be there.</span> JustMate gives them exactly that — and the walk there.</p>
+
+  <div class="grid4">
+    <div class="card stat"><div class="v">1 in 6</div><div class="l">people worldwide are affected by loneliness</div><div class="src">WHO, 2025</div></div>
+    <div class="card stat"><div class="v">871k</div><div class="l">deaths a year are linked to loneliness</div><div class="src">WHO, 2025</div></div>
+    <div class="card stat"><div class="v">2×</div><div class="l">lonely people are twice as likely to become depressed</div><div class="src">WHO, 2025</div></div>
+    <div class="card stat"><div class="v">~50 h</div><div class="l">together to turn an acquaintance into a casual friend</div><div class="src">Hall, 2018</div></div>
+  </div>
+
+  <div class="grid3 mt4" style="font-size:8.8pt;line-height:1.45">
+    <div>
+      <div class="cap">The problem</div>
+      <h3 class="mt2">Three barriers keep a lonely person at home</h3>
+      <p class="mb0"><b>Initiative</b> — organising anything feels impossible. <b>The empty table</b> — "what if nobody comes?" <b>Judgment</b> — photo-first apps make meeting an audition.</p>
+    </div>
+    <div>
+      <div class="cap">Our answer</div>
+      <h3 class="mt2">One faceless profile, two speeds</h3>
+      <p class="mb0"><b>Plan</b> — the app proposes a plan with someone compatible, at a place halfway. Tap accept; it's on only if they accept too. <b>Now</b> — already out? Two compatible people nearby are pinged at once and a compass walks them together.</p>
+    </div>
+    <div>
+      <div class="cap">Three promises</div>
+      <h3 class="mt2">What every feature serves</h3>
+      <p class="mb0"><b>We find your people</b> — our own AI model. <b>We make the plan</b> — you only say yes. <b>Already out? Meet now</b> — both phones ping at once.</p>
+    </div>
+  </div>
+
+  <div class="card ink mt4">
+    <div class="split" style="gap:8mm">
+      <div>
+        <div class="cap">What we built in 24 hours</div>
+        <ul class="clean mt2" style="margin-bottom:0">
+          <li><b>Native iOS &amp; Android app</b> (Expo dev-client): faceless onboarding with a live LLM interview, map, 1:1 Plans, match card, compass, post-meet, report; EN, PL &amp; SK.</li>
+          <li><b>Bun + Elysia server</b>: accounts and profiles in PostgreSQL, one WebSocket per phone with a 1-second matching loop, a compass relay that sends a bearing — never a position — and the Plans engine over seeded public venues.</li>
+          <li><b>A shared, typed protocol</b> — written before code — used by both app and server; <b>170 automated server tests</b>.</li>
+          <li><b>Our own matching model</b> (PyTorch → ONNX) trained on 25,000 synthetic profiles scores Now; plans use the explainable score.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="cap">Numbers that define the product</div>
+        <div class="grid2 mt2" style="gap:4mm">
+          <div class="stat"><div class="v" style="color:var(--glow)">0</div><div class="l">positions ever stored</div></div>
+          <div class="stat"><div class="v">800<small> m</small></div><div class="l">default match gate, a 10-min walk</div></div>
+          <div class="stat"><div class="v">10<small> min</small></div><div class="l">compass window, then it expires</div></div>
+          <div class="stat"><div class="v">~21</div><div class="l">partner venues cover a city's running costs (est.)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cap mt4" style="margin-bottom:1mm">Contents · every sentence describes what the build does, or is labelled <span class="tag m1">production path</span></div>
+  <div class="toc"><div><span class="n">01</span><span>The problem &amp; health case</span></div><div><span class="n">02</span><span>The product</span></div><div><span class="n">03</span><span>Who it's for</span></div><div><span class="n">04</span><span>The Plan loop</span></div><div><span class="n">05</span><span>The Now loop</span></div><div><span class="n">06</span><span>Experience &amp; design</span></div><div><span class="n">07</span><span>Safety &amp; privacy</span></div><div><span class="n">08</span><span>Architecture</span></div><div><span class="n">09</span><span>Matching &amp; AI</span></div><div><span class="n">10</span><span>Engineering</span></div><div><span class="n">11</span><span>Business model</span></div><div><span class="n">12</span><span>Launch &amp; competition</span></div><div><span class="n">13</span><span>Metrics &amp; roadmap</span></div><div><span class="n">14</span><span>Honesty &amp; sources</span></div></div>
+</section>
+
+<!-- ============ 01 PROBLEM ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">01</span> The problem</div>
+  <h1>Loneliness, and the door</h1>
+  <p class="lede">Loneliness touches about one in six people and is linked to an estimated 871,000 deaths a year. It is highest among young people — 17–21% of 13–29-year-olds — and lonely people are twice as likely to become depressed <span class="muted">(WHO Commission on Social Connection, June 2025)</span>.</p>
+
+  <div class="split">
+    <div>
+      <h2 class="mt0">Matching is solved. Meeting is broken.</h2>
+      <p>It breaks hardest for a lonely, maybe low person. Existing apps monetise attention spent <i>on the phone</i>: their incentive is the opposite of getting you outside. For someone who already finds it hard to go out, three barriers stand between them and a real conversation:</p>
+      <ol class="steps mt4">
+        <li><b>Initiative.</b> Low mood means low energy. Organising something — even choosing between options — is too much. "Find people now" assumes you are already out and already brave.</li>
+        <li><b>The empty table.</b> "What if nobody comes? What if I'm stood up?" One no-show confirms the story <i>nobody wants me</i>.</li>
+        <li><b>Judgment.</b> Photo-first apps turn meeting into an audition; chat turns it into weeks of performance before anything real happens.</li>
+      </ol>
+    </div>
+    <div>
+      <div class="card glow">
+        <div class="pull">"Apps solved matching. Nobody solved the door."</div>
+        <p class="small mt4" style="color:#5b4520">The product's job is not the first meeting, but the second, the third and the tenth: friendship takes roughly 50 hours together to go from acquaintance to casual friend (Hall, <i>Journal of Social and Personal Relationships</i>, 2018).</p>
+      </div>
+      <div class="card mt4">
+        <div class="cap">Design consequence</div>
+        <p class="mt2" style="margin-bottom:0">Every mechanic in JustMate removes one of the three barriers. The phone's job ends where the conversation starts — <b>the interface is the street</b>.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Why existing formats fail</h2>
+  <table>
+    <thead><tr><th style="width:30%">Format</th><th>Failure mode for a lonely person</th></tr></thead>
+    <tbody>
+      <tr><td>Swipe apps (Tinder, Bumble)</td><td>Photo-first judgment; chat purgatory; meetings are the exception, not the goal.</td></tr>
+      <tr><td>Scheduled dating (Breeze)</td><td>Real meetings, but planned hours or days ahead — and dating only.</td></tr>
+      <tr><td>Stranger dinners (Timeleft)</td><td>Proves strangers show up to a fixed plan, but on fixed weekly slots, paid per seat, anywhere in the city.</td></tr>
+      <tr><td>AI-matched groups (Pie)</td><td>Small groups matched by a quiz, then a group chat before the event — the chat gate again.</td></tr>
+      <tr><td>Proximity dating (happn)</td><td>Retrospective ("who you passed 7 days ago"), photo-first, chat-gated.</td></tr>
+      <tr><td>Ambient proximity (Highlight, Sonar)</td><td>Always-on location, battery drain, empty rooms, safety gaps. Both are gone.</td></tr>
+      <tr><td>Activity platforms (Meetup)</td><td>Needs an organiser and a group; big rooms are hard for the shy; nothing for "a beer buddy now".</td></tr>
+    </tbody>
+  </table>
+  <p class="small">One finding we build on: Timeleft's co-founder observed that "the more information you give, the more people don't show up". A faceless badge is the right amount of information.</p>
+</section>
+
+<!-- ============ 01b HEALTH ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">01</span> The problem · why it is a health task</div>
+  <h1>Connection is health.<br><span class="soft">It starts at the door.</span></h1>
+  <p class="lede">JustMate is a <span class="hl">health &amp; wellbeing product for the loneliness epidemic</span>. It treats nothing; it changes what people do — <b>meet</b> someone in person, <b>move</b> to get there, <b>look up</b> from the phone while they talk — and come back again.</p>
+
+  <div class="grid4">
+    <div class="card stat"><div class="v">+50%</div><div class="l">odds of survival with strong social ties — an effect comparable with smoking</div><div class="src">Holt-Lunstad, 2010</div></div>
+    <div class="card stat"><div class="v">5</div><div class="l">risks it raises: stroke, heart disease, diabetes, cognitive decline, early death</div><div class="src">WHO, 2025</div></div>
+    <div class="card stat"><div class="v">2×</div><div class="l">as likely to become depressed when lonely</div><div class="src">WHO, 2025</div></div>
+    <div class="card stat"><div class="v">31%</div><div class="l">of adults — 1.8 billion — don't get enough physical activity</div><div class="src">WHO, 2024</div></div>
+  </div>
+  <p class="small mt4 mb0">WHO asks every country to make social connection a public-health priority. The everyday steps it names read like our spec — <i>"putting away one's phone to be fully present in conversation"</i>, <i>"joining a local group"</i> — with cafés and parks as social infrastructure and walking as active transport.</p>
+
+  <h2>Four pathways from an app to wellbeing</h2>
+  <table>
+    <thead><tr><th style="width:19%">Pathway</th><th>What JustMate does</th><th style="width:27%">What changes</th></tr></thead>
+    <tbody>
+      <tr><td><b>Meet</b> · connection</td><td>Every flow ends face to face: a plan the app proposes, or a ping when you're already out. No chat to get stuck in; built for the second meeting (friendship ≈ 50 h together).</td><td>Regular in-person contact — the protective factor in the studies above</td></tr>
+      <tr><td><b>Move</b> · activity</td><td>Every meeting starts on foot: Now matches only within a 5-, 10- or 15-minute walk; plans sit at a public venue within a 15-minute walk of both. <b>16 of the 44 Mate activities are sport or outdoors</b> — running, climbing, padel, football, yoga, hiking, cycling, a walk.</td><td>Light activity on the way, and a partner for sport today</td></tr>
+      <tr><td><b>Look up</b> · screens</td><td>No feed, chat, likes or streaks — nothing to scroll. Time in the app is an anti-metric (ch. 13).</td><td>Time in company with the phone away — WHO's own example</td></tr>
+      <tr><td><b>Small step</b> · pressure</td><td>A faceless badge, a mutual yes, a fixed time and a public place: one small, scheduled step, as in behavioural activation (ch. 04). Declines are silent.</td><td>Going out becomes possible on a low-energy day</td></tr>
+    </tbody>
+  </table>
+
+  <h2>How we will show it works — without health data</h2>
+  <div class="grid2" style="gap:4mm">
+    <div class="card">
+      <div class="cap">In the product · behaviour, never health</div>
+      <ul class="clean small mt2 mb0">
+        <li><b>Real-world meetings</b> per active user per week; <b>repeat meetings</b> with the same person or group</li>
+        <li><b>Movement</b>: sport or outdoor share of meetings; minutes walked to meet <span class="tag m1">M1</span></li>
+        <li><b>Time in app</b> should not grow</li>
+      </ul>
+    </div>
+    <div class="card glow">
+      <div class="cap" style="color:#8A5200">Outcome study · research partner <span class="tag m1">M1</span></div>
+      <p class="small mt2 mb0" style="color:#3b2d12">Opt-in and anonymous: the 3-item UCLA Loneliness Scale and the WHO-5 Well-Being Index at sign-up and after 8 weeks, run by a Kraków university partner under its own consent and ethics approval. JustMate sees aggregates only.</p>
+    </div>
+  </div>
+
+  <p class="small mt4 mb0"><b style="color:var(--fg1)">Wellbeing, not medicine.</b> No health claims (EU MDR), no health or mood data (GDPR Art. 9), no guilt mechanics (ch. 02). Psychologists, counsellors and GPs can recommend JustMate as a next step between sessions (social prescribing, ch. 12).</p>
+</section>

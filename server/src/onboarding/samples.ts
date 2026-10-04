@@ -1,59 +1,184 @@
 import type { Mode } from "@justmate/protocol"
 
+import type { SupportedLanguage } from "../localization/i18n"
+
 export type Question = { question: string; options: string[] }
 
-export const SAMPLE_QUESTIONS: Record<Mode, Question[]> = {
-  date: [
-    {
-      question: "Perfect first hour with someone new?",
-      options: [
-        "a long walk, no plan",
-        "bar stools and bad jokes",
-        "a gallery we pretend to get",
-        "cooking something messy",
-      ],
-    },
-    {
-      question: "What makes you lose track of time?",
-      options: ["a good argument", "a record shop", "people-watching", "a project at 2am"],
-    },
-    {
-      question: "Which small thing wins you over?",
-      options: [
-        "remembering details",
-        "laughing at themselves",
-        "great taste in music",
-        "being on time",
-      ],
-    },
-    {
-      question: "Your friends would call you…",
-      options: ["the planner", "the instigator", "the calm one", "the storyteller"],
-    },
-  ],
-  mate: [
-    {
-      question: "Nothing planned tonight. What's the move?",
-      options: [
-        "grab a pint",
-        "find a pickup game",
-        "wander somewhere new",
-        "board games till late",
-      ],
-    },
-    {
-      question: "In a group you're usually…",
-      options: ["the one with the plan", "the joker", "the listener", "the competitive one"],
-    },
-    {
-      question: "What would you teach a new mate?",
-      options: ["a card game", "a running route", "a recipe", "a hidden bar"],
-    },
-    {
-      question: "Pick a deal-breaker.",
-      options: ["always late", "no banter", "phone at the table", "sore loser"],
-    },
-  ],
+export const SAMPLE_QUESTIONS: Record<SupportedLanguage, Record<Mode, Question[]>> = {
+  en: {
+    date: [
+      {
+        question: "Perfect first hour with someone new?",
+        options: [
+          "a long walk, no plan",
+          "bar stools and bad jokes",
+          "a gallery we pretend to get",
+          "cooking something messy",
+        ],
+      },
+      {
+        question: "What makes you lose track of time?",
+        options: ["a good argument", "a record shop", "people-watching", "a project at 2am"],
+      },
+      {
+        question: "Which small thing wins you over?",
+        options: [
+          "remembering details",
+          "laughing at themselves",
+          "great taste in music",
+          "being on time",
+        ],
+      },
+      {
+        question: "Your friends would call you…",
+        options: ["the planner", "the instigator", "the calm one", "the storyteller"],
+      },
+    ],
+    mate: [
+      {
+        question: "Nothing planned tonight. What's the move?",
+        options: [
+          "grab a pint",
+          "find a pickup game",
+          "wander somewhere new",
+          "board games till late",
+        ],
+      },
+      {
+        question: "In a group you're usually…",
+        options: ["the one with the plan", "the joker", "the listener", "the competitive one"],
+      },
+      {
+        question: "What would you teach a new mate?",
+        options: ["a card game", "a running route", "a recipe", "a hidden bar"],
+      },
+      {
+        question: "Pick a deal-breaker.",
+        options: ["always late", "no banter", "phone at the table", "sore loser"],
+      },
+    ],
+  },
+  pl: {
+    date: [
+      {
+        question: "Idealna pierwsza godzina z kimś nowym?",
+        options: [
+          "długi spacer bez planu",
+          "bar i suche żarty",
+          "galeria i mądre miny",
+          "wspólne gotowanie",
+        ],
+      },
+      {
+        question: "Przy czym tracisz poczucie czasu?",
+        options: [
+          "dobra dyskusja",
+          "sklep z winylami",
+          "obserwowanie ludzi",
+          "projekt o drugiej w nocy",
+        ],
+      },
+      {
+        question: "Jaki drobiazg cię ujmuje?",
+        options: ["pamięta szczegóły", "dystans do siebie", "dobry gust muzyczny", "punktualność"],
+      },
+      {
+        question: "Co mówią o tobie znajomi?",
+        options: [
+          "wszystko zaplanuje",
+          "zawsze coś rozkręci",
+          "nigdy nie panikuje",
+          "świetnie opowiada",
+        ],
+      },
+    ],
+    mate: [
+      {
+        question: "Wieczór bez planów. Co robisz?",
+        options: [
+          "idę na piwo",
+          "szukam ekipy do gry",
+          "odkrywam nowe miejsce",
+          "planszówki do późna",
+        ],
+      },
+      {
+        question: "Co zwykle robisz w grupie?",
+        options: ["mam plan", "rzucam żarty", "słucham", "chcę wygrać"],
+      },
+      {
+        question: "Czego nauczysz nowego kumpla?",
+        options: ["gry w karty", "trasy do biegania", "przepisu", "ukrytego baru"],
+      },
+      {
+        question: "Wybierz, co cię najbardziej drażni.",
+        options: [
+          "wieczne spóźnienia",
+          "zero poczucia humoru",
+          "telefon przy stole",
+          "nie umie przegrywać",
+        ],
+      },
+    ],
+  },
+  sk: {
+    date: [
+      {
+        question: "Ideálna prvá hodina s niekým novým?",
+        options: [
+          "dlhá prechádzka bez plánu",
+          "bar a zlé vtipy",
+          "galéria a múdre tváre",
+          "spolu niečo navariť",
+        ],
+      },
+      {
+        question: "Pri čom zabúdaš na čas?",
+        options: ["dobrá debata", "obchod s platňami", "pozorovanie ľudí", "projekt o druhej ráno"],
+      },
+      {
+        question: "Ktorá maličkosť si ťa získa?",
+        options: [
+          "pamätá si detaily",
+          "humor na vlastný účet",
+          "dobrý vkus v hudbe",
+          "dochvíľnosť",
+        ],
+      },
+      {
+        question: "Čo o tebe vravia kamaráti?",
+        options: [
+          "všetko naplánuje",
+          "vždy niečo rozbehne",
+          "nikdy nepanikári",
+          "vie rozprávať príbehy",
+        ],
+      },
+    ],
+    mate: [
+      {
+        question: "Večer bez plánu. Čo podnikneš?",
+        options: [
+          "zájdem na pivo",
+          "nájdem partiu na hru",
+          "objavím nové miesto",
+          "spoločenské hry do noci",
+        ],
+      },
+      {
+        question: "Čo v partii zvyčajne robíš?",
+        options: ["mám plán", "robím vtipy", "počúvam", "chcem vyhrať"],
+      },
+      {
+        question: "Čo ukážeš novému kamarátovi?",
+        options: ["kartovú hru", "bežeckú trasu", "recept", "skrytý bar"],
+      },
+      {
+        question: "Vyber, čo ti najviac vadí.",
+        options: ["stále mešká", "nulový humor", "mobil pri stole", "nevie prehrávať"],
+      },
+    ],
+  },
 }
 
 export const SAMPLE_VIBES = [

@@ -11,6 +11,7 @@ import {
 import { Elysia } from "elysia"
 
 import { authPlugin } from "../auth/auth.plugin"
+import { resolveLanguage, type SupportedLanguage } from "../localization/i18n"
 import {
   describeAppearance,
   writeCharacter,
@@ -21,10 +22,20 @@ import {
   writeVibe,
 } from "./llm"
 
-function route<T, R>(parse: (body: unknown) => Parsed<T>, write: (req: T) => Promise<R>) {
-  return ({ body, status }: { body: unknown; status: (code: 400, body: unknown) => unknown }) => {
+type Context = {
+  body: unknown
+  request: Request
+  status: (code: 400, body: unknown) => unknown
+}
+
+function route<T, R>(
+  parse: (body: unknown) => Parsed<T>,
+  write: (req: T, language: SupportedLanguage) => Promise<R>,
+) {
+  return ({ body, request, status }: Context) => {
     const parsed = parse(body)
-    return parsed.ok ? write(parsed.value) : status(400, { error: parsed.error })
+    if (!parsed.ok) return status(400, { error: parsed.error })
+    return write(parsed.value, resolveLanguage(request.headers.get("accept-language")))
   }
 }
 

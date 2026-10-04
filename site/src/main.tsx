@@ -70,6 +70,10 @@ const Hero = ({ t, lang }: { t: Copy; lang: Lang }) => {
       </div>
       <div className="wrap wide" id="film">
         <Clip id="Main" poster={540} lang={lang} t={t.clip} eager />
+        <a className="yt" href={LINKS.youtube} target="_blank" rel="noreferrer">
+          <Glyph name="youtube" size={18} color="#737373" />
+          {t.hero.films}
+        </a>
       </div>
     </section>
   )
@@ -335,6 +339,10 @@ const Demo = ({ t }: { t: Copy["demo"] }) => (
         <a className="btn tint" href={LINKS.github} target="_blank" rel="noreferrer">
           <Glyph name="github" size={18} />
           {t.github}
+        </a>
+        <a className="btn tint" href={LINKS.youtube} target="_blank" rel="noreferrer">
+          <Glyph name="youtube" size={18} />
+          {t.youtube} · YouTube
         </a>
       </div>
       <p className="team">

@@ -7,6 +7,7 @@ export const LINKS = {
   github: "https://github.com/uteg-labs/just-mate",
   deck: "JustMate-Deck.pdf",
   whitepaper: "JustMate-Whitepaper.pdf",
+  youtube: "https://www.youtube.com/@JustMateApp",
 }
 
 export const TEAM = [
@@ -58,6 +59,7 @@ const en = {
     lead: "For anyone lonely in a city. JustMate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
     join: "Join the waitlist",
     watch: "Watch with sound · 54 s",
+    films: "All our films on YouTube",
   },
   problem: {
     eyebrow: "The problem",
@@ -333,6 +335,7 @@ const en = {
     deck: "Deck",
     whitepaper: "Whitepaper",
     github: "Source code",
+    youtube: "Films",
     team: "Team",
   },
   join: {
@@ -386,6 +389,7 @@ const pl: Copy = {
     lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. JustMate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
     join: "Zapisz się na listę",
     watch: "Obejrzyj z dźwiękiem · 54 s",
+    films: "Wszystkie nasze filmy na YouTube",
   },
   problem: {
     eyebrow: "Problem",
@@ -661,6 +665,7 @@ const pl: Copy = {
     deck: "Prezentacja",
     whitepaper: "Whitepaper",
     github: "Kod źródłowy",
+    youtube: "Filmy",
     team: "Zespół",
   },
   join: {

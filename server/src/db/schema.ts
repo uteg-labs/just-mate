@@ -211,6 +211,7 @@ export const userMatchScore = pgTable(
     userBId: text("userBId")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    mode: text("mode").$type<Mode>().notNull(),
     scoreAToB: doublePrecision("scoreAToB").notNull(),
     scoreBToA: doublePrecision("scoreBToA").notNull(),
     score: doublePrecision("score").notNull(),
@@ -219,7 +220,7 @@ export const userMatchScore = pgTable(
   },
   (table) => [
     index("user_match_score_userBId_idx").on(table.userBId),
-    primaryKey({ columns: [table.userAId, table.userBId] }),
+    primaryKey({ columns: [table.userAId, table.userBId, table.mode] }),
   ],
 )
 

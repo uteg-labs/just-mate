@@ -110,7 +110,7 @@ def extract_features_from_strings(
 
 
 def combine_linear(features: Features) -> float:
-    return features.soft_jacc
+    return max(features.soft_jacc, features.exact_jaccard)
 
 
 def best_match_breakdown(

@@ -192,6 +192,8 @@ export const sk = {
     neverShown: "neviditeľný pre ostatných",
     when: "Kedy máš čas",
     startMode: "Otvárať mapu v režime",
+    language: "Jazyk",
+    languageSystem: "Auto",
     walk: "Pešo do",
     minutes: "{{count}} min",
     autoStop: "Prestať hľadať po 30 min",

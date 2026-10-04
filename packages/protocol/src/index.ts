@@ -885,6 +885,17 @@ export type TasteReply = { taste: string; source: LlmSource }
 export type AppearanceRequest = { photo: string }
 export type AppearanceReply = { appearance: string; source: LlmSource }
 
+/** `POST /api/onboarding/icebreaker`; `partner*` = what `match_offer` already showed. */
+export type IcebreakerRequest = {
+  mode: Mode
+  interests: string[]
+  partnerInterests: string[]
+  partnerVibe: string
+}
+export type IcebreakerReply = { line: string; source: LlmSource }
+
+export const ICEBREAKER_MAX = 140
+
 /** Longest base64 selfie `POST /api/onboarding/appearance` accepts (~3 MB of JPEG). */
 export const PHOTO_MAX = 4_000_000
 
@@ -925,6 +936,15 @@ export function parseCharacterRequest(input: unknown): Parsed<CharacterRequest> 
 export function parseTasteRequest(input: unknown): Parsed<TasteRequest> {
   if (!isObject(input) || !isTextList(input.picks, 30, 400)) return fail("request")
   return { ok: true, value: { picks: input.picks } }
+}
+
+/** Validates a `POST /api/onboarding/icebreaker` body. */
+export function parseIcebreakerRequest(input: unknown): Parsed<IcebreakerRequest> {
+  if (!isObject(input) || !isOneOf(MODES, input.mode)) return fail("request")
+  const { mode, interests, partnerInterests, partnerVibe } = input
+  if (!isInterestList(interests) || !isInterestList(partnerInterests)) return fail("request")
+  if (!isText(partnerVibe, 80, 0)) return fail("request")
+  return { ok: true, value: { mode, interests, partnerInterests, partnerVibe } }
 }
 
 /** Validates a `POST /api/onboarding/appearance` body. */

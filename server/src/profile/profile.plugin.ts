@@ -43,9 +43,9 @@ export const profilePlugin = new Elysia({ name: "profile" })
     async ({ user, body, status }) => {
       const parsed = parseProfile(body)
       if (!parsed.ok) return status(400, { error: parsed.error })
-      parsed.value = fillAgeRanges(parsed.value)
 
       const before = await loadProfile(user.id)
+      parsed.value = { ...fillAgeRanges(parsed.value), verified: before?.verified ?? false }
       const flagged = await isDangerous([
         parsed.value.name,
         parsed.value.character,

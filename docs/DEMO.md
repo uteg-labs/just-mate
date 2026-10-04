@@ -6,7 +6,7 @@ The story is loneliness, not dating: one hero, **Tomek** (`PRODUCT.md` §4.1), a
 
 ## 5-minute stage script
 
-Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → User → Value → Solution → Reality → Ask**. One slide per beat (`docs/submission/deck.html`). Every number on screen has a source on the slide footer; sources in `SUBMISSION.md` › Sources.
+Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → User → Value → Solution → Reality → Next**. One slide per beat (`docs/submission/deck.html`). Every number on screen has a source on the slide footer; sources in `SUBMISSION.md` › Sources.
 
 - **0:00 — Problem (slide 2).** "One in six people worldwide is affected by loneliness. WHO links it to more than 871,000 deaths a year, and lonely people are twice as likely to get depressed. In the EU, 13% feel lonely most or all of the time." Then the friction: "The hard part isn't meeting someone online. It's the step out of the door."
 - **0:35 — User (slide 3).** "Tomek is 28, moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend." Three frictions: initiative, uncertainty, judgment.
@@ -20,7 +20,7 @@ Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → Us
 - **3:20 — Design choices (slide 7).** Pick one: "No photos, only a vibe line. It costs us information, especially for dating. We mitigate with an LLM-written vibe and taste training."
 - **3:40 — Risk (slide 8).** Stalking, unsafe users, no-shows, empty city: what's in the build, what's production path, how we validate.
 - **4:05 — Reality (slide 9).** Known (built and demoed), assumed (people accept app-made plans, venues pay), to validate (show-up rate, repeats, UCLA-3).
-- **4:30 — Ask (slide 10).** "Help us run a 4-week pilot in Kraków with one student community and five partner venues. We'll measure show-ups, repeat meetings and UCLA-3."
+- **4:30 — What's next (slide 10).** "Next: real users in Kraków, starting with one campus and a few partner venues. We measure show-ups, repeat meetings and loneliness, and we train the matching model on real meetings instead of synthetic data. No swipes. No chat. Meet for real."
 
 **Words we use:** loneliness, social connection, the step out of the door. **Words we never use:** "cure", "antidote", "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1). Never say a number without its source.
 

@@ -176,7 +176,7 @@
   <h2 style="margin-top:28px">One essential flow: plan, yes, walk, meet.</h2>
   <div class="flow">
     <div class="node"><h3>Profile</h3><p>Mate or Date, interests, four questions an LLM writes from your picks. It writes your vibe line.</p></div>
-    <div class="node"><h3>Match</h3><p>Explainable score: shared interests and shared intent, within walking distance, age rules.</p></div>
+    <div class="node"><h3>Match</h3><p>A Siamese model scores Now pairs; plans use an explainable score. Walking distance, age rules.</p></div>
     <div class="node hot"><h3>Plan</h3><p>Shared activity, an open venue within a 15-min walk of both, a 30-min slot you're both free.</p></div>
     <div class="node"><h3>Both in</h3><p>Accept plan confirms only if they accept too. Both phones update at the same moment.</p></div>
     <div class="node"><h3>Walk and meet</h3><p>15 min before, a compass opens: a bearing, never a position. We met: first names and how far you walked.</p></div>
@@ -257,7 +257,7 @@
         <li><b>Show-up rate</b> for app-made plans</li>
         <li><b>Repeat meetings</b> with the same person within 4 weeks</li>
         <li><b>Change in loneliness</b> on UCLA-3, opt-in and anonymous</li>
-        <li><b>Learned matching:</b> a Siamese model reaches AUC 0.76 on synthetic validation data; wire it in only once real meetings beat the explainable score</li>
+        <li><b>Learned matching:</b> the model scoring Now is trained on synthetic profiles; retrain it on real meetings</li>
       </ul>
     </div>
   </div>
@@ -272,7 +272,7 @@
   <div class="next">
     <div><h3>Real users in Kraków</h3><p>One campus and a few partner venues, so plans have enough people within a walk.</p></div>
     <div><h3>Measure what matters</h3><p>Show-ups, repeat meetings with the same person, and an opt-in UCLA-3 loneliness score.</p></div>
-    <div><h3>Learn from real meetings</h3><p>Replace synthetic training data with real outcomes, then let the learned model compete with the explainable score.</p></div>
+    <div><h3>Learn from real meetings</h3><p>Retrain the matching model on real outcomes: who met, who said same again.</p></div>
   </div>
   <div class="people" style="margin-top:36px">
     <span class="chip">Arthur Kozubov</span><span class="chip">Jozef Zvalo</span><span class="chip">Andrej Zak</span><span class="chip">Nikita Orlov</span><span class="chip">Serhii Vielkin</span>
@@ -284,7 +284,7 @@
     <div><b>[4]</b>Holt-Lunstad, Smith, Layton (2010). Social Relationships and Mortality Risk: A Meta-analytic Review. PLoS Medicine. <a href="https://doi.org/10.1371/journal.pmed.1000316">doi.org/10.1371/journal.pmed.1000316</a></div>
     <div><b>[5]</b>WHO, Nearly 1.8 billion adults at risk of disease from not doing enough physical activity, 26 Jun 2024. <a href="https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity">who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk…</a></div>
   </div>
-  <p class="ai">AI use: AI tools helped with ideation and boilerplate; the idea, mechanic and solution are the team's. In the product, gpt-4o-mini writes onboarding questions and vibe lines, and OpenAI moderation screens profiles. A learned matching model in ml/ is research, trained on synthetic data, not wired in. Maps: Apple Maps and Google Maps. Test data only. MIT licence.</p>
+  <p class="ai">AI use: AI tools helped with ideation and boilerplate; the idea, mechanic and solution are the team's. In the product, gpt-4o-mini writes onboarding questions and vibe lines, and OpenAI moderation screens profiles. A Siamese model trained on synthetic profiles scores Now matches; plans use an explainable score. Maps: Apple Maps and Google Maps. Test data only. MIT licence.</p>
   <div class="foot"><span>github.com/uteg-labs/just-mate</span><span class="num">10 / 10</span></div>
 </section>
 

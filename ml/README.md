@@ -2,7 +2,7 @@
 
 PyTorch training of the asymmetric Siamese matching model (Shared Encoder + Match Head, triplet + match loss, v3 + `soft_jacc` side feature). Trained checkpoints are served as ONNX by **`match_scorer`** and **`interest_matcher`** — two HTTP daemons bundled in one Docker container (`Dockerfile.scorer`) launched together by `scripts/run_servers.py` (PR #32). A legacy NDJSON subprocess (`scripts/match_scorer.py`, Python or PyInstaller-frozen binary) is kept for local dev.
 
-**The HTTP container is not wired into the Bun server today** — PR #34 reverted the server-side clients. Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). The intended integration is a precomputed pair-score cache that `compat()` reads synchronously, with the rules as fallback (§4).
+**Status.** Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`).
 
 Model and pipeline design: [`../docs/ML-MATCHING.md`](../docs/ML-MATCHING.md). [`../docs/ml/PLAN.md`](../docs/ml/PLAN.md) and `docs/ml/specs/` are the original hackathon plan, kept for history. This README is the run-it-yourself guide.
 
@@ -259,7 +259,7 @@ bash scripts/build_local_mac_and_linux.sh               # macOS native + Linux v
 
 ## 4. How the Bun/Elysia server would use it (planned)
 
-The HTTP container exists (`match_scorer` on `:8000`, `interest_matcher` on `:8001`); the Bun server doesn't import HTTP clients for them today — PR #34 reverted them. Live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`. The intended integration is a precomputed pair-score cache that `compat()` reads synchronously:
+The HTTP container runs `match_scorer` on `:8000` and `interest_matcher` on `:8001`. Now matching for real accounts uses it: when a profile changes, the server scores that person against everyone through the HTTP container (`server/src/matching/recalculation.ts`, `match.repository.ts`) and pairs only above the threshold. Demo mode, tests and plan proposals use the rules-based `compat()` in `server/src/matching/compat.ts` (`0.7 × interest Jaccard + 0.3 × shared intent`). The design:
 
 ```
 Bun server (background scoring, on profile create/change)

@@ -52,7 +52,7 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 - **Data** — Better Auth (email + password, magic links) and PostgreSQL via Drizzle for accounts, profiles and plans. Live positions stay in memory per socket.
 - **AI** — `gpt-4o-mini` writes onboarding questions, the vibe line, related interests and the character; OpenAI moderation screens profiles. Without `OPENAI_API_KEY` everything falls back to fixed samples.
 - **Matching** — explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7), geohash-6 zones for display, a walking-distance gate for matching.
-- **ML (research, not wired into the server)** — `ml/` holds a PyTorch Siamese matching model trained on synthetic profiles and exported to ONNX. See [`ml/README.md`](ml/README.md) and [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
+- **ML** — `ml/` holds a PyTorch Siamese matching model trained on synthetic profiles and exported to ONNX, served over HTTP. The server scores Now matches for real accounts with it; plans and demo mode use the explainable score. See [`ml/README.md`](ml/README.md) and [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ```
 docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching
@@ -123,7 +123,7 @@ bun run lint && bun run typecheck && bun run test
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
 | Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
 
-Not in the build by decision: remote push (the app is in the foreground whenever you are searching) and the ML model in the live matching path (it runs standalone in `ml/`, trained on synthetic data).
+Not in the build by decision: remote push (the app is in the foreground whenever you are searching). The ML model scores Now matches for real accounts; it is trained on synthetic data, so plans and the stage demo use the explainable score.
 
 ## License
 

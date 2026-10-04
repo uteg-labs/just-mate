@@ -226,7 +226,7 @@ match  ⇔ both searching ∧ dist(a, b) ≤ R_MATCH (800 m by default) ∧ shar
 4. **Match Head.** Scores one person's target vector against the other's self vector from their difference, product and cosine (v3 also takes a soft-Jaccard of interests), `→ 32 → 1` logit. Exact heads in `docs/ML-MATCHING.md` §3.
 5. **Joint training.** Triplet loss (margin=1.0, p=2) + binary match loss (BCE for logit_ab→1 and logit_ac→0) trained jointly on synthetic profiles for M0 / on real outcomes for M1.
 
-- **Serving (planned, not wired in).** The ONNX model runs behind `ml/scripts/match_scorer.py`, an NDJSON scorer (Python or a PyInstaller binary). The server's `compat()` is synchronous and runs per pair on every tick, so integration means a precomputed pair-score cache with the explainable baseline as fallback (`ml/DEPLOYMENT.md`).
+- **Serving.** The ONNX model runs in an HTTP container (`ml/Dockerfile.scorer`). The server precomputes pair scores when a profile changes and Now matching reads them; plans and demo mode use the explainable score (`ml/DEPLOYMENT.md`).
 - **Training data.** M0 / HackYeah 2026: synthetic profiles + rule-based ground truth (the explainable baseline + noise) — honest-proxy training. M1: real interaction outcomes (mutual accept + met → 1; dismissed/vanished → 0).
 - **Threshold.** The `0.45` rule above applies to the explainable baseline. The neural model uses a **separately calibrated** threshold on a held-out synthetic set (target: FPR ≤ 5%, TPR ≥ 80%). Documented in the model card.
 - **Fallback.** If the ML service is unavailable, the server transparently falls back to the explainable baseline. The demo never breaks.

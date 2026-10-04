@@ -22,6 +22,41 @@
       "when": 1791053376821,
       "tag": "0002_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791061072443,
+      "tag": "0003_profile_dangerous",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791062922238,
+      "tag": "0004_profile_partner_character",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791067677656,
+      "tag": "0005_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791071071144,
+      "tag": "0006_venues",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791072309674,
+      "tag": "0007_profile_embedding",
+      "breakpoints": true
     }
   ]
 }

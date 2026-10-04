@@ -1,12 +1,27 @@
 import { type Position, parsePosition } from "@justmate/protocol"
 import * as Location from "expo-location"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 
 import { send } from "./store"
 
 const WATCH_MS = 1000
 
 let latest: Position | undefined
+const listeners = new Set<() => void>()
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+export function lastPosition() {
+  return latest
+}
+
+// read-only view of the one watch, for anything besides the map that needs where you are
+export function useLastPosition() {
+  return useSyncExternalStore(subscribe, () => latest)
+}
 
 // the one position watch: feeds the own dot on the map and every report to the server
 export function useOwnPosition() {
@@ -29,6 +44,7 @@ export function useOwnPosition() {
           if (!parsed.ok) return
           latest = parsed.value
           setPosition(parsed.value)
+          for (const listener of listeners) listener()
         },
       )
       if (cancelled) subscription.remove()

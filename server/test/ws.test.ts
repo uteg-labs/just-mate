@@ -43,6 +43,7 @@ describe("hello", () => {
     const { client, sent } = fakeClient()
     await hello(client)
     expect(sent[0]).toEqual({ t: "ready", userId: "u_test", config })
+    expect(sent[1]).toEqual({ t: "plans", plans: [] })
     expect(client.profile?.name).toBe("Alex")
   })
 
@@ -100,7 +101,7 @@ describe("search", () => {
     await receive(client, { ...beerSearch, category: "night" })
     await receive(client, { ...beerSearch, intents: ["gym"] })
     await receive(client, { ...beerSearch, walkMin: 7 })
-    expect(sent.slice(1).map((m) => m.t === "error" && m.code)).toEqual([
+    expect(sent.slice(2).map((m) => m.t === "error" && m.code)).toEqual([
       "invalid_category",
       "invalid_intents",
       "invalid_walk",
@@ -113,7 +114,7 @@ describe("search", () => {
     await hello(client)
     await receive(client, { t: "search_on", mode: "date", category: "food", intents: ["wine"] })
     await receive(client, beerSearch)
-    expect(sent[1]).toMatchObject({ t: "error", code: "adult_required" })
+    expect(sent[2]).toMatchObject({ t: "error", code: "adult_required" })
     expect(client.search?.mode).toBe("mate")
   })
 
@@ -146,7 +147,7 @@ describe("search", () => {
     await receive(client, beerSearch)
     await Bun.sleep(20)
     expect(client.search).toBeDefined()
-    expect(sent.at(-1)?.t).toBe("ready")
+    expect(sent.at(-1)?.t).toBe("plans")
   })
 
   test("search_off cancels the auto-stop", async () => {
@@ -156,7 +157,7 @@ describe("search", () => {
     await receive(client, beerSearch)
     await receive(client, { t: "search_off" })
     await Bun.sleep(20)
-    expect(sent.at(-1)?.t).toBe("ready")
+    expect(sent.at(-1)?.t).toBe("plans")
   })
 })
 

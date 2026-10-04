@@ -23,6 +23,15 @@ import {
   sharedIntents,
 } from "../matching/compat"
 import { bearing, bucketFor, distanceM, geohash } from "../matching/geo"
+import {
+  type PlanLink,
+  planDisconnect,
+  planHello,
+  planReceive,
+  planSessionEnded,
+  planTick,
+  rememberProfile,
+} from "../plans/plans"
 import { DEMO_PROFILES, demoPosition, ghostPositions } from "./demo"
 
 export type Conn = {
@@ -33,13 +42,20 @@ export type Conn = {
 export type Deps = {
   userIdForCookie(cookie: string): Promise<string | undefined>
   profileFor(userId: string): Promise<Profile | undefined>
+  isDangerous?(userId: string): Promise<boolean>
 }
 
 type Pair = [Client, Client]
 
 export type Offer = { id: string; pair: Pair; accepted: Set<Client>; expiresAt: number }
 
-export type Session = { id: string; pair: Pair; startedAt: number; expiresAt: number }
+export type Session = {
+  id: string
+  pair: Pair
+  startedAt: number
+  expiresAt: number
+  planId?: string
+}
 
 export type Client = {
   id: string
@@ -47,11 +63,14 @@ export type Client = {
   deps: Deps
   demo?: "a" | "b"
   profile?: Profile
+  dangerous?: boolean
   search?: Search
   autoStop?: Timer
   position?: Position
   offer?: Offer
   session?: Session
+  /** the confirmed plan this client opened the compass for */
+  planGo?: string
   zonesWindow?: number
 }
 
@@ -70,6 +89,13 @@ export const clients = new Map<string, Client>()
 // pair key → cooldown end
 export const cooldowns = new Map<string, number>()
 
+const planLink: PlanLink = {
+  now: () => clock.now(),
+  config,
+  send: (userId, msg) => clients.get(userId)?.conn.send(msg),
+  startSession: startPlanSession,
+}
+
 export function connect(conn: Conn, deps: Deps, demo?: "a" | "b"): Client {
   const client: Client = { id: `u_${shortId()}`, conn, deps, demo }
   clients.set(client.id, client)
@@ -78,7 +104,9 @@ export function connect(conn: Conn, deps: Deps, demo?: "a" | "b"): Client {
 
 export function disconnect(client: Client) {
   leave(client, "disconnected")
-  if (clients.get(client.id) === client) clients.delete(client.id)
+  if (clients.get(client.id) !== client) return
+  clients.delete(client.id)
+  planDisconnect(client.id)
 }
 
 export function closeUser(userId: string, code: number, reason: string) {
@@ -87,9 +115,12 @@ export function closeUser(userId: string, code: number, reason: string) {
   }
 }
 
-export function updateProfile(userId: string, profile: Profile) {
+export function updateProfile(userId: string, profile: Profile, dangerous = false) {
   const client = clients.get(userId)
-  if (client?.profile && !client.demo) client.profile = profile
+  rememberProfile(userId, profile, dangerous)
+  if (!client?.profile || client.demo) return
+  client.profile = profile
+  client.dangerous = dangerous
 }
 
 export async function receive(client: Client, frame: unknown) {
@@ -127,6 +158,9 @@ export async function receive(client: Client, frame: unknown) {
         endSession(client.session, msg.t === "met" ? "met" : "vanished")
       }
       return
+
+    default:
+      return planReceive(planLink, client, msg)
   }
 }
 
@@ -149,12 +183,14 @@ async function hello(client: Client, msg: Extract<ClientMsg, { t: "hello" }>) {
   clients.delete(client.id)
   client.id = id
   client.profile = profile
+  client.dangerous = !client.demo && (await client.deps.isDangerous?.(userId))
   clients.set(client.id, client)
   client.conn.send({
     t: "ready",
     userId: id,
     config: client.demo ? { ...config, demo: true } : config,
   })
+  planHello(planLink, id, profile, !!client.dangerous)
 }
 
 function searchOn(client: Client, profile: Profile, msg: unknown) {
@@ -174,7 +210,9 @@ function searchOn(client: Client, profile: Profile, msg: unknown) {
 }
 
 function position(client: Client, msg: unknown) {
-  if (!client.search) return error(client, "position_before_search_on", "send search_on first")
+  if (!isLocating(client)) {
+    return error(client, "position_before_search_on", "send search_on first")
+  }
   if (client.demo) return
 
   const parsed = parsePosition(msg)
@@ -241,20 +279,40 @@ function expireOffer(offer: Offer) {
 }
 
 function startSession(offer: Offer) {
+  for (const client of offer.pair) client.offer = undefined
+  openSession(offer.pair, config.sessionTtlMs)
+}
+
+// a plan's compass ends whatever else either side had going
+function startPlanSession(ids: [string, string], planId: string): boolean {
+  const [a, b] = ids.map((id) => clients.get(id))
+  if (!a?.profile || !b?.profile) return false
+
+  for (const client of [a, b]) {
+    if (client.offer) expireOffer(client.offer)
+    if (client.session) endSession(client.session, "vanished")
+    if (client.search) stopSearch(client)
+  }
+  openSession([a, b], config.planSessionTtlMs, planId)
+  return true
+}
+
+function openSession(pair: Pair, ttlMs: number, planId?: string) {
   const now = clock.now()
   const session: Session = {
     id: `s_${shortId()}`,
-    pair: offer.pair,
+    pair,
     startedAt: now,
-    expiresAt: now + config.sessionTtlMs,
+    expiresAt: now + ttlMs,
+    planId,
   }
-  for (const client of offer.pair) {
-    client.offer = undefined
+  for (const client of pair) {
     client.session = session
     client.conn.send({
       t: "session_start",
       sessionId: session.id,
-      expiresInMs: config.sessionTtlMs,
+      expiresInMs: ttlMs,
+      ...(planId && { planId }),
     })
   }
 }
@@ -262,10 +320,12 @@ function startSession(offer: Offer) {
 function endSession(session: Session, reason: SessionEndReason) {
   for (const client of session.pair) {
     client.session = undefined
+    client.planGo = undefined
     stopSearch(client)
     client.conn.send({ t: "session_end", sessionId: session.id, reason })
   }
   coolDown(session.pair)
+  if (session.planId) planSessionEnded(planLink, session.planId, reason === "met")
 }
 
 function pairKey([a, b]: Pair): string {
@@ -282,7 +342,7 @@ export function tick() {
   for (const [key, until] of cooldowns) if (until <= now) cooldowns.delete(key)
 
   for (const client of clients.values()) {
-    if (client.demo && client.search)
+    if (client.demo && isLocating(client))
       client.position = demoPosition(client.demo, walkingMs(client, now))
     if (client.offer && now >= client.offer.expiresAt) expireOffer(client.offer)
     if (client.session && now >= client.session.expiresAt) endSession(client.session, "expired")
@@ -291,6 +351,7 @@ export function tick() {
   for (const client of clients.values()) if (client.session) relay(client, client.session)
 
   pairUp(now)
+  planTick(planLink)
 
   const window = Math.floor(now / config.positionIntervalMs)
   for (const client of clients.values()) {
@@ -304,6 +365,10 @@ function walkingMs(client: Client, now: number): number {
   return client.session ? now - client.session.startedAt : 0
 }
 
+function isLocating(client: Client): boolean {
+  return !!(client.search || client.session || client.planGo)
+}
+
 function isSearching(client: Client): client is Searcher {
   return (
     client.profile !== undefined &&
@@ -314,6 +379,7 @@ function isSearching(client: Client): client is Searcher {
 }
 
 function isCompatible(a: Searcher, b: Searcher): boolean {
+  if (a.dangerous || b.dangerous) return false
   return !a.demo === !b.demo && canMatch(a, b) && compat(a, b) >= COMPAT_THRESHOLD
 }
 

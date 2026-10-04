@@ -1,11 +1,12 @@
+import type { Venue } from "@justmate/protocol"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
 import ngeohash from "ngeohash"
 import { useState } from "react"
-import { Platform, StyleSheet } from "react-native"
+import { Platform, StyleSheet, View } from "react-native"
 
-import { useOwnPosition } from "@/lib/location"
+import { useLastPosition, useOwnPosition } from "@/lib/location"
 import { colors } from "@/theme/colors"
 
 // the only map in the app: swap the map provider here and nowhere else (BUILD-PLAN risks)
@@ -16,7 +17,14 @@ type Coordinates = { latitude: number; longitude: number }
 
 type Circle = { id: string; center: Coordinates; radius: number; color: string; lineWidth: 0 }
 
-export type ZoneMapProps = { zones: Zone[]; onZone?: (n: number) => void }
+export type ZoneMapProps = {
+  zones?: Zone[]
+  onZone?: (n: number) => void
+  /** public venues, the only other points this map ever draws */
+  venues?: Venue[]
+  selected?: Venue
+  onVenue?: (id: string) => void
+}
 
 const KRAKOW_ARENA = { latitude: 50.0676, longitude: 19.9917 }
 const ZOOM = 15
@@ -103,6 +111,40 @@ function heat({ h, n }: Zone): Circle[] {
   return [halo, ...field.flat()]
 }
 
+function coordsOf({ lat, lng }: { lat: number; lng: number }): Coordinates {
+  return { latitude: lat, longitude: lng }
+}
+
+// close enough to read both points, never closer than the street level the heat uses
+function zoomFor(meters: number) {
+  if (meters < 400) return 16
+  if (meters < 900) return ZOOM
+  return meters < 2000 ? 14 : 13
+}
+
+function frame(me: Coordinates | undefined, venue: Coordinates) {
+  if (!me) return { coordinates: venue, zoom: 16 }
+  const middle = {
+    latitude: (me.latitude + venue.latitude) / 2,
+    longitude: (me.longitude + venue.longitude) / 2,
+  }
+  return { coordinates: middle, zoom: zoomFor(distanceM(me, venue)) }
+}
+
+function markersOf(venues: Venue[], selected?: Venue) {
+  return venues.map((v) => ({
+    id: v.id,
+    coordinates: coordsOf(v),
+    title: v.name,
+    tintColor: v.id === selected?.id ? colors.fg1 : colors.fg2,
+  }))
+}
+
+function routeOf(me: Coordinates | undefined, selected?: Venue) {
+  if (!me || !selected) return []
+  return [{ id: "route", coordinates: [me, coordsOf(selected)], color: colors.fg2, width: 2 }]
+}
+
 // DESIGN.md §13.2 — 14 pt mint with a 4 px ring at 22% and a soft glow; ~3 m per pt at zoom 15
 function self(at: Coordinates): Circle[] {
   return [
@@ -112,35 +154,28 @@ function self(at: Coordinates): Circle[] {
   ]
 }
 
-export const ZoneMap = ({ zones, onZone }: ZoneMapProps) => {
-  const position = useOwnPosition()
-  const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
-  const [isCentered, setIsCentered] = useState(false)
-  const me = position && { latitude: position.lat, longitude: position.lng }
+type Camera = { coordinates: Coordinates; zoom: number }
 
-  if (me && !isCentered) {
-    setIsCentered(true)
-    setCamera({ coordinates: me, zoom: ZOOM })
-  }
+type CanvasProps = {
+  camera: Camera
+  circles: Circle[]
+  markers?: ReturnType<typeof markersOf>
+  polylines?: ReturnType<typeof routeOf>
+  onMap?: (at: Coordinates) => void
+  onVenue?: (id: string) => void
+}
 
-  const circles = [...zones.flatMap(heat), ...(me ? self(me) : [])]
-
-  const tap = (at: Coordinates) => {
-    if (!onZone) return
-    const nearest = zones
-      .map((z) => ({ n: z.n, d: distanceM(at, ngeohash.decode(z.h)) }))
-      .sort((a, b) => a.d - b.d)[0]
-    if (nearest && nearest.d < TAP_M) onZone(nearest.n)
-  }
+const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasProps) => {
   const tapCircle = ({ center }: { center: Partial<Coordinates> }) =>
     center.latitude !== undefined &&
     center.longitude !== undefined &&
-    tap({ latitude: center.latitude, longitude: center.longitude })
+    onMap?.({ latitude: center.latitude, longitude: center.longitude })
   const tapMap = ({
     coordinates: { latitude, longitude },
   }: {
     coordinates: Partial<Coordinates>
-  }) => latitude !== undefined && longitude !== undefined && tap({ latitude, longitude })
+  }) => latitude !== undefined && longitude !== undefined && onMap?.({ latitude, longitude })
+  const tapMarker = ({ id }: { id?: string }) => id && onVenue?.(id)
 
   if (Platform.OS === "ios") {
     return (
@@ -149,15 +184,23 @@ export const ZoneMap = ({ zones, onZone }: ZoneMapProps) => {
         cameraPosition={camera}
         colorScheme={AppleMaps.MapColorScheme.LIGHT}
         circles={circles}
+        markers={markers}
+        polylines={polylines}
         onMapClick={tapMap}
         onCircleClick={tapCircle}
+        onMarkerClick={tapMarker}
         properties={{
           isMyLocationEnabled: false,
           selectionEnabled: false,
           emphasis: AppleMapsMapStyleEmphasis.MUTED,
           pointsOfInterest: { including: [] },
         }}
-        uiSettings={{ compassEnabled: false, scaleBarEnabled: false, togglePitchEnabled: false }}
+        uiSettings={{
+          compassEnabled: false,
+          myLocationButtonEnabled: false,
+          scaleBarEnabled: false,
+          togglePitchEnabled: false,
+        }}
       />
     )
   }
@@ -168,8 +211,11 @@ export const ZoneMap = ({ zones, onZone }: ZoneMapProps) => {
       cameraPosition={camera}
       colorScheme={GoogleMaps.MapColorScheme.LIGHT}
       circles={circles}
+      markers={markers}
+      polylines={polylines}
       onMapClick={tapMap}
       onCircleClick={tapCircle}
+      onMarkerClick={tapMarker}
       properties={{
         isMyLocationEnabled: false,
         selectionEnabled: false,
@@ -183,5 +229,55 @@ export const ZoneMap = ({ zones, onZone }: ZoneMapProps) => {
         myLocationButtonEnabled: false,
       }}
     />
+  )
+}
+
+export const ZoneMap = ({ zones = [], onZone, venues = [], selected, onVenue }: ZoneMapProps) => {
+  const position = useOwnPosition()
+  const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
+  const [isCentered, setIsCentered] = useState(false)
+  const me = position && { latitude: position.lat, longitude: position.lng }
+
+  if (me && !isCentered) {
+    setIsCentered(true)
+    setCamera({ coordinates: me, zoom: ZOOM })
+  }
+
+  const tap = (at: Coordinates) => {
+    if (!onZone) return
+    const nearest = zones
+      .map((z) => ({ n: z.n, d: distanceM(at, ngeohash.decode(z.h)) }))
+      .sort((a, b) => a.d - b.d)[0]
+    if (nearest && nearest.d < TAP_M) onZone(nearest.n)
+  }
+
+  return (
+    <Canvas
+      camera={camera}
+      circles={[...zones.flatMap(heat), ...(me ? self(me) : [])]}
+      markers={markersOf(venues, selected)}
+      polylines={routeOf(me, selected)}
+      onMap={tap}
+      onVenue={onVenue}
+    />
+  )
+}
+
+export type VenueMapProps = { venue: Venue }
+
+// a still map framing you and one venue: cards and headers, never touchable
+export const VenueMap = ({ venue }: VenueMapProps) => {
+  const position = useLastPosition()
+  const me = position && { latitude: position.lat, longitude: position.lng }
+
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Canvas
+        camera={frame(me, coordsOf(venue))}
+        circles={me ? self(me) : []}
+        markers={markersOf([venue], venue)}
+        polylines={routeOf(me, venue)}
+      />
+    </View>
   )
 }

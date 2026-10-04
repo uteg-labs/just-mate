@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import {
   badgeSeed,
+  parsePlanInvite,
+  parsePlansGet,
   parseProfile,
   parseQuestionRequest,
   parseRelatedRequest,
@@ -107,6 +109,73 @@ describe("parseSearchOn", () => {
       "invalid_intents",
       "invalid_walk",
     ])
+  })
+})
+
+const invite = {
+  t: "plan_invite",
+  mode: "mate",
+  category: "games",
+  intents: ["chess"],
+  slots: ["2026-10-08T17:00:00.000Z", "2026-10-07T17:00:00Z"],
+  flex: true,
+  venueId: "meeple",
+  until: "day",
+} as const
+
+describe("parsePlanInvite", () => {
+  test("a valid invitation parses with its times normalised and sorted", () => {
+    expect(parsePlanInvite(invite)).toEqual({
+      ok: true,
+      value: {
+        ...invite,
+        intents: ["chess"],
+        slots: ["2026-10-07T17:00:00.000Z", "2026-10-08T17:00:00.000Z"],
+      },
+    })
+  })
+
+  test("what is checked like search_on", () => {
+    expect(parsePlanInvite({ ...invite, category: "night" })).toEqual({
+      ok: false,
+      error: "invalid_category",
+    })
+    expect(parsePlanInvite({ ...invite, intents: ["wine"] }).ok).toBe(false)
+  })
+
+  test("times must be 1–40 unique dates", () => {
+    const error = { ok: false, error: "invalid_slots" } as const
+    expect(parsePlanInvite({ ...invite, slots: [] })).toEqual(error)
+    expect(parsePlanInvite({ ...invite, slots: ["thursday"] })).toEqual(error)
+    expect(
+      parsePlanInvite({ ...invite, slots: ["2026-10-07T17:00:00Z", "2026-10-07T17:00:00.000Z"] }),
+    ).toEqual(error)
+  })
+
+  test("venue, flex and until are required", () => {
+    expect(parsePlanInvite({ ...invite, venueId: "" })).toEqual({
+      ok: false,
+      error: "invalid_venue",
+    })
+    expect(parsePlanInvite({ ...invite, flex: "yes" })).toEqual({
+      ok: false,
+      error: "invalid_flex",
+    })
+    expect(parsePlanInvite({ ...invite, until: "1h" })).toEqual({
+      ok: false,
+      error: "invalid_until",
+    })
+  })
+})
+
+describe("parsePlansGet", () => {
+  test("the position is optional but must be valid when sent", () => {
+    expect(parsePlansGet({ t: "plans_get" })).toEqual({ ok: true, value: {} })
+    expect(parsePlansGet({ lat: 50, lng: 19.9 })).toEqual({
+      ok: true,
+      value: { lat: 50, lng: 19.9 },
+    })
+    expect(parsePlansGet({ lat: 50 })).toEqual({ ok: false, error: "invalid_position" })
   })
 })
 

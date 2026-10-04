@@ -10,8 +10,8 @@ import {
 import { useTranslation } from "react-i18next"
 import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg"
 
+import { BadgeSwatch } from "@/components/surface/BadgeSwatch"
 import { badgeDesign } from "@/components/surface/badgeDesign"
 import {
   AnimatedPressable,
@@ -134,33 +134,6 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => {
   )
 }
 
-const Swatch = ({ colors, blobs }: { colors: string[]; blobs: [number, number][] }) => {
-  const { c } = useScheme()
-
-  return (
-    <Svg width={56} height={56}>
-      <Defs>
-        {colors.map((color, i) => (
-          <RadialGradient
-            key={color}
-            id={`blob${i}`}
-            cx={`${blobs[i][0]}%`}
-            cy={`${blobs[i][1]}%`}
-            r="70%"
-          >
-            <Stop offset="0" stopColor={color} />
-            <Stop offset="1" stopColor={color} stopOpacity={0} />
-          </RadialGradient>
-        ))}
-      </Defs>
-      <Rect width={56} height={56} rx={16} fill={c.surfaceChip} />
-      {colors.map((color, i) => (
-        <Rect key={color} width={56} height={56} rx={16} fill={`url(#blob${i})`} />
-      ))}
-    </Svg>
-  )
-}
-
 export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: SettingsProps) => {
   const { t } = useTranslation()
   const { c } = useScheme()
@@ -234,7 +207,7 @@ export const Settings = ({ profile, setProfile, onBack, onEdit, onLogout }: Sett
       </Text>
 
       <Card level={2} style={styles.profile}>
-        <Swatch colors={design.colors} blobs={design.blobs} />
+        <BadgeSwatch colors={design.colors} blobs={design.blobs} />
         <View style={styles.identity}>
           <Text style={[type.headline, { color: c.fg1 }]}>{profile.name}</Text>
           <Text style={[type.mono, { color: c.fg2 }]}>

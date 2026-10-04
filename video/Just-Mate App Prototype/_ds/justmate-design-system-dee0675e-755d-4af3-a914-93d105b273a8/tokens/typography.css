@@ -1,0 +1,20 @@
+/* Type scale from just-mate DESIGN.md §3 (pt → px 1:1). Tracking is size-specific, leading tightens with size.
+   Inter Variable weights paired with optical size (FF font-weight.ts) so weight changes don't shift width. */
+:root{
+  --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --font-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+
+  --fw-normal:"wght" 400,"opsz" 14; /* @kind font */
+  --fw-medium:"wght" 450,"opsz" 15; /* @kind font */
+  --fw-semibold:"wght" 550,"opsz" 18; /* @kind font */
+  --fw-bold:"wght" 700,"opsz" 25; /* @kind font */
+
+  --fs-display:64px;--lh-display:64px; /* @kind font */--ls-display:-1.6px; /* @kind font */--fw-display:700; /* @kind font */
+  --fs-large-title:34px;--lh-large-title:38px; /* @kind font */--ls-large-title:-0.7px; /* @kind font */--fw-large-title:700; /* @kind font */
+  --fs-title:22px;--lh-title:26px; /* @kind font */--ls-title:-0.3px; /* @kind font */--fw-title:600; /* @kind font */
+  --fs-vibe:20px;--lh-vibe:27px; /* @kind font */--ls-vibe:-0.2px; /* @kind font */--fw-vibe:500; /* @kind font */
+  --fs-headline:17px;--lh-headline:22px; /* @kind font */--ls-headline:-0.1px; /* @kind font */--fw-headline:600; /* @kind font */
+  --fs-body:17px;--lh-body:24px; /* @kind font */--ls-body:0px; /* @kind font */--fw-body:400; /* @kind font */
+  --fs-footnote:13px;--lh-footnote:18px; /* @kind font */--ls-footnote:0.1px; /* @kind font */--fw-footnote:400; /* @kind font */
+  --fs-caption:11px;--lh-caption:14px; /* @kind font */--ls-caption:0.4px; /* @kind font */--fw-caption:600; /* @kind font */
+}

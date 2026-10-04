@@ -362,7 +362,7 @@ s_ba      = mean over j ∈ B.interests of max over i ∈ A.interests of cos(emb
 soft_jacc = clip((s_ab + s_ba) / 2, 0, 1)
 ```
 
-(`compute_soft_jaccard_pair()` in `ml/src/just_mate_ml/data/embed.py`.) Fed to the `match_scorer` ONNX only when the model declares a `soft_jacc` input (v3); 2-input v2 models ignore it.
+(Served by `extract_features()` in `ml/src/just_mate_ml/models/interest_matcher.py` behind `interest_matcher_server.py`; training uses `compute_full_soft_jaccard()` in `ml/scripts/train_experiments_v3.py`.) Fed to the `match_scorer` ONNX only when the model declares a `soft_jacc` input (v3); 2-input v2 models ignore it.
 
 ---
 

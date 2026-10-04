@@ -111,7 +111,7 @@ function VibeBadge({ design, lifted = false, eyebrow, quote, name, tag = "verifi
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {design && !name && design.tags.length > 0 && <div className="t-mono" style={{ color: "var(--fg-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{design.tags.join(" · ")}</div>}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                    <span style={{ fontSize: small ? 15 : 17, lineHeight: "20px", fontWeight: 700, fontVariationSettings: "var(--fw-bold)", letterSpacing: "-0.6px", color: "var(--fg-1)" }}>just-mate</span>
+                    <span style={{ fontSize: small ? 15 : 17, lineHeight: "20px", fontWeight: 700, fontVariationSettings: "var(--fw-bold)", letterSpacing: "-0.6px", color: "var(--fg-1)" }}>JustMate</span>
                     {!(name && small) && <span className="t-mono" style={{ color: "var(--fg-2)", display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="shield-check" size={12} strokeWidth={2} />{tag}</span>}
                   </div>
                   </div>

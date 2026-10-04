@@ -448,7 +448,8 @@ export const ZoneMap = ({
   const tap = (at: Coordinates) => {
     setTapped(undefined)
     if (!onZone) return
-    const nearest = shown
+    // a stand-in cell is decoration: it never claims people
+    const nearest = zones
       .map((z) => ({ n: z.n, d: distanceM(at, ngeohash.decode(z.h)) }))
       .sort((a, b) => a.d - b.d)[0]
     if (nearest && nearest.d < TAP_M) onZone(nearest.n)

@@ -1,4 +1,4 @@
-# just-mate — ML plan
+# JustMate — ML plan
 
 > **Status: original hackathon plan, kept for history.** The code in `ml/` diverged from it: no photo → description step (T07) in `ml/` (onboarding LLM helpers live in `server/src/onboarding/`), two embeddings per profile (self + target) instead of one, a 1536 → 256 → 128 encoder with an asymmetric match head plus a `soft_jacc` input (v3), and serving through two HTTP daemons — `match_scorer` and `interest_matcher` — that run together in one container via `ml/scripts/run_servers.py` + `ml/Dockerfile.scorer` (PR #32). The model is **not** wired into the Bun server today (PR #34 reverted the server-side clients; live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`). The file layout below and the module names in `specs/` do not exist. Current state: [`docs/ML-MATCHING.md`](../../docs/ML-MATCHING.md) and [`ml/README.md`](../README.md).
 >

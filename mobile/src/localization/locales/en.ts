@@ -14,7 +14,7 @@ export const en = {
     errors: {
       credentials: "that email and password don't match.",
       exists: "there's already an account with that email. try logging in.",
-      generic: "couldn't reach just-mate. try again in a moment.",
+      generic: "couldn't reach JustMate. try again in a moment.",
     },
   },
   onboarding: {
@@ -28,7 +28,7 @@ export const en = {
       last: "last step",
     },
     saveError: "couldn't save your profile. try again in a moment.",
-    offline: "couldn't reach just-mate. check your connection and try again.",
+    offline: "couldn't reach JustMate. check your connection and try again.",
     retry: "Try again",
     mode: {
       title: "What are you here for?",
@@ -52,7 +52,7 @@ export const en = {
       cta: "Call me {{name}}",
       ctaName: "Type your name",
       ctaAge: "Add your age",
-      ctaAgeRange: "just-mate is for 16 and over",
+      ctaAgeRange: "JustMate is for 16 and over",
       ctaAdult: "Date is for 18 and over",
     },
     interests: {
@@ -199,7 +199,6 @@ export const en = {
     minutes: "{{count}} min",
     autoStop: "Stop searching after 30 min",
     haptics: "Haptics",
-    sounds: "Sounds",
     reduceMotion: "Reduce motion",
     photos: "Taste and photos",
     photosValue: "never stored",
@@ -219,7 +218,7 @@ export const en = {
     deleteConfirm: "Delete",
     deleteError: "couldn't delete your account. try again in a moment.",
     cancel: "Cancel",
-    footer: "just-mate · prototype · production path simulated",
+    footer: "JustMate · prototype · production path simulated",
   },
   home: {
     brand: {
@@ -416,6 +415,17 @@ export const en = {
     },
     over: "over {{m}} m",
     under: "under {{m}} m",
+    sides: {
+      ahead: "straight ahead",
+      right: "to your right",
+      behind: "behind you",
+      left: "to your left",
+    },
+  },
+  location: {
+    off: "Location is off",
+    denied: "Turn it on in Settings so people nearby can find you.",
+    openSettings: "Open Settings",
   },
   postmeet: {
     yourVibe: "your vibe",

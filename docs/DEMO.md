@@ -9,9 +9,9 @@ The story is loneliness, not dating: one hero, **Tomek** (`PRODUCT.md` §4.1), a
 Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → User → Value → Solution → Reality → Next**. One slide per beat (`docs/submission/deck.html`). Every number on screen has a source on the slide footer; sources in `SUBMISSION.md` › Sources.
 
 - **0:00 — Problem (slide 2).** "One in six people worldwide is affected by loneliness. WHO links it to more than 871,000 deaths a year, and lonely people are twice as likely to get depressed. In the EU, 13% feel lonely most or all of the time." Then the friction: "The hard part isn't meeting someone online. It's the step out of the door."
-- **0:35 — User (slide 3).** "Tomek is 28, moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend." Three frictions: initiative, uncertainty, judgment.
+- **0:35 — User (slide 3).** "The quietly lonely in a city. Tomek is 28, new in Kraków, works from home, and hasn't spoken to anyone all weekend. Lucía is alone in the city for three days and already out. Ania is done with photo apps." Plan for Tomek, Now for Lucía and Ania.
 - **1:00 — Value (slide 4).** "The app makes the plan. He only says yes. The goal is not one meeting but the repeat: friendship takes about 50 hours together. We'll know it works from plans that happen, repeat meetings, and an opt-in UCLA-3 loneliness score."
-- **1:30 — Solution + live demo (slides 5–6).** Two presenters, two phones in demo mode (`EXPO_PUBLIC_DEMO=a|b`): A is Tomek, B is Ola.
+- **1:30 — Solution, matching and live demo (slides 5–6; the demo runs on the phones, slide 6 stays on the matching model).** Two presenters, two phones in demo mode (`EXPO_PUBLIC_DEMO=a|b`): A is Tomek, B is Ola.
   1. A opens the map, **your plans**: Ola's vibe, a shared activity, a public venue, "{mine} min for you, {theirs} for them". A reads it aloud.
   2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn **you're both in** at the same moment. "He didn't plan anything. He said yes, and he knows someone will be there."
   3. Demo plan starts two minutes after confirmation, so **Open compass** is live. Both open it; B walks; the bucket goes cold, warm, hot, burning; haptics speed up.
@@ -23,6 +23,19 @@ Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → Us
 - **4:30 — What's next (slide 10).** "Next: real users in Kraków, starting with one campus and a few partner venues. We measure show-ups, repeat meetings and loneliness, and we train the matching model on real meetings instead of synthetic data. No swipes. No chat. Meet for real."
 
 **Words we use:** loneliness, social connection, the step out of the door. **Words we never use:** "cure", "antidote", "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1). Never say a number without its source.
+
+## Q&A cheat sheet
+
+**Opening line:** "The app makes the plan. You only say yes." Plan is the product. Now gets one sentence: "When you're already out, Now pings two compatible people nearby." Don't pitch Date mode on stage.
+
+- **Business?** → B2B2C: universities onboarding international students, employers relocating staff, city loneliness programmes. One buyer brings both the density and the revenue.
+- **Competitors?** → Timeleft: dinners with strangers. Bumble BFF: photo-first friend swiping. Meetup: groups and an organiser's burden. happn: proximity after the fact.
+- **Women's safety in Now?** → Mutual accept, bearing and distance bucket only, 10-minute expiry, Vanish, Report blocks. Production path: meet at a public venue first, women-only plans, ID verification.
+- **Cold start?** → Plans work at low density: proposed ahead, within a 15-minute walk. Now lights up as density grows. We launch one campus at a time.
+- **Catfishing without photos?** → No photos means nothing to fake. Verification is production path; a report blocks, two reports pause the account.
+- **The selfie?** → The model describes it once, which checks it's a real face, then it's dropped and never shown. Production path: an on-device check.
+- **How good is the ML?** → A Siamese model trained on synthetic profiles, wired in with a fallback to the explainable score. It's the infrastructure to learn from real meetings: every offer and its outcome is already logged with the algorithm version. Never quote the synthetic AUC.
+- **A health app?** → No health claims. We measure plans that happen, repeat meetings, and an opt-in UCLA-3 score.
 
 ## Launch video
 

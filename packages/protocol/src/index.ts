@@ -508,6 +508,7 @@ export type ClientMsg =
   | { t: "dismiss"; offerId: string }
   | { t: "vanish"; sessionId: string }
   | { t: "met"; sessionId: string }
+  | Report
   | ({ t: "plans_get" } & Partial<LatLng>)
   | { t: "plan_accept"; planId: string; venueId?: string }
   | { t: "plan_pass"; planId: string }
@@ -684,6 +685,20 @@ export function parsePlanInvite(input: unknown): Parsed<PlanInvite> {
   }
 }
 
+/** Why someone was reported; the server keeps it with the block and never shows it to them. */
+export const REPORT_REASONS = ["unsafe", "inappropriate", "no_show", "other"] as const
+export type ReportReason = (typeof REPORT_REASONS)[number]
+
+export type Report = { t: "report"; sessionId: string; reason?: ReportReason }
+
+/** Validates a `report` payload. Errors: `invalid_session` · `invalid_reason`. */
+export function parseReport(input: unknown): Parsed<Report> {
+  if (!isObject(input) || !isText(input.sessionId, 64)) return fail("session")
+  const { sessionId, reason } = input
+  if (reason !== undefined && !isOneOf(REPORT_REASONS, reason)) return fail("reason")
+  return { ok: true, value: { t: "report", sessionId, reason } }
+}
+
 /** Validates a `plans_get` payload: no position, or a valid `lat`/`lng`. Error: `invalid_position`. */
 export function parsePlansGet(input: unknown): Parsed<Partial<LatLng>> {
   if (!isObject(input)) return fail("position")
@@ -708,7 +723,7 @@ export type SessionEndReason = "met" | "expired" | "vanished" | "disconnected"
 export type SearchStopReason = "auto_stop"
 
 export type ServerMsg =
-  | { t: "ready"; userId: string; config: Config }
+  | { t: "ready"; userId: string; config: Config; blockedCount: number }
   | { t: "error"; code: string; message: string }
   | { t: "search_stopped"; reason: SearchStopReason }
   | { t: "zones"; cells: { h: string; n: number }[] }
@@ -731,6 +746,7 @@ export type ServerMsg =
       distanceM?: number
     }
   | { t: "session_end"; sessionId: string; reason: SessionEndReason; partnerName?: string }
+  | { t: "reported"; sessionId: string; blockedCount: number }
   | { t: "plans"; plans: Plan[] }
   | { t: "plan_update"; plan: Plan }
   | { t: "plan_removed"; planId: string; reason: PlanRemovedReason }
@@ -752,6 +768,7 @@ const CLIENT_TYPES = new Set<string>([
   "dismiss",
   "vanish",
   "met",
+  "report",
   "plans_get",
   "plan_accept",
   "plan_pass",
@@ -784,6 +801,7 @@ const SERVER_TYPES = new Set<string>([
   "session_start",
   "partner_position",
   "session_end",
+  "reported",
   "plans",
   "plan_update",
   "plan_removed",

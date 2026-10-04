@@ -15,6 +15,7 @@ import {
   type Venue,
 } from "@justmate/protocol"
 
+import { isBlocked } from "../matching/blocks"
 import { COMPAT_THRESHOLD, canMatch, compat, partnerCard } from "../matching/compat"
 import { cellCentre, distanceM } from "../matching/geo"
 import { demoAccountOf, STAGE_A, STAGE_B } from "../realtime/demo"
@@ -99,6 +100,20 @@ export function resetPlans() {
 export function rememberProfile(userId: string, profile: Profile, isDangerous = false) {
   profiles.set(userId, profile)
   if (isDangerous) dangerous.add(userId)
+}
+
+export function pausePlans(userId: string) {
+  dangerous.add(userId)
+}
+
+// what the pair still had planned ends as if the reporter called it off
+export function planBlocked(link: PlanLink, me: string, them: string) {
+  for (const row of [...plans.values()]) {
+    if (!isMember(row, me) || !isMember(row, them)) continue
+    const isOwnOpenInvite = row.kind === "invite" && row.ownerId === me && row.state !== "confirmed"
+    if (isOwnOpenInvite) skipGuest(link, row, row.state === "taken" ? "filled" : "expired")
+    else cancel(link, row, me)
+  }
 }
 
 export function planHello(link: PlanLink, userId: string, profile: Profile, isDangerous = false) {
@@ -353,7 +368,7 @@ function offerNext(link: PlanLink, row: PlanRow) {
 
   const best = [...anchors.keys()]
     .filter((id) => id !== row.ownerId && !row.passed.includes(id) && !busy.has(id))
-    .filter((id) => !dangerous.has(id))
+    .filter((id) => !dangerous.has(id) && !isBlocked(id, row.ownerId))
     .filter((id) => demoAccountOf(id) === demoAccountOf(row.ownerId))
     .flatMap((id) => {
       const profile = profiles.get(id)
@@ -409,7 +424,7 @@ function proposal(a: string, b: string, now: number, config: Config) {
   const pb = profiles.get(b)
   const from = [anchors.get(a), anchors.get(b)]
   if (!pa || !pb || !from[0] || !from[1] || demoAccountOf(a) !== demoAccountOf(b)) return []
-  if ((passedPairs.get(pairKey(a, b)) ?? 0) > now) return []
+  if ((passedPairs.get(pairKey(a, b)) ?? 0) > now || isBlocked(a, b)) return []
 
   const mode = pa.mode === pb.mode ? pa.mode : "mate"
   const what = sharedIntent(mode, pa, pb)

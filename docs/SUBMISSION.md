@@ -18,7 +18,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 
 `JustMate: Meet For Real` (4 words)
 
-## Description (final, 486 words incl. team and sources)
+## Description (final, 491 words incl. team and sources)
 
 > Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed [1]. In the EU, 13% feel lonely most or all of the time [2]. People with stronger social relationships have a 50% higher likelihood of survival [4], and 31% of adults don't get enough physical activity [5].
 >
@@ -28,7 +28,7 @@ Hard limits (enforced): title ≤5 words EN · description ≤500 words EN incl.
 >
 > Health value comes from repeated, active, in-person contact: every meeting starts on foot, 16 of 44 Mate activities are sport or outdoors, and friendship takes about 50 hours together [3]. We will measure plans that happen, repeat meetings and an opt-in UCLA-3 loneliness score. JustMate is not therapy, makes no health claims and stores no mood data or location history.
 >
-> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 134 server tests. Production path: "same again next week?" scheduling, report and block, verification, group plans.
+> Built and demoed: LLM onboarding and vibe line, plan proposals from real profiles, mutual accept on two phones, compass with haptics, names and distance after meeting, one-tap Vanish, Report that blocks (two reports pause the account), moderation, age gates, support lines in Settings, 18 public venues in Kraków, English, Polish and Slovak, 144 server tests. Production path: "same again next week?" scheduling, verification, group plans.
 >
 > Next: real users in Kraków, measuring show-ups, repeat meetings and loneliness, and training the matching model on real outcomes.
 >
@@ -48,7 +48,7 @@ Every number in the description, deck and website comes from one of these, or is
 | 4 | Stronger social relationships → 50% higher likelihood of survival (148 studies, 308,849 participants) | Holt-Lunstad, Smith, Layton (2010), PLoS Medicine — https://doi.org/10.1371/journal.pmed.1000316 |
 | 5 | 31% of adults (~1.8 billion) don't meet recommended physical activity | WHO, *Nearly 1.8 billion adults at risk of disease from not doing enough physical activity*, 26 June 2024 — https://www.who.int/news/item/26-06-2024-nearly-1.8-billion-adults-at-risk-of-disease-from-not-doing-enough-physical-activity |
 
-From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 134 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
+From the repo, not external: 16 of 44 Mate activities are sport or outdoors (`packages/protocol` `CATEGORIES`); 18 public venues (`server/drizzle/0006`, `0008`); 144 server tests (`bun run test`, run in CI); a Siamese model trained on synthetic profiles scores Now matches for real accounts (`ml/`, `server/src/matching/`). We don't quote its synthetic AUC as a quality claim.
 
 Our own estimates (labelled on slide 9, never presented as facts): €39 a month per partner venue, ~€820 a month running cost for one city (`PRODUCT.md` §16.3).
 
@@ -95,9 +95,9 @@ Compass and post-meet screens in `video/motion/public/screens/` come from the de
 
 ## What is real and what is production path
 
-Real in the build: LLM onboarding and vibe line; Plans (proposed from profiles and free times, Accept plan, you're both in, Suggest this place, Plan for later offered one person at a time); 18 seeded public venues in Kraków; Now pings on both phones; bearing-only compass with buckets and haptics; post-meet first name and distance walked; Vanish; moderation; age gates; support lines in Settings; Now matches scored by the Siamese model for real accounts; demo mode (Tomek and Ola, scripted positions, plans starting in 2 minutes); en/pl/sk.
+Real in the build: LLM onboarding and vibe line; Plans (proposed from profiles and free times, Accept plan, you're both in, Suggest this place, Plan for later offered one person at a time); 18 seeded public venues in Kraków; Now pings on both phones; bearing-only compass with buckets and haptics; post-meet first name and distance walked; Vanish; Report from the compass or after meeting blocks that person and ends the session, two independent reports pause the reported account; moderation; age gates; support lines in Settings; Now matches scored by the Siamese model for real accounts; demo mode (Tomek and Ola, scripted positions, plans starting in 2 minutes); en/pl/sk.
 
-Production path (say it out loud): "same again next week?" scheduling (today a button with a local reply), report and block (today a local notice), verification, women-only plans, group plans, push reminders, UCLA-3 outcome survey, retraining the matching model on real meetings.
+Production path (say it out loud): "same again next week?" scheduling (today a button with a local reply), verification, women-only plans, group plans, push reminders, UCLA-3 outcome survey, retraining the matching model on real meetings.
 
 ## AI-use disclosure (required by rules)
 

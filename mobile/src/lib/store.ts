@@ -32,6 +32,7 @@ export type Session = { id: string; endsAt: number; bearing?: number; bucket?: B
 export type Note =
   | Exclude<SessionEndReason, "met">
   | SearchStopReason
+  | "reported"
   | `plan_${Exclude<PlanRemovedReason, "done">}`
 
 export type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
@@ -50,6 +51,12 @@ export type Live = {
   match?: Match
   session?: Session
   met: boolean
+  /** the session post-meet is about, for a report */
+  metSessionId?: string
+  /** the last session you reported, once the server confirmed it */
+  reportedId?: string
+  /** people you reported, and so blocked */
+  blockedCount: number
   /** the partner's first name, sent with `session_end {met}` */
   partnerName?: string
   /** your own walk during the compass, rounded */
@@ -77,7 +84,14 @@ const WALK_ROUND_M = 10
 // background reports and the compass's clock race are nothing the user can act on
 const QUIET = new Set(["position_before_search_on", "invalid_position", "plan_not_yet"])
 
-const IDLE: Live = { link: "idle", config: DEFAULT_CONFIG, zones: [], met: false, plans: [] }
+const IDLE: Live = {
+  link: "idle",
+  config: DEFAULT_CONFIG,
+  zones: [],
+  met: false,
+  blockedCount: 0,
+  plans: [],
+}
 
 const ENDED = {
   search: undefined,
@@ -135,9 +149,9 @@ export function ownFix(at: Position) {
   trail = { at, m: trail.m + step }
 }
 
-function metWith(partnerName?: string): Partial<Live> {
+function metWith(sessionId: string, partnerName?: string): Partial<Live> {
   const walkedM = Math.round(trail.m / WALK_ROUND_M) * WALK_ROUND_M
-  return { ...ENDED, match: state.match, met: true, partnerName, walkedM }
+  return { ...ENDED, match: state.match, met: true, metSessionId: sessionId, partnerName, walkedM }
 }
 
 function reduce(msg: ServerMsg) {
@@ -146,7 +160,7 @@ function reduce(msg: ServerMsg) {
     case "ready":
       retryMs = RETRY_MS
       if (state.search && lastSearch) socket?.send(lastSearch)
-      return set({ link: "open", config: msg.config })
+      return set({ link: "open", config: msg.config, blockedCount: msg.blockedCount })
 
     case "search_stopped":
       return set({ ...ENDED, note: msg.reason })
@@ -185,8 +199,16 @@ function reduce(msg: ServerMsg) {
     case "session_end":
       if (msg.sessionId === metId && state.met) return set({ partnerName: msg.partnerName })
       if (state.session?.id !== msg.sessionId) return
-      if (msg.reason === "met") return set(metWith(msg.partnerName))
+      if (msg.reason === "met") return set(metWith(msg.sessionId, msg.partnerName))
       return set({ ...ENDED, note: msg.reason })
+
+    // post-meet shows it in place; from the compass it is the select footer's note
+    case "reported":
+      return set({
+        reportedId: msg.sessionId,
+        blockedCount: msg.blockedCount,
+        ...(!state.met && { note: "reported" as const }),
+      })
 
     case "plans":
       return set({ plans: msg.plans.map(arrived) })
@@ -284,7 +306,11 @@ export function send(msg: ClientMsg) {
 
     case "met":
       metId = msg.sessionId
-      return set(metWith())
+      return set(metWith(msg.sessionId))
+
+    case "report":
+      if (state.session?.id !== msg.sessionId) return
+      return set(ENDED)
 
     case "plan_go":
       return set({ going: msg.planId })
@@ -301,7 +327,13 @@ function isOwnTaken(plan: LivePlan, msg: ClientMsg) {
 }
 
 export function leavePostMeet() {
-  set({ met: false, match: undefined, partnerName: undefined, walkedM: undefined })
+  set({
+    met: false,
+    metSessionId: undefined,
+    match: undefined,
+    partnerName: undefined,
+    walkedM: undefined,
+  })
 }
 
 function subscribe(listener: () => void) {

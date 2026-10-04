@@ -11,6 +11,7 @@ import type {
   TasteReply,
   TasteRequest,
   TasteSample,
+  Venue,
   VibeReply,
   VibeRequest,
 } from "@justmate/protocol"
@@ -61,4 +62,5 @@ export const api = {
     request<AppearanceReply>("POST", "/api/onboarding/appearance", body),
 
   tasteSamples: () => request<TasteSample[]>("GET", "/taste"),
+  venues: () => request<Venue[]>("GET", "/api/venues"),
 }

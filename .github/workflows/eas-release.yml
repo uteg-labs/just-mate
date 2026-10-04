@@ -1,0 +1,40 @@
+# builds the app on eas for every stable mobile release tag pushed by bump-version:
+# ios goes to testflight, android becomes an internal apk link on expo.dev.
+# required secrets: EXPO_TOKEN (expo.dev robot token)
+name: eas-release
+run-name: "eas — ${{ github.ref_name }}"
+
+on:
+  push:
+    # ios rejects prerelease versions like 1.2.3-canary.1
+    tags: [ "@justmate/mobile@*", "!@justmate/mobile@*-*" ]
+  workflow_dispatch:
+    inputs:
+      platform:
+        type: choice
+        options: [ all, ios, android ]
+        default: all
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # eas-cli evaluates app.config.ts locally
+      - run: bun install --frozen-lockfile
+        working-directory: .
+
+      - if: inputs.platform != 'android'
+        run: eas build -p ios --profile production --auto-submit --non-interactive --no-wait
+      - if: inputs.platform != 'ios'
+        run: eas build -p android --profile preview --non-interactive --no-wait

@@ -1,6 +1,29 @@
-import type { DatePrefs, Gender, MatePrefs, Mode, QA, Settings } from "@justmate/protocol"
+import type {
+  DatePrefs,
+  Gender,
+  Intent,
+  MatePrefs,
+  Mode,
+  PlanKind,
+  PlanState,
+  PlanUntil,
+  QA,
+  Settings,
+  VenueKind,
+} from "@justmate/protocol"
 import { relations } from "drizzle-orm"
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  doublePrecision,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  real,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -86,8 +109,81 @@ export const profile = pgTable("profile", {
   appearance: text("appearance").default("").notNull(),
   taste: text("taste").default("").notNull(),
   character: text("character").default("").notNull(),
+  partnerCharacter: text("partnerCharacter").default("").notNull(),
   settings: jsonb("settings").$type<Settings>().notNull(),
+  dangerous: boolean("dangerous").default(false).notNull(),
   createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+// PROTOCOL.md › Plans: kept until 24 h after the start, then deleted by the plan loop
+export const plan = pgTable(
+  "plan",
+  {
+    id: text("id").primaryKey(),
+    kind: text("kind").$type<PlanKind>().notNull(),
+    mode: text("mode").$type<Mode>().notNull(),
+    category: text("category").notNull(),
+    intents: jsonb("intents").$type<Intent[]>().notNull(),
+    venueId: text("venueId").notNull(),
+    alts: jsonb("alts").$type<string[]>().notNull(),
+    slots: jsonb("slots").$type<number[]>().notNull(),
+    startsAt: timestamp("startsAt", { withTimezone: true }).notNull(),
+    flex: boolean("flex").notNull(),
+    until: text("until").$type<PlanUntil>().notNull(),
+    state: text("state").$type<PlanState>().notNull(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    guestId: text("guestId").references(() => user.id, { onDelete: "cascade" }),
+    accepted: jsonb("accepted").$type<string[]>().notNull(),
+    passed: jsonb("passed").$type<string[]>().notNull(),
+    suggestedBy: text("suggestedBy"),
+    expiresAt: timestamp("expiresAt", { withTimezone: true }),
+    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("plan_ownerId_idx").on(table.ownerId),
+    index("plan_guestId_idx").on(table.guestId),
+  ],
+)
+
+// a geohash-6 cell centre per person, for picking venues halfway; never a raw position
+export const planAnchor = pgTable("plan_anchor", {
+  userId: text("userId")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+// PROTOCOL.md › Venue: public places plans happen at; partner venues pay for the table (PRODUCT.md §7)
+export const venue = pgTable("venue", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").$type<VenueKind>().notNull(),
+  rating: doublePrecision("rating"),
+  opens: text("opens"),
+  closes: text("closes"),
+  lat: doublePrecision("lat").notNull(),
+  lng: doublePrecision("lng").notNull(),
+  modes: jsonb("modes").$type<Mode[]>().notNull(),
+  fits: jsonb("fits").$type<Intent[]>().notNull(),
+  partner: boolean("partner").default(false).notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const profileEmbedding = pgTable("profile_embedding", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  selfEmb: real("self_emb").array().notNull(),
+  targetEmb: real("target_emb").array().notNull(),
+  softJacc: real("soft_jacc"),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
 

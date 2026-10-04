@@ -1,4 +1,4 @@
-import type { Venue } from "@justmate/protocol"
+import { PLAN_SLOTS_MAX, type Venue } from "@justmate/protocol"
 import type { Dispatch, SetStateAction } from "react"
 import { useTranslation } from "react-i18next"
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native"
@@ -117,6 +117,7 @@ const When = ({ draft, set, onNext }: WhenProps) => {
   const { c } = useScheme()
   const days = pickedDays(draft)
   const total = slotTimes(draft).length
+  const isOver = total > PLAN_SLOTS_MAX
   const first = days[0] === undefined ? [] : (draft.slots[days[0]] ?? [])
   const fitted = (day: number) => first.filter((time) => timesFor(day).includes(time))
   const canCopy =
@@ -146,9 +147,15 @@ const When = ({ draft, set, onNext }: WhenProps) => {
       sub={t("plans.when.sub")}
       cta={
         <Button
-          title={total ? t("plans.when.next", { count: total }) : t("plans.when.pick")}
+          title={
+            isOver
+              ? t("plans.when.tooMany", { max: PLAN_SLOTS_MAX })
+              : total
+                ? t("plans.when.next", { count: total })
+                : t("plans.when.pick")
+          }
           fullWidth
-          disabled={!total}
+          disabled={!total || isOver}
           onPress={onNext}
         />
       }

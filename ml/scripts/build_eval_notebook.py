@@ -87,7 +87,7 @@ CELLS: list[tuple[str, list[str]]] = [
         "    precision_score, recall_score, roc_auc_score, roc_curve,",
         ")",
         "",
-        "ML_DIR = Path('/Users/serhiivielkin/Projects/hackyear/just-mate/ml')",
+        "ML_DIR = Path.cwd().parent  # jupyter starts the kernel in notebooks/",
         "DATA_DIR = ML_DIR / 'data'",
         "CKPT_DIR = ML_DIR / 'checkpoints'",
         "FIG_DIR = ML_DIR / 'reports' / 'figures'",

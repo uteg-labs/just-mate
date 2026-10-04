@@ -1,4 +1,4 @@
-import { CloseCode, type Profile, parseProfile } from "@justmate/protocol"
+import { type Profile, parseProfile } from "@justmate/protocol"
 import { eq } from "drizzle-orm"
 import { Elysia } from "elysia"
 
@@ -6,9 +6,10 @@ import { authPlugin } from "../auth/auth.plugin"
 import { db } from "../db"
 import { account, profile, session, user } from "../db/schema"
 import { isDangerous } from "../onboarding/moderation"
-import { closeUser, updateProfile } from "../realtime/session"
+import { forgetUser, updateProfile } from "../realtime/session"
 import { saveProfileCard } from "./card"
-import { embeddingInputsChanged, saveEmbeddings } from "./embedding"
+import { saveEmbeddings } from "./embedding"
+import { embeddingInputsChanged } from "./embedding-text"
 
 // a profile card per save, for the ML work; never in production or under test
 const writesCards = !["production", "test"].includes(process.env.NODE_ENV ?? "")
@@ -49,6 +50,7 @@ export const profilePlugin = new Elysia({ name: "profile" })
         parsed.value.partnerCharacter,
         parsed.value.vibe,
         ...parsed.value.qa.map(({ a }) => a),
+        ...parsed.value.interests,
       ])
       const [saved] = await db
         .insert(profile)
@@ -75,7 +77,7 @@ export const profilePlugin = new Elysia({ name: "profile" })
     "/api/account",
     async ({ user: me, status }) => {
       await db.delete(user).where(eq(user.id, me.id))
-      closeUser(me.id, CloseCode.Unauthorized, "account deleted")
+      forgetUser(me.id)
       return status(204)
     },
     { authenticated: true },

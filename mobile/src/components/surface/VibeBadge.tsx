@@ -1,4 +1,5 @@
 import { useId } from "react"
+import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import { Gesture, GestureDetector } from "react-native-gesture-handler"
 import Animated, {
@@ -25,6 +26,7 @@ import Svg, {
   Stop,
 } from "react-native-svg"
 import { Icon, Scope, useReduceMotion, useScheme } from "@/components/ui"
+import { wordLabel } from "@/features/home/categories"
 import { light } from "@/theme/colors"
 import { radius } from "@/theme/layout"
 import { duration, easing, spring } from "@/theme/motion"
@@ -361,6 +363,7 @@ type FaceTextProps = Pick<VibeBadgeProps, "design" | "eyebrow" | "quote" | "name
 }
 
 const FaceText = ({ design, eyebrow, quote, name, tag, isSmall }: FaceTextProps) => {
+  const { t } = useTranslation()
   const { c } = useScheme()
   const hasIcon = design && design.icon !== "sparkle"
 
@@ -410,14 +413,14 @@ const FaceText = ({ design, eyebrow, quote, name, tag, isSmall }: FaceTextProps)
         <View style={styles.foot}>
           {design && !name && !isSmall && design.tags.length > 0 && (
             <Text numberOfLines={1} style={[type.mono, { color: c.fg2 }]}>
-              {design.tags.join(" · ")}
+              {design.tags.map((tag) => wordLabel(t, tag)).join(" · ")}
             </Text>
           )}
           <View style={styles.footRow}>
             <Text style={[isSmall ? styles.markSmall : styles.mark, { color: c.fg1 }]}>
               just-mate
             </Text>
-            {!isSmall && (
+            {!isSmall && !!tag && (
               <View style={styles.tag}>
                 <Icon name="shield-check" size={12} strokeWidth={2} color={c.fg2} />
                 <Text style={[type.mono, { color: c.fg2 }]}>{tag}</Text>
@@ -436,7 +439,7 @@ export const VibeBadge = ({
   eyebrow,
   quote,
   name,
-  tag = "verified",
+  tag,
   width = SMALL,
   strap = 120,
   fadeStrap = true,

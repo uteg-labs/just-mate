@@ -3,12 +3,12 @@
 Usage:
     python scripts/score_pair.py '<emb_a>' '<emb_b>'
 
-Each JSON is a profile object with three fields:
+Each JSON is a profile object with these fields:
 
   self_emb     list[float] length 1536   "who I am" embedding
   target_emb   list[float] length 1536   "what I want" embedding
-  soft_jacc    float                    soft-jaccard of THIS profile's
-                                        interests against the OTHER profile
+  soft_jacc    float, optional (0.0)    soft-Jaccard of the two profiles'
+                                        interests; only v3 (3-input) models use it
 
 The script is a thin pass-through to match_scorer.py — no OpenAI, no
 interest-cache lookups. The caller is responsible for producing these
@@ -22,8 +22,9 @@ Symmetric pair scoring:
   pair_score = score_ab + score_ba      ∈ [0, 2]
 
 `soft_jacc_AB` is the soft-jaccard value carried on profile A;
-`soft_jacc_BA` is the value on profile B. Compute them with
-`compute_soft_jaccard_pair(interests_a, interests_b, ...)` and pass in.
+`soft_jacc_BA` is the value on profile B. The measure is symmetric, so both
+normally carry the same value; training computes it in
+`compute_full_soft_jaccard()` (scripts/train_experiments_v3.py).
 
 Output (JSON):
   {"a": <profile_a>, "b": <profile_b>,
@@ -43,20 +44,20 @@ import numpy as np
 
 ML_DIR = Path(__file__).resolve().parents[1]
 SCORER = ML_DIR / "scripts" / "match_scorer.py"
-DEFAULT_MODEL = "checkpoints/model_v3_best.onnx"
-# F1-best on val set for v3-best (AUC=0.9637, F1=0.9137).
-# v2 was tuned at 0.78 — v3 (with soft_jaccard feature) saturates faster, so
-# the F1-best symmetric-pair threshold is much lower.
-MATCH_THRESHOLD = 0.40
+DEFAULT_MODEL = "checkpoints/model_v0.onnx"
+# tuned for the published v2 model_v0; a v3 model needs its own threshold (0.40 on
+# the v3 val run), pass it with --threshold
+MATCH_THRESHOLD = 0.78
 EMBEDDING_DIM = 1536
 
 
 def validate_profile(raw: object, who: str) -> dict:
     if not isinstance(raw, dict):
         raise ValueError(f"profile {who} must be a JSON object, got {type(raw).__name__}")
-    missing = [f for f in ("self_emb", "target_emb", "soft_jacc") if f not in raw]
+    missing = [f for f in ("self_emb", "target_emb") if f not in raw]
     if missing:
         raise ValueError(f"profile {who} missing fields: {missing}")
+    raw.setdefault("soft_jacc", 0.0)
     for field in ("self_emb", "target_emb"):
         emb = raw[field]
         if not isinstance(emb, list):
@@ -129,7 +130,7 @@ def main() -> int:
     )
     parser.add_argument(
         "a",
-        help='JSON string for profile A: {"self_emb":[...1536...], "target_emb":[...1536...], "soft_jacc":<scalar>}',
+        help='JSON string for profile A: {"self_emb":[...1536...], "target_emb":[...1536...], "soft_jacc":<scalar, optional>}',
     )
     parser.add_argument(
         "b",

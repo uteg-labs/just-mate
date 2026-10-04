@@ -17,7 +17,7 @@ import { space } from "@/theme/layout"
 import { duration } from "@/theme/motion"
 import { type } from "@/theme/type"
 
-import { bentoCategories, picksLabel } from "./categories"
+import { bentoCategories, picksLabel, wordLabel } from "./categories"
 
 export type SelectSheetProps = {
   mode: Mode
@@ -94,7 +94,9 @@ export const SelectSheet = ({
     .filter((v) => v.modes.includes(mode))
     .map((v) => {
       const liked = v.fits.find((f) => interests.includes(f))
-      const reason = liked ? t("plans.places.youLike", { what: liked }) : t(`plans.kinds.${v.kind}`)
+      const reason = liked
+        ? t("plans.places.youLike", { what: wordLabel(t, liked) })
+        : t(`plans.kinds.${v.kind}`)
       return { venue: v, reason, liked: Number(!!liked), walk: here && walkMin(here, v) }
     })
     .sort((a, b) => b.liked - a.liked || (a.walk ?? 0) - (b.walk ?? 0))
@@ -135,8 +137,8 @@ export const SelectSheet = ({
             </View>
             <Segmented
               items={[
-                { value: "date", label: t("modes.date"), icon: "heart" },
                 { value: "mate", label: t("modes.mate"), icon: "users" },
+                { value: "date", label: t("modes.date"), icon: "heart" },
               ]}
               value={mode}
               onChange={onMode}

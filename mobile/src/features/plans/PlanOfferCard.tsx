@@ -9,7 +9,7 @@ import { badgeDesignFromHash } from "@/components/surface/badgeDesign"
 import { VibeBadge } from "@/components/surface/VibeBadge"
 import { Button, Card, Chip, Icon, IconButton, useScheme } from "@/components/ui"
 import { intentIcon, picksLabel } from "@/features/home/categories"
-import type { Pronoun } from "@/features/home/MatchCard"
+import { type Pronoun, tagOf } from "@/features/home/MatchCard"
 import { useNow } from "@/features/home/useNow"
 import { useLastPosition } from "@/lib/location"
 import type { LivePlan } from "@/lib/store"
@@ -17,7 +17,7 @@ import { venueIcon, walkMin } from "@/lib/venues"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
-import { MapFrame, venueMeta } from "./parts"
+import { MapFrame, VenueLine } from "./parts"
 import { capital, dateMono, dayWord, timeOf } from "./time"
 
 export type PlanOfferCardProps = {
@@ -77,10 +77,8 @@ export const PlanOfferCard = ({
     return () => clearTimeout(timer)
   }, [isBothIn, onDone])
 
-  if (!partner) return null
-
   const myWalk = venue && here ? walkMin(here, venue) : undefined
-  const where = venue && (isTaker ? venueMeta(t, venue, myWalk) : walkLine(t, venue, myWalk, plan))
+  const walks = venue && !isTaker ? bothWalks(t, venue, myWalk, plan) : undefined
   const action = isTaker
     ? t("plans.offer.confirm")
     : isSwapped
@@ -104,20 +102,22 @@ export const PlanOfferCard = ({
         style={styles.close}
       />
       <View style={styles.badge}>
-        <VibeBadge
-          design={badgeDesignFromHash(partner.badgeSeed, {
-            interests: partner.interests,
-            hasAnswers: true,
-            mode: plan.mode,
-          })}
-          width={BADGE_W}
-          strap={STRAP}
-          fadeStrap={false}
-          eyebrow={t(`match.vibe.${pronoun}`)}
-          quote={partner.vibe}
-          tag={partner.tags.adult && plan.mode === "date" ? t("match.adult") : t("match.verified")}
-          turnKey={plan.id}
-        />
+        {partner && (
+          <VibeBadge
+            design={badgeDesignFromHash(partner.badgeSeed, {
+              interests: partner.interests,
+              hasAnswers: true,
+              mode: plan.mode,
+            })}
+            width={BADGE_W}
+            strap={STRAP}
+            fadeStrap={false}
+            eyebrow={t(`match.vibe.${pronoun}`)}
+            quote={partner.vibe}
+            tag={tagOf(t, partner, plan.mode)}
+            turnKey={plan.id}
+          />
+        )}
       </View>
 
       <View style={styles.actions}>
@@ -160,7 +160,11 @@ export const PlanOfferCard = ({
             <Text style={[type.headline, { color: c.fg1 }]}>
               {venue?.name ?? t("plans.offer.halfway")}
             </Text>
-            {!!where && <Text style={[type.footnote, { color: c.fg2 }]}>{where}</Text>}
+            {walks ? (
+              <Text style={[type.footnote, { color: c.fg2 }]}>{walks}</Text>
+            ) : (
+              venue && <VenueLine venue={venue} walk={myWalk} />
+            )}
           </View>
         </Card>
 
@@ -223,9 +227,9 @@ export const PlanOfferCard = ({
 }
 
 // "café · 9 min for you, 7 for them": their walk is known only for the venue the server sent
-function walkLine(t: TFunction, venue: Venue, mine: number | undefined, plan: LivePlan) {
+function bothWalks(t: TFunction, venue: Venue, mine: number | undefined, plan: LivePlan) {
   const theirs = venue.id === plan.venueId ? plan.partnerWalkMin : undefined
-  if (!mine || !theirs) return venueMeta(t, venue, mine)
+  if (!mine || !theirs) return
   return t("plans.offer.walks", { kind: t(`plans.kinds.${venue.kind}`), mine, theirs })
 }
 

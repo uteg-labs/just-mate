@@ -17,7 +17,7 @@ import {
 
 import { COMPAT_THRESHOLD, canMatch, compat, partnerCard } from "../matching/compat"
 import { cellCentre, distanceM } from "../matching/geo"
-import { STAGE_A } from "../realtime/demo"
+import { demoAccountOf, STAGE_A, STAGE_B } from "../realtime/demo"
 import type { Client } from "../realtime/session"
 import { atLocal, DAY_MS, HOUR_MS, isOpen, MIN_MS } from "./city"
 import { isFree } from "./free"
@@ -41,6 +41,7 @@ const PROPOSE_WITHIN_MS = 7 * DAY_MS
 const GRID_MS = 30 * MIN_MS
 const DEMO_LEAD_MS = 2 * MIN_MS
 const PASSED_PAIR_MS = 7 * DAY_MS
+const CLASH_MS = 2 * HOUR_MS
 const FLEX_MIN = 30
 
 export const planStore: { repo: PlanRepo } = { repo: memoryRepo() }
@@ -102,8 +103,22 @@ export function rememberProfile(userId: string, profile: Profile, isDangerous = 
 
 export function planHello(link: PlanLink, userId: string, profile: Profile, isDangerous = false) {
   rememberProfile(userId, profile, isDangerous)
-  if (isDemo(userId)) anchors.set(userId, STAGE_A)
+  if (isDemo(userId)) anchors.set(userId, userId.endsWith("~b") ? STAGE_B : STAGE_A)
   snapshot(link, userId)
+}
+
+// as if they cancelled each plan; their stored rows and anchor go with the account by cascade
+export function purgeUser(link: PlanLink, userId: string) {
+  const isTheirs = (id: string | null) => !!id && (demoAccountOf(id) ?? id) === userId
+  for (const store of [profiles, anchors, dangerous, ...going.values()]) {
+    for (const id of store.keys()) if (isTheirs(id)) store.delete(id)
+  }
+  for (const key of passedPairs.keys()) if (key.split("|").some(isTheirs)) passedPairs.delete(key)
+
+  for (const row of [...plans.values()]) {
+    const me = [row.ownerId, row.guestId].find(isTheirs)
+    if (me) cancel(link, row, me)
+  }
 }
 
 export function planDisconnect(userId: string) {
@@ -297,7 +312,7 @@ function go(link: PlanLink, row: PlanRow, client: Client) {
 }
 
 function passProposal(link: PlanLink, row: PlanRow) {
-  passedPairs.set(pairKey(row), link.now() + PASSED_PAIR_MS)
+  passedPairs.set(pairKey(row.ownerId, row.guestId), link.now() + PASSED_PAIR_MS)
   drop(link, row, both(row, "expired"))
 }
 
@@ -339,12 +354,15 @@ function offerNext(link: PlanLink, row: PlanRow) {
   const best = [...anchors.keys()]
     .filter((id) => id !== row.ownerId && !row.passed.includes(id) && !busy.has(id))
     .filter((id) => !dangerous.has(id))
-    .filter((id) => isDemo(id) === isDemo(row.ownerId))
+    .filter((id) => demoAccountOf(id) === demoAccountOf(row.ownerId))
     .flatMap((id) => {
       const profile = profiles.get(id)
       if (!profile) return []
       const score = fit({ profile: owner, search }, { profile, search })
-      const at = isDemo(id) ? times[0] : times.find((t) => isFree(profile, row.mode, t, slack))
+      const booked = bookedTimes(id)
+      const at = isDemo(id)
+        ? times[0]
+        : times.find((t) => isFree(profile, row.mode, t, slack) && isClear(booked, t))
       return score === undefined || at === undefined ? [] : [{ id, score, at }]
     })
     .toSorted((x, y) => y.score - x.score)[0]
@@ -368,10 +386,12 @@ function propose(link: PlanLink, only?: string) {
   const people = [...anchors.keys()].filter(
     (id) => profiles.has(id) && !busy.has(id) && !dangerous.has(id),
   )
+  const linked = new Set([...plans.values()].map((r) => pairKey(r.ownerId, r.guestId)))
 
   const picks = people
     .flatMap((a, i) => people.slice(i + 1).map((b) => [a, b] as const))
     .filter(([a, b]) => !only || a === only || b === only)
+    .filter(([a, b]) => !linked.has(pairKey(a, b)))
     .flatMap(([a, b]) => proposal(a, b, now, link.config))
     .toSorted((x, y) => y.score - x.score)
 
@@ -388,8 +408,8 @@ function proposal(a: string, b: string, now: number, config: Config) {
   const pa = profiles.get(a)
   const pb = profiles.get(b)
   const from = [anchors.get(a), anchors.get(b)]
-  if (!pa || !pb || !from[0] || !from[1] || isDemo(a) !== isDemo(b)) return []
-  if ((passedPairs.get([a, b].sort().join("|")) ?? 0) > now) return []
+  if (!pa || !pb || !from[0] || !from[1] || demoAccountOf(a) !== demoAccountOf(b)) return []
+  if ((passedPairs.get(pairKey(a, b)) ?? 0) > now) return []
 
   const mode = pa.mode === pb.mode ? pa.mode : "mate"
   const what = sharedIntent(mode, pa, pb)
@@ -408,7 +428,10 @@ function proposal(a: string, b: string, now: number, config: Config) {
     .toSorted((x, y) => x.far - y.far)
     .map((x) => x.venue)
 
-  const times = demo ? [demoStart(now)] : freeTimes(pa, pb, mode, now)
+  const booked = [...bookedTimes(a), ...bookedTimes(b)]
+  const times = demo
+    ? [demoStart(now)]
+    : freeTimes(pa, pb, mode, now).filter((t) => isClear(booked, t))
   for (const startsAt of times) {
     const [venue, ...alts] = fitting.filter((v) => demo || isOpen(v, startsAt))
     if (!venue) continue
@@ -459,6 +482,21 @@ function freeTimes(a: Profile, b: Profile, mode: Mode, now: number): number[] {
   return Array.from({ length: count }, (_, i) => first + i * GRID_MS).filter(
     (t) => isFree(a, mode, t) && isFree(b, mode, t),
   )
+}
+
+// an invitation still held out holds all its times
+function bookedTimes(userId: string): number[] {
+  return [...plans.values()]
+    .filter((r) => isMember(r, userId))
+    .flatMap((r) =>
+      r.ownerId === userId && (r.state === "open" || r.state === "offered")
+        ? r.slots
+        : [r.startsAt],
+    )
+}
+
+function isClear(booked: number[], t: number): boolean {
+  return booked.every((b) => Math.abs(t - b) >= CLASH_MS)
 }
 
 function demoStart(now: number): number {
@@ -535,6 +573,10 @@ function push(link: PlanLink, row: PlanRow) {
 function drop(link: PlanLink, row: PlanRow, reasons: Record<string, PlanRemovedReason>) {
   plans.delete(row.id)
   going.delete(row.id)
+  const isEnded = Object.values(reasons).some((r) => r === "done" || r === "cancelled")
+  if (isEnded && row.guestId && !isDemoRow(row)) {
+    passedPairs.set(pairKey(row.ownerId, row.guestId), link.now() + PASSED_PAIR_MS)
+  }
   if (!isDemoRow(row)) planStore.repo.remove(row.id).catch(logFailure)
   for (const [id, reason] of Object.entries(reasons)) {
     link.send(id, { t: "plan_removed", planId: row.id, reason })
@@ -554,8 +596,8 @@ function isMember(row: PlanRow, userId: string): boolean {
   return row.ownerId === userId || row.guestId === userId
 }
 
-function pairKey(row: PlanRow): string {
-  return [row.ownerId, row.guestId].sort().join("|")
+function pairKey(a: string, b: string | null): string {
+  return [a, b].sort().join("|")
 }
 
 // demo sockets are `<account id>~a|b`: never persisted, never planned with anyone else

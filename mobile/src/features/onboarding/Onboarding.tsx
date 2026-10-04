@@ -72,7 +72,8 @@ export const Onboarding = ({
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
   const flow: readonly OnboardingStep[] = FLOWS[profile.mode]
-  const [index, setIndex] = useState(() => Math.max(0, startStep ? flow.indexOf(startStep) : 0))
+  const [first] = useState(() => Math.max(0, startStep ? flow.indexOf(startStep) : 0))
+  const [index, setIndex] = useState(first)
   const [dir, setDir] = useState(1)
   const [save, setSave] = useState({ isSaving: false, hasFailed: false })
 
@@ -106,7 +107,7 @@ export const Onboarding = ({
 
   const back = () => {
     setDir(-1)
-    if (single || index === 0) return onExit()
+    if (single || index === first) return onExit()
     setIndex(index - 1)
   }
 

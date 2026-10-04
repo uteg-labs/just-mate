@@ -1,4 +1,5 @@
-"""Compare alternative match gates on the v3 model.
+"""Compare alternative match gates on a trained model (pass
+--model checkpoints/model_v3.onnx for the 3-input v3 model).
 
 Three gates:
   A: pair_score = AB + BA                       (current default)
@@ -32,7 +33,7 @@ from sklearn.metrics import f1_score, roc_auc_score
 ML_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ML_DIR / "data"
 SCORER = ML_DIR / "scripts" / "match_scorer.py"
-DEFAULT_MODEL = DATA_DIR.parent / "checkpoints" / "model_v3_best.onnx"
+DEFAULT_MODEL = ML_DIR / "checkpoints" / "model_v0.onnx"
 SEED = 42
 
 

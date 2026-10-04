@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>just-mate · Meet for real.</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Pick what you're up for. When someone nearby wants the same thing, both phones ping. Accept, and a compass walks you to each other.">
+<link rel="icon" href="assets/brand/favicon.svg">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/colors.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/typography.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/motion.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/base.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/_ds_bundle.js"></script>
+<script src="app/icons-extra.js"></script>
+<style>
+html{scroll-behavior:smooth}
+body{background:var(--background);color:var(--fg-1);overflow-x:hidden}
+a{color:var(--link)}a:hover{color:var(--fg-1)}
+@keyframes jm-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes jm-fade{from{opacity:0}to{opacity:1}}
+@keyframes jm-pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes badge-drop{0%{transform:translateY(-110%) rotate(0deg)}45%{transform:translateY(2%) rotate(-6deg)}62%{transform:translateY(-1%) rotate(4deg)}78%{transform:translateY(0) rotate(-2deg)}90%{transform:rotate(.8deg)}100%{transform:none}}
+.ld-wrap{max-width:1200px;margin:0 auto;padding:0 24px;box-sizing:border-box}
+.ld-wm{font-weight:700;font-variation-settings:var(--fw-bold);letter-spacing:-.036em;line-height:1;color:var(--fg-1)}
+.ld-nav{position:sticky;top:0;z-index:50;background:var(--material-thick);backdrop-filter:var(--blur-thick);-webkit-backdrop-filter:var(--blur-thick);box-shadow:0 1px 0 var(--separator)}
+.ld-nav-in{height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.ld-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.ld-links{display:flex;align-items:center;gap:28px}
+.ld-links a{color:var(--fg-2);text-decoration:none;font-size:15px;font-weight:500;font-variation-settings:var(--fw-medium)}
+.ld-links a:hover{color:var(--fg-1);font-variation-settings:var(--fw-semibold)}
+.ld-hero{position:relative;overflow:hidden;background:var(--map-bg)}
+.ld-hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,var(--map-line) 0 1px,transparent 1px 64px),repeating-linear-gradient(90deg,var(--map-line) 0 1px,transparent 1px 64px),repeating-linear-gradient(32deg,transparent 0 140px,var(--map-street) 140px 146px,transparent 146px 300px),repeating-linear-gradient(-58deg,transparent 0 210px,var(--map-street) 210px 214px,transparent 214px 420px)}
+.ld-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(transparent,var(--background));pointer-events:none}
+.ld-hero-in{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center;padding-top:72px;padding-bottom:72px}
+.ld-hero-copy{display:flex;flex-direction:column;gap:22px;align-items:flex-start}
+.ld-hero-phone{display:flex;flex-direction:column;align-items:center;gap:14px}
+.ld-h1{margin:0;font-size:clamp(56px,9vw,112px);line-height:.95;letter-spacing:-.04em;font-weight:700;font-variation-settings:var(--fw-bold);text-wrap:balance}
+.ld-h2{margin:0;font-size:clamp(34px,5vw,56px);line-height:1.02;letter-spacing:-.03em;font-weight:700;font-variation-settings:var(--fw-bold);text-wrap:balance}
+.ld-h3{font-size:34px;line-height:38px;letter-spacing:-.7px;font-weight:700;font-variation-settings:var(--fw-bold)}
+.ld-lead{margin:0;font-size:21px;line-height:31px;color:var(--fg-2);max-width:520px;text-wrap:pretty}
+.ld-sec{padding:96px 0}
+.ld-tint{background:var(--surface-raised)}
+.ld-head{display:flex;flex-direction:column;gap:12px;margin-bottom:48px}
+.ld-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+.ld-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.ld-rule{display:flex;flex-direction:column;gap:12px}
+.ld-ic{width:48px;height:48px;border-radius:999px;background:var(--surface-card);box-shadow:var(--shadow-3);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--fg-1)}
+.ld-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px 20px}
+.ld-step{display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+.ld-badges{overflow:hidden}
+.ld-cta{background:var(--jm-ink);color:var(--fg-1);padding:112px 0}
+.ld-cta-in{display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.ld-foot{padding:32px 0;border-top:1px solid var(--separator)}
+.ld-foot-in{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ld-li{display:flex;align-items:center;gap:12px;font-size:18px;line-height:26px;padding:8px 0}
+.ld-grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px}
+.ld-diagram{display:grid;grid-template-columns:minmax(0,1.1fr) auto minmax(0,.8fr) auto minmax(0,1fr);gap:20px;align-items:center}
+.ld-inputs{display:flex;flex-direction:column;gap:10px}
+.ld-input{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-row);background:var(--surface-card);box-shadow:var(--shadow-2)}
+.ld-arrow{color:var(--fg-3);display:flex}
+.ld-core{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:28px 12px;border-radius:var(--radius-card);background:var(--surface-card);box-shadow:var(--shadow-5)}
+.ld-output{display:flex;flex-direction:column;gap:10px;padding:24px;border-radius:32px;background:#000;color:var(--fg-1);box-shadow:var(--shadow-8)}
+.ld-mode{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;padding:32px;border-radius:32px;background:var(--surface-card);box-shadow:var(--shadow-5)}
+.ld-mode-copy{display:flex;flex-direction:column;gap:24px;padding:8px}
+.ld-story{display:flex;flex-direction:column;gap:20px;padding:28px;border-radius:24px;background:var(--jm-ink);color:var(--fg-1)}
+.ld-rail{position:relative;display:flex;flex-direction:column;gap:22px}
+.ld-rail::before{content:"";position:absolute;left:61px;top:10px;bottom:10px;width:1px;background:var(--separator)}
+.ld-story-row{position:relative;display:flex;gap:14px;align-items:flex-start;animation:jm-up var(--dur-default) var(--ease-spring) both}
+.ld-node{width:9px;height:9px;border-radius:999px;background:var(--fg-3);flex-shrink:0;margin-top:7px;position:relative;z-index:1}
+@media (max-width:900px){.ld-diagram{grid-template-columns:minmax(0,1fr)}.ld-arrow{justify-content:center;transform:rotate(90deg)}.ld-mode{grid-template-columns:minmax(0,1fr);padding:20px}}
+@media (max-width:900px){.ld-hero-in{grid-template-columns:minmax(0,1fr);padding-top:48px}.ld-links a{display:none}}
+</style></head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="app/ios-frame.jsx"></script>
+<script type="text/babel" src="app/shared.jsx"></script>
+<script type="text/babel" src="app/Morph.jsx"></script>
+<script type="text/babel" src="app/Heat.jsx"></script>
+<script type="text/babel" src="app/Badge.jsx"></script>
+<script type="text/babel" src="app/Bento.jsx"></script>
+<script type="text/babel" src="app/Home.jsx"></script>
+<script type="text/babel" src="landing/Landing.jsx"></script>
+<script type="text/babel">ReactDOM.createRoot(document.getElementById("root")).render(<Landing />);</script>
+</body></html>

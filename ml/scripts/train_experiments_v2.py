@@ -495,6 +495,7 @@ def main() -> None:
     data = load_data()
     total = len(CONFIGS)
     progress_path = ML_DIR / "reports" / "train_v2_progress.json"
+    progress_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"\n{'='*70}\nSweep: {total} configs\n{'='*70}\n", flush=True)
     results: list[dict] = []
     sweep_t0 = time.time()

@@ -3,11 +3,11 @@ import nodemailer from "nodemailer"
 import { i18n, type SupportedLanguage } from "../localization/i18n"
 
 const smtpHost = process.env.SMTP_HOST
-const smtpPort = Number(process.env.SMTP_PORT ?? 587)
+const smtpPort = Number(process.env.SMTP_PORT || 587)
 const smtpSecure = process.env.SMTP_SECURE === "true"
 const smtpUser = process.env.SMTP_USER
 const smtpPassword = process.env.SMTP_PASSWORD
-const emailFrom = process.env.AUTH_EMAIL_FROM ?? "JustMate <auth@example.com>"
+const emailFrom = process.env.AUTH_EMAIL_FROM || "JustMate <auth@example.com>"
 
 if (!smtpHost && process.env.NODE_ENV === "production") throw new Error("SMTP_HOST is required")
 if (!Number.isInteger(smtpPort) || smtpPort <= 0) throw new Error("SMTP_PORT must be valid")

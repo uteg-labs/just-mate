@@ -6,6 +6,9 @@ import { loadPlans } from "../plans/plans"
 import { isDangerousUser, loadProfile } from "../profile/profile.plugin"
 import { type Client, config, connect, disconnect, receive, tick } from "./session"
 
+const allowsDemo =
+  (process.env.DEMO_MODE || String(process.env.NODE_ENV !== "production")) === "true"
+
 const sockets = new Map<string, Client>()
 
 loadPlans(pgRepo, loadProfile, isDangerousUser).catch((err) =>
@@ -15,7 +18,7 @@ setInterval(tick, config.sessionIntervalMs)
 
 export const realtimePlugin = new Elysia({ name: "realtime" }).ws("/ws", {
   open(ws) {
-    const demo = ws.data.query.demo
+    const demo = allowsDemo ? ws.data.query.demo : undefined
     const client = connect(
       {
         send: (msg) => ws.send(JSON.stringify(msg)),

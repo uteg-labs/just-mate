@@ -1,6 +1,10 @@
-# ML Deployment Guide — Match Scorer
+# ML Deployment Guide — Match Scorer (planned)
 
-How the Bun/Elysia backend talks to the Python ONNX inference daemon in production. The Python process is the **match head**: 1536-d embeddings + soft-jaccard → score ∈ [0, 1]. It is stateless and short-lived per request; the Bun side is responsible for embeddings, interest-jaccard, caching, and lifecycle.
+> **Status: planned, not implemented.** Nothing in `server/` spawns the scorer today, and the server image (`server/Dockerfile`, `oven/bun` slim) has no Python. Live matching uses the synchronous rules-based `compat()` in `server/src/matching/compat.ts`. This guide is the intended integration; every server-side path, env var and class below (`server/src/matching/scorer.ts`, `SCORER_*`, Postgres embedding columns) is a proposal.
+
+How the Bun/Elysia backend would talk to `match_scorer`, the ONNX inference daemon (`ml/scripts/match_scorer.py`, run as a Python script or as the PyInstaller binary from `ml/scripts/build_match_scorer.sh`). The scorer runs the model: 1536-d embeddings (+ soft-jaccard for v3 models) → score ∈ [0, 1]. It is a stateless, long-lived process; the Bun side is responsible for embeddings, interest soft-jaccard, caching, and lifecycle.
+
+**Why a score cache.** `compat()` runs synchronously for every candidate pair on every matching tick (`server/src/realtime/session.ts`), so it can't await a subprocess round-trip. The plan: score pairs off the hot path (on profile create/change, in the background) into an in-memory `pairKey → pair_score` cache; `compat()` reads it synchronously and falls back to the rules-based score on a miss or while the scorer is down.
 
 ## Table of contents
 
@@ -10,6 +14,7 @@ How the Bun/Elysia backend talks to the Python ONNX inference daemon in producti
    - 2.2 [Install with `uv` (recommended)](#22-install-with-uv-recommended)
    - 2.3 [Alternative: `pip` + `venv`](#23-alternative-pip--venv)
    - 2.4 [Alternative: Docker image with both runtimes](#24-alternative-docker-image-with-both-runtimes)
+   - 2.5 [Standalone binary (no Python on the host)](#25-standalone-binary-no-python-on-the-host)
 3. [Starting the scorer subprocess from Bun](#3-starting-the-scorer-subprocess-from-bun)
    - 3.1 [`spawn()` arguments](#31-spawn-arguments)
    - 3.2 [Wire format (NDJSON over stdio)](#32-wire-format-ndjson-over-stdio)
@@ -21,7 +26,7 @@ How the Bun/Elysia backend talks to the Python ONNX inference daemon in producti
 5. [Input fields](#5-input-fields)
    - 5.1 [`target_emb` — 1536-d float list](#51-target_emb--1536-d-float-list)
    - 5.2 [`self_emb` — 1536-d float list](#52-self_emb--1536-d-float-list)
-   - 5.3 [`soft_jacc` — scalar float ∈ [-1, 1]](#53-soft_jacc--scalar-float-in--1-1)
+   - 5.3 [`soft_jacc` — scalar float ∈ [-1, 1] (v3 models)](#53-soft_jacc--scalar-float--1-1-v3-models)
 6. [Symmetric pair scoring — send twice](#6-symmetric-pair-scoring--send-twice)
    - 6.1 [Why two requests](#61-why-two-requests)
    - 6.2 [Pair-score calculation](#62-pair-score-calculation)
@@ -37,21 +42,23 @@ How the Bun/Elysia backend talks to the Python ONNX inference daemon in producti
 
 ```
 ┌──────────────────────────────────────────────────┐         ┌────────────────────────────┐
-│ Bun / Elysia backend (cloud server)              │         │ python match_scorer.py     │
+│ Bun / Elysia backend (cloud server)              │         │ match_scorer (py / binary) │
 │                                                  │         │ (ONNX inference daemon)    │
-│  matching loop (per seeker pair)                 │         │                            │
+│  background scoring (on profile change)          │         │                            │
 │   1. read profile embeddings from Postgres       │  NDJSON │ │ read line → sess.run()   │
 │   2. compute soft_jacc from interest cache       │ ──────► │ │ write {id, score}        │
 │   3. write {id, target_emb, self_emb, soft_jacc} │  stdin  │ │                          │
 │      to scorer subprocess (twice: AB and BA)     │         │ │ single-threaded, no       │
 │   4. read {id, score} for each direction         │ ◄────── │ │ state, no cache          │
-│   5. pair_score = score_AB + score_BA            │  stdout │ │                          │
-│                                                  │         │  v3 model:                │
+│   5. pair_score = score_AB + score_BA → cache    │  stdout │ │                          │
+│  matching tick: compat() reads the cache         │         │  v3 model:                │
 │                                                  │         │   inputs = target_emb +   │
 │                                                  │         │            self_emb +     │
 │                                                  │         │            soft_jacc      │
 └──────────────────────────────────────────────────┘         └────────────────────────────┘
 ```
+
+The published v2 `model_v0.onnx` takes only `target_emb` + `self_emb`; the scorer reads the model's input names and drops `soft_jacc` for it.
 
 The mobile app never sees Python, the model, or the OpenAI key. It only talks to the Bun backend over HTTP / WebSocket and receives match candidates.
 
@@ -59,7 +66,7 @@ The mobile app never sees Python, the model, or the OpenAI key. It only talks to
 
 ## 2. Python runtime
 
-The scorer needs Python ≥ 3.11 plus a small set of libraries. **Install the dependencies once** somewhere the Bun server can find.
+Run the scorer either as a Python script — Python ≥ 3.11 plus a small set of libraries installed somewhere the Bun server can find (2.1–2.4) — or as the PyInstaller binary, which needs no Python on the host (2.5). The current server image has no Python, so the binary is the smaller change.
 
 ### 2.1 Required packages
 
@@ -117,23 +124,29 @@ Same result — Bun points at `.venv/bin/python`.
 
 For maximum reproducibility, bake the scorer Python env into a slim image that also contains Bun. The Bun server then spawns the embedded Python:
 
+Sketch of the runtime stage `server/Dockerfile` would need (today it is Bun-only):
+
 ```dockerfile
-# Dockerfile.scorer
-FROM oven/bun:1 AS bun
-FROM python:3.11-slim AS py
-
-COPY --from=py / /
-RUN pip install --no-cache-dir numpy==1.26.4 onnxruntime==1.19.2
-
-WORKDIR /opt/justmate
-COPY ml/ ./ml/
-COPY server/ ./server/
-COPY packages/ ./packages/
-
-CMD ["bun", "run", "start"]
+FROM oven/bun:1.3-slim
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-venv \
+ && python3 -m venv /opt/justmate/ml/.venv \
+ && /opt/justmate/ml/.venv/bin/pip install --no-cache-dir numpy==1.26.4 onnxruntime==1.19.2 \
+ && rm -rf /var/lib/apt/lists/*
+COPY ml/scripts/match_scorer.py /opt/justmate/ml/scripts/
+COPY ml/checkpoints/model_v0.onnx /opt/justmate/ml/checkpoints/
+# … the existing server build output …
 ```
 
-Bun spawns `["python", "ml/scripts/match_scorer.py", "ml/checkpoints/model_v3_best.onnx"]` and the system `python` inside the image already has the deps.
+Bun spawns `["/opt/justmate/ml/.venv/bin/python", "/opt/justmate/ml/scripts/match_scorer.py", "/opt/justmate/ml/checkpoints/model_v0.onnx"]`. Check that the base image's Python is ≥ 3.11.
+
+### 2.5 Standalone binary (no Python on the host)
+
+```bash
+cd ml/
+bash scripts/build_local_mac_and_linux.sh   # → dist/match-scorer-linux.tar.gz (built in python:3.12-slim)
+```
+
+Unpack `match_scorer-linux/` into the image (e.g. `COPY` to `/opt/justmate/match_scorer/`) and spawn `/opt/justmate/match_scorer/match_scorer` with no arguments: it loads the bundled `checkpoints/model_v0.onnx`, or `$MATCH_SCORER_MODEL` when set. Build for the image's arch (the script matches the host's); the binary is glibc-linked, which the Debian-based `oven/bun` slim image provides.
 
 ---
 
@@ -148,7 +161,7 @@ const proc = spawn(
   process.env.SCORER_PYTHON ?? "/opt/justmate/ml/.venv/bin/python",
   [
     "/opt/justmate/ml/scripts/match_scorer.py",
-    "/opt/justmate/ml/checkpoints/model_v3_best.onnx",
+    "/opt/justmate/ml/checkpoints/model_v0.onnx",
   ],
   {
     cwd: "/opt/justmate/ml",       // so match_scorer.py's relative paths work
@@ -302,7 +315,7 @@ import { Scorer } from "./matching/scorer"
 const scorer = new Scorer(
   process.env.SCORER_PYTHON ?? "/opt/justmate/ml/.venv/bin/python",
   resolve(import.meta.dir, "../ml/scripts/match_scorer.py"),
-  resolve(import.meta.dir, "../ml/checkpoints/model_v3_best.onnx"),
+  resolve(import.meta.dir, "../ml/checkpoints/model_v0.onnx"),
   resolve(import.meta.dir, "../ml"),
 )
 await scorer.start()
@@ -350,7 +363,7 @@ Throughput per process: ~400–500 pair/sec on a laptop CPU. With `cpus().length
 
 ## 5. Input fields
 
-Every request to the scorer carries **three** fields. Two are 1536-dimensional float vectors; the third is a single scalar float.
+Every request carries two 1536-dimensional float vectors, plus a scalar `soft_jacc` that only v3 (3-input) models use.
 
 ### 5.1 `target_emb` — 1536-d float list
 
@@ -379,17 +392,19 @@ Interests: {interests_joined_by_comma}
 
 **Stored in Postgres** at `profile.self_emb FLOAT[1536]`.
 
-### 5.3 `soft_jacc` — scalar float ∈ [-1, 1]
+### 5.3 `soft_jacc` — scalar float ∈ [-1, 1] (v3 models)
 
-Semantic interest overlap between this profile and the other. Computed server-side from the cached interest embeddings (`data/interest_embeddings.csv`-equivalent, ~5 MB), **per pair** at scoring time — it depends on both sides' interests.
+Semantic interest overlap between the two profiles, computed per pair from unit-normalised per-interest embeddings (`ml/data/interest_embeddings.npz` + `interest_index.json`, built by `ml/scripts/build_interest_embeddings.py`). It is symmetric — the value training fed the model:
 
 ```
-soft_jacc_AB = mean( over i ∈ interests_A of  max( over j ∈ interests_B of  cos(emb_i, emb_j) ) )
+s_ab      = mean( over a ∈ interests_A of  max( over b ∈ interests_B of  cos(a, b) ) )
+s_ba      = mean( over b ∈ interests_B of  max( over a ∈ interests_A of  cos(a, b) ) )
+soft_jacc = (s_ab + s_ba) / 2
 ```
 
-(Implementation: `ml/src/just_mate_ml/data/embed.py:compute_soft_jaccard_pair`.)
+(Implementation: `compute_full_soft_jaccard()` in `ml/scripts/train_experiments_v3.py` for all pairs, `_soft_jaccard_batch()` in `ml/src/just_mate_ml/data/triplets_v3.py` for one profile vs many. The server would port this formula.)
 
-If the cached interest embeddings file isn't loaded, set `soft_jacc` to `0.0` and the scorer will still run — but the v3 model's third input is then uninformative and the score will be **out-of-distribution**. Load the cache before serving traffic.
+For a v3 model, sending `soft_jacc = 0.0` because the interest cache isn't loaded still runs, but the score is **out-of-distribution**. Load the cache before serving traffic. 2-input models ignore the field.
 
 ### Example payload (truncated for display)
 
@@ -411,11 +426,11 @@ If the cached interest embeddings file isn't loaded, set `soft_jacc` to `0.0` an
 The match head was trained as an **asymmetric** head: `match(target_A, self_B)` answers *"does A's preferences match B's identity?"* — not the other way around. For a full pair decision you need the answer in both directions:
 
 ```
-score_AB = match(target_A, self_B, soft_jacc_AB)   # "would A like B?"
-score_BA = match(target_B, self_A, soft_jacc_BA)   # "would B like A?"
+score_AB = match(target_A, self_B, soft_jacc)   # "would A like B?"
+score_BA = match(target_B, self_A, soft_jacc)   # "would B like A?"
 ```
 
-Mutual interest (`pair_score = score_AB + score_BA ≥ 0.40`) is what gates a match in production. Single-direction scores are diagnostic only.
+Mutual interest (`pair_score = score_AB + score_BA ≥ threshold`) is what would gate a match. The threshold is model-specific: **0.78** for the published v2 `model_v0`, **0.40** for the v3 run (see `ml/README.md` §5.7). Single-direction scores are diagnostic only.
 
 ### 6.2 Pair-score calculation
 
@@ -428,19 +443,12 @@ export async function pairScore(
   a: { target_emb: number[]; self_emb: number[]; interests: string[] },
   b: { target_emb: number[]; self_emb: number[]; interests: string[] },
   softJacc: (interestsA: string[], interestsB: string[]) => number,
-  threshold = 0.40,
+  threshold = 0.78,
 ): Promise<{ score_ab: number; score_ba: number; pair_score: number; would_match: boolean }> {
+  const soft_jacc = softJacc(a.interests, b.interests)  // symmetric, same for both directions
   const [score_ab, score_ba] = await Promise.all([
-    scorer.score({
-      target_emb: a.target_emb,
-      self_emb:   b.self_emb,
-      soft_jacc:  softJacc(a.interests, b.interests),  // soft_jacc_AB
-    }),
-    scorer.score({
-      target_emb: b.target_emb,
-      self_emb:   a.self_emb,
-      soft_jacc:  softJacc(b.interests, a.interests),  // soft_jacc_BA
-    }),
+    scorer.score({ target_emb: a.target_emb, self_emb: b.self_emb, soft_jacc }),
+    scorer.score({ target_emb: b.target_emb, self_emb: a.self_emb, soft_jacc }),
   ])
 
   const pair_score = score_ab + score_ba
@@ -454,7 +462,7 @@ Note that `Promise.all` is what makes this efficient: both requests fly out to t
 
 ## 7. End-to-end example
 
-A complete call from the matching loop:
+A complete call from the background scoring job (its result goes into the score cache that `compat()` reads):
 
 ```typescript
 import { pairScore } from "./matching/pair"
@@ -471,7 +479,7 @@ const b = {
   interests:  pgResult.rows[1].interests,
 }
 
-const result = await pairScore(scorer, a, b, computeSoftJacc, 0.40)
+const result = await pairScore(scorer, a, b, computeSoftJacc, 0.78)
 // {
 //     score_ab: 0.58,
 //     score_ba: 0.71,
@@ -479,9 +487,7 @@ const result = await pairScore(scorer, a, b, computeSoftJacc, 0.40)
 //     would_match: true,
 //   }
 
-if (result.would_match) {
-  // enqueue an offer / match notification via the realtime plugin
-}
+scoreCache.set(pairKey(a, b), result.pair_score)
 ```
 
 What happens under the hood:
@@ -500,10 +506,10 @@ Total round-trip on a single-core laptop: ~3–5 ms.
 
 | Variable | Required | Default | Purpose |
 |---|---|---|---|
-| `SCORER_PYTHON` | no | `/opt/justmate/ml/.venv/bin/python` | Python interpreter the Bun server spawns. Override per-environment. |
+| `SCORER_PYTHON` | no | `/opt/justmate/ml/.venv/bin/python` | Python interpreter the Bun server spawns (unused with the standalone binary). |
 | `SCORER_WORKERS` | no | `cpus().length` | Number of scorer subprocesses to pool. Set to `1` in dev. |
 | `OPENAI_API_KEY` | yes (server) | — | Needed by the Bun server to embed profiles (cached at onboarding, not per pair). |
-| `SCORER_MODEL_PATH` | no | `ml/checkpoints/model_v3_best.onnx` | Override only when shipping a new model. |
+| `MATCH_SCORER_MODEL` | no | `checkpoints/model_v0.onnx` next to the script / binary | Read by `match_scorer` itself when no model path argument is given. Override only when shipping a new model. |
 
 ### 8.2 Monitoring
 

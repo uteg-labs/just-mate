@@ -1,14 +1,16 @@
 # JustMate
 
-**Meet for real.** A faceless, walk-to-meet app that gets lonely people out of the door: it proposes one concrete plan nearby, or pings two compatible people who are already out, and a compass walks them to each other.
+**Meet for real.** Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate proposes one concrete plan nearby with a compatible person, or pings two compatible people who are already out, and a compass walks them to each other.
 
 Built at [HackYeah 2026](https://hackyeah.pl) (Oct 3–4, TAURON Arena Kraków) for the OPEN: Sport & Healthcare task.
 
+**Submission:** [deck (PDF)](docs/submission/JustMate-deck.pdf) · [cover image](docs/submission/images/cover.png) · [website](site/index.html) · [submission pack and sources](docs/SUBMISSION.md)
+
 ## The problem
 
-Loneliness touches one in six people and is linked to about 871,000 deaths a year; lonely people are twice as likely to become depressed (WHO Commission on Social Connection, 2025). Apps solved matching. Nobody solved the door: a lonely person rarely goes out on a whim. They need a reason, a time, a place, and proof that someone will be there.
+Loneliness affects 1 in 6 people worldwide and is linked to more than 871,000 deaths a year; lonely people are twice as likely to get depressed ([WHO, 2025](https://www.who.int/news/item/30-06-2025-social-connection-linked-to-improved-heath-and-reduced-risk-of-early-death)). In the EU, 13% feel lonely most or all of the time ([JRC, EU Loneliness Survey 2022](https://joint-research-centre.ec.europa.eu/scientific-activities/survey-methods-and-analysis-centre/loneliness/loneliness-prevalence-eu_en)). The hard part is not meeting someone online. It is the step out of the door: no reason to go, no one sure to be there, and a fear of being judged.
 
-JustMate is not therapy and makes no health claims. It is a reason to go out, and someone waiting when you get there.
+JustMate is not therapy and makes no health claims. It creates the contact: a plan, and someone waiting when you get there.
 
 ## Three rules
 

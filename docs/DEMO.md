@@ -6,26 +6,37 @@ The story is loneliness, not dating: one hero, **Tomek** (`PRODUCT.md` §4.1), a
 
 ## 5-minute stage script
 
-- **0:00 — Hook.** "One in six people is lonely. Lonely people are twice as likely to become depressed." (WHO Commission on Social Connection, 2025.) "Apps solved matching. Nobody solved the door." Numbers on screen **only with a citable source** (one hostile fact-check sinks the opening).
-- **0:30 — Meet Tomek.** One slide. 28, moved to Kraków for a job four months ago, works from home, hasn't said a word out loud all weekend. "He won't organise anything. He's scared nobody would come. And a big Meetup room is worse." The three barriers on screen: **initiative · the empty table · judgment**.
-- **1:00 — The idea.** "JustMate has three rules: no faces, no chat, no people pins. And two speeds: **Plan**, for when you need a reason to go, and **Now**, for when you're already out."
-- **1:20 — LIVE DEMO: Tomek's Thursday (the wow).** Two presenters, two phones, opposite ends of the stage. A is Tomek.
-  1. "Sunday night." A opens the map. Under the bento, **your plans · 1 new**. A taps it: B's vibe badge drops from the island, *"techno on fridays — crosswords on sundays"*, with *chess · Thursday 19:00 · Meeple Café · 9 min for you, 7 for them*. A reads it aloud.
-  2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn "you're both in" at the same moment. "He didn't plan anything. He didn't chat with anyone. He said yes, and he knows someone will be there."
-  3. "Thursday, 18:45." (Demo-mode time skip: the demo plan starts two minutes after it's proposed.) The plan page: the venue on the map, "Compass opens 18:45", **Open compass** turns amber.
-  4. The stage is the café. Both tap **Open compass** → the compass unlocks on both phones. B walks; the arrow rotates; haptics escalate; the crowd watches the bucket go warm, hot, burning.
-  5. They meet centre-stage. **We met** → *"Say hi to Sam."* Names unlock, nothing else does. "That's how a friendship starts. And next week he can put one out himself: **Plan for later**, pick a few evenings, pick a café, and the app finds the person." Chessboard up.
-- **3:20 — Now, in one breath.** Slide with two screenshots: "And when you're already out — a tourist on an evening walk — two compatible people who want the same thing ping at the same moment, and the same compass walks them together." (Lucía, `PRODUCT.md` §4.1.) Live only if the clock allows.
-- **3:40 — Safety by design.** Mutual consent before anything unlocks / no people pins / plans only at public venues / 10-minute window / one-tap Vanish. Then, labelled **production path**: verification ladder (phone, selfie, ID), report = block with automatic pause after two independent reports, meeting point first, women-only plans. Preempts the jury's first question.
-- **4:05 — Business, 20 s.** "Cafés have empty tables on a Tuesday; we fill them. Venues pay, users meet for free. We never charge for a meeting or for safety." One number: about 21 partner venues cover a city's running costs (`PRODUCT.md` §16.3, estimate).
-- **4:25 — Tech, 15 s.** Session-scoped search over one WebSocket, 400 m distance gate for Now, plans from the same explainable compatibility score plus a seeded list of public venues, the server relays a *bearing*, never a position. Expo native app, Bun + Elysia backend. Mention the learned model only if it actually runs.
-- **4:40 — Close.** "Not therapy. A reason to go out, and someone waiting when you get there. No swipes. No chat. Meet for real." Team slide.
+Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → User → Value → Solution → Reality → Ask**. One slide per beat (`docs/submission/deck.html`). Every number on screen has a source on the slide footer; sources in `SUBMISSION.md` › Sources.
 
-**Words we use:** loneliness, social connection, getting out of the door. **Words we never use on stage:** "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1).
+- **0:00 — Problem (slide 2).** "One in six people worldwide is affected by loneliness. WHO links it to more than 871,000 deaths a year, and lonely people are twice as likely to get depressed. In the EU, 13% feel lonely most or all of the time." Then the friction: "The hard part isn't meeting someone online. It's the step out of the door."
+- **0:35 — User (slide 3).** "Tomek is 28, moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend." Three frictions: initiative, uncertainty, judgment.
+- **1:00 — Value (slide 4).** "The app makes the plan. He only says yes. The goal is not one meeting but the repeat: friendship takes about 50 hours together. We'll know it works from plans that happen, repeat meetings, and an opt-in UCLA-3 loneliness score."
+- **1:30 — Solution + live demo (slides 5–6).** Two presenters, two phones. A is Tomek.
+  1. A opens the map, **your plans · 1 new**: B's vibe, an activity, a venue, "9 min for you, 7 for them". A reads it aloud.
+  2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn **you're both in** at the same moment. "He didn't plan anything. He said yes, and he knows someone will be there."
+  3. Demo plan starts two minutes after confirmation, so **Open compass** is live. Both open it; B walks; the bucket goes cold, warm, hot, burning; haptics speed up.
+  4. They meet centre stage. **We met** → "you found each other".
+  5. One line on Now: "Already out? Two compatible people nearby who want the same thing get pinged at once, same compass."
+- **3:20 — Design choices (slide 7).** Pick one: "No photos, only a vibe line. It costs us information, especially for dating. We mitigate with an LLM-written vibe and taste training."
+- **3:40 — Risk (slide 8).** Stalking, unsafe users, no-shows, empty city: what's in the build, what's production path, how we validate.
+- **4:05 — Reality (slide 9).** Known (built and demoed), assumed (people accept app-made plans, venues pay), to validate (show-up rate, repeats, UCLA-3).
+- **4:30 — Ask (slide 10).** "Help us run a 4-week pilot in Kraków with one student community and five partner venues. We'll measure show-ups, repeat meetings and UCLA-3."
 
-## Launch video
+**Words we use:** loneliness, social connection, the step out of the door. **Words we never use:** "cure", "antidote", "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1). Never say a number without its source.
 
-No filmed video. The submission video is the **motion launch** (Remotion `Launch55`, ~54 s). Its current cut still tells the Now-only story; it gets updated to the loneliness / Plan story separately. Until then, every line in it must describe what the demo does or be labelled production path.
+## Launch video (60 s, optional)
+
+No filmed video required. If made, it is a screen recording of the two simulators plus the deck, English captions, no voice-over needed.
+
+| Time | Picture | On-screen text |
+|---|---|---|
+| 0–8 s | Slide 2 numbers | "1 in 6 people are affected by loneliness. (WHO, 2025)" |
+| 8–14 s | Slide 3 | "The hard part is the step out of the door." |
+| 14–24 s | Plan card on phone A | "The app proposes one concrete plan nearby." |
+| 24–32 s | Both phones turn "you're both in" | "It's on only when both say yes." |
+| 32–44 s | Compass, cold → burning | "A compass walks you to each other. A bearing, never a location." |
+| 44–50 s | "you found each other" | "Then do it again. Friendship takes ~50 hours. (Hall, 2018)" |
+| 50–60 s | Cover image | "JustMate: Meet For Real · github.com/uteg-labs/just-mate" |
 
 ## Demo-mode reality (Tauron Arena)
 
@@ -38,7 +49,7 @@ GPS inside the arena is unreliable, and nobody waits until Thursday on stage —
 
 ## If Plans isn't green by the freeze (Sun 07:00)
 
-Run the Now demo instead, unchanged: A picks **Mate → Food and drink → beer → Find people for beer**, both phones ping with the badge, both **Open compass**, walk, **We met**, *"Say hi to Sam."*, **Keep in touch**. Plans then appear only on a slide with mockups, said out loud as **production path**, and `PRODUCT.md` §17–§18 are retagged before the submission.
+Run the Now demo instead: A picks **Mate → Food and drink → beer → Find people for beer**, both phones ping with the vibe, both **Open compass**, walk, **We met**. Plans then appear only on a slide with mockups, said out loud as **production path**, and `PRODUCT.md` §17–§18 are retagged before the submission.
 
 ## Rehearsal checklist
 

@@ -1,4 +1,5 @@
-import { eq, ne, or, sql } from "drizzle-orm"
+import { and, eq, isNull, ne, or, sql } from "drizzle-orm"
+import { alias } from "drizzle-orm/pg-core"
 
 import { db } from "../db"
 import { profile, profileEmbedding, userMatch, userMatchScore } from "../db/schema"
@@ -34,6 +35,44 @@ export async function clearMatchScoresForUser(userId: string): Promise<void> {
   await db
     .delete(userMatchScore)
     .where(or(eq(userMatchScore.userAId, userId), eq(userMatchScore.userBId, userId)))
+}
+
+// users missing a current-version score against at least one other embedded user
+export async function staleMatchScoreUsers(userId?: string): Promise<string[]> {
+  const other = alias(profileEmbedding, "other")
+  const rows = await db
+    .selectDistinct({ userId: profileEmbedding.userId })
+    .from(profileEmbedding)
+    .innerJoin(other, ne(other.userId, profileEmbedding.userId))
+    .leftJoin(
+      userMatchScore,
+      and(
+        eq(userMatchScore.algorithmVersion, MATCH_ALGORITHM_VERSION),
+        or(
+          and(
+            eq(userMatchScore.userAId, profileEmbedding.userId),
+            eq(userMatchScore.userBId, other.userId),
+          ),
+          and(
+            eq(userMatchScore.userAId, other.userId),
+            eq(userMatchScore.userBId, profileEmbedding.userId),
+          ),
+        ),
+      ),
+    )
+    .where(
+      and(isNull(userMatchScore.userAId), userId ? eq(profileEmbedding.userId, userId) : undefined),
+    )
+  return rows.map((row) => row.userId)
+}
+
+export async function unembeddedUsers(): Promise<string[]> {
+  const rows = await db
+    .select({ userId: profile.userId })
+    .from(profile)
+    .leftJoin(profileEmbedding, eq(profileEmbedding.userId, profile.userId))
+    .where(isNull(profileEmbedding.userId))
+  return rows.map((row) => row.userId)
 }
 
 export async function recalculateMatchScores(userId: string): Promise<MatchScoreRecord[]> {

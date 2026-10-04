@@ -1,10 +1,10 @@
 # ML Deployment Guide — Match Scorer (HTTP container)
 
-> **Status: container is built and runs.** `match_scorer` and `interest_matcher` ship together as one HTTP container (`ml/Dockerfile.scorer` → `docker-compose.yml` → `match-scorer` image, `scorer` service). Bun server does **not** call them today — PR #34 reverted the HTTP clients; live matching uses the rules-based `compat()` in `server/src/matching/compat.ts`. This guide documents the production container and the intended server integration; the `server/src/matching/scorer_http.ts` client, `MATCH_SCORER_URL` env var, and the in-memory pair-score cache pattern are ready to be restored when the wiring is needed.
+> **Status: deployed and wired.** `match_scorer` and `interest_matcher` ship together as one HTTP container (`ml/Dockerfile.scorer`), released as `ghcr.io/uteg-labs/just-mate-scorer` by `.github/workflows/scorer-release.yml` and run as its own Dokploy app (§8.4). The Bun server scores pairs into `user_match_score` on every profile save and in a periodic sweep (`server/src/matching/recalculation.ts`, `sweep.ts`); real clients only match on those ML scores, demo sockets and tests keep the rules-based `compat()`.
 
-How the Bun/Elysia backend would talk to `match_scorer` and `interest_matcher`, two HTTP daemons (`ml/scripts/match_scorer_server.py`, `ml/scripts/interest_matcher_server.py`) launched together by `ml/scripts/run_servers.py` inside one container. Both daemons run `onnxruntime` against the published ONNX checkpoint; the v3 model is a 3-input ONNX (`target_emb`, `self_emb`, `soft_jacc`).
+How the Bun/Elysia backend talks to `match_scorer` and `interest_matcher`, two HTTP daemons (`ml/scripts/match_scorer_server.py`, `ml/scripts/interest_matcher_server.py`) launched together by `ml/scripts/run_servers.py` inside one container. Both daemons run `onnxruntime` against the published ONNX checkpoint; the v3 model is a 3-input ONNX (`target_emb`, `self_emb`, `soft_jacc`).
 
-**Why a score cache.** `compat()` runs synchronously for every candidate pair on every matching tick (`server/src/realtime/session.ts`), so it can't await a network round-trip. The intended integration: score pairs off the hot path (on profile create/change, in the background) into an in-memory `pairKey → pair_score` cache; `compat()` reads it synchronously and falls back to the rules-based score on a miss or while the scorer is down.
+**Why a score cache.** The matching tick (`server/src/realtime/session.ts`) runs synchronously for every candidate pair, so it can't await a network round-trip. Pairs are scored off the hot path into `user_match_score`, loaded into the in-memory `matchScores` map when a socket connects, and refreshed in place whenever the background worker rescores a user.
 
 ## Table of contents
 
@@ -35,6 +35,7 @@ How the Bun/Elysia backend would talk to `match_scorer` and `interest_matcher`, 
    - 8.1 [Environment variables](#81-environment-variables)
    - 8.2 [Monitoring](#82-monitoring)
    - 8.3 [Scaling](#83-scaling)
+   - 8.4 [Dokploy and the score sweep](#84-dokploy-and-the-score-sweep)
 9. [Testing](#9-testing)
    - 9.1 [Unit tests — in-process](#91-unit-tests--in-process)
    - 9.2 [Live container tests](#92-live-container-tests)
@@ -455,12 +456,15 @@ Under the hood: one `POST /pair` JSON body → two ONNX forward passes (AB and B
 | `INTEREST_MATCHER_PORT` | `8001` | `interest_matcher` port. |
 | `LOG_LEVEL` | `info` | One of `debug`, `info`, `warning`, `error`. |
 
-#### Server side (`server/.env.example`, intended wiring — currently absent after PR #34)
+#### Server side (`server/.env.example`)
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `MATCH_SCORER_URL` | unset | URL of the scorer container. Local compose: `http://scorer:8000`. Throws at boot if unset when the client is restored. |
-| `MATCH_PAIR_THRESHOLD` | `0.78` | Threshold on `pair_score` for `would_match`. The scorer returns scores; the threshold lives in `compat()`. |
+| `MATCH_SCORER_URL` | unset | URL of `match_scorer`. Local compose: `http://scorer:8000`. Scoring fails (and the sweep logs and skips) while unset. |
+| `INTEREST_MATCHER_URL` | unset | URL of `interest_matcher`, same container on `:8001`. |
+| `MATCH_SCORER_MODEL_VERSION` | `model-v3-best` | Stored on every score row. Rows with another version are ignored by matching and rescored by the sweep. |
+| `MATCH_PAIR_THRESHOLD` | `0.40` | Gate on `pair_score` for a match offer. |
+| `MATCH_SWEEP_INTERVAL_MS` | `600000` | How often the sweep looks for missing embeddings and missing or outdated pair scores. |
 
 ### 8.2 Monitoring
 
@@ -479,6 +483,21 @@ Track at minimum:
 - **Horizontal (multi-host)**: externalize the scorer behind a load balancer; the scorer is stateless (no shared cache between replicas). The Bun client only needs `MATCH_SCORER_URL` to point at the LB.
 - **Embedding cache** is the actual scaling bottleneck: re-embedding at 1536-d on every pair is O(few ms), so the server caches it per-user in Postgres. Invalidated on profile change only.
 ---
+
+### 8.4 Dokploy and the score sweep
+
+The scorer runs as a second Dokploy application next to the server, not inside a compose stack:
+
+1. **Create the app.** Provider: Docker image `ghcr.io/uteg-labs/just-mate-scorer:latest`, with the same ghcr registry credentials the server app uses. No domain and no published ports — only the server talks to it.
+2. **Point the server at it.** Both apps sit on `dokploy-network`, so the server reaches the scorer by its Dokploy app name: `MATCH_SCORER_URL=http://<scorer-app-name>:8000` and `INTEREST_MATCHER_URL=http://<scorer-app-name>:8001` in the server app's environment, then redeploy the server.
+3. **Wire releases.** Copy the scorer app's deploy webhook into the `DOKPLOY_SCORER_WEBHOOK` repo secret. Every `ml-models@*` tag pushed by `ml/scripts/release_models.sh` then builds the image with those weights and redeploys; run `scorer-release` by hand (`workflow_dispatch`) to rebuild for an existing release.
+
+No cron entry is needed: the server runs the sweep itself (`server/src/matching/sweep.ts`) at boot and every `MATCH_SWEEP_INTERVAL_MS`. Each run waits for both daemons to be ready, then queues
+
+- profiles with no embedding row (OpenAI was down or unset when they were saved) for an embed + score, and
+- users missing a `MATCH_SCORER_MODEL_VERSION` score against any other embedded user (scorer was down, or the model changed) for a rescore.
+
+Both go through the same single worker as profile saves, so the sweep never races them on a pair row, and rescored pairs land straight in the in-memory map that live matching reads. Rolling out new weights: release them, let `scorer-release` redeploy the scorer, then bump `MATCH_SCORER_MODEL_VERSION` on the server — the next sweep rescores every pair.
 
 ## 9. Testing
 

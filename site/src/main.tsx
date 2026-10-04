@@ -22,6 +22,7 @@ const Header = ({ t, lang, setLang }: { t: Copy; lang: Lang; setLang: (l: Lang) 
       </a>
       <nav className="links" aria-label="Sections">
         <a href="#how">{t.nav.how}</a>
+        <a href="#match">{t.nav.match}</a>
         <a href="#safety">{t.nav.safety}</a>
         <a href="#venues">{t.nav.venues}</a>
       </nav>
@@ -112,12 +113,61 @@ const Rules = ({ t }: { t: Copy["rules"] }) => (
       <ul className="cards">
         {t.items.map((r, i) => (
           <li key={r.icon} className={`rule r${i}`}>
-            <Glyph name={r.icon} size={30} color={i === 2 ? "#F5F5F7" : "#1A1205"} slash />
+            <Glyph name={r.icon} size={30} color={i === 2 ? "#F5F5F7" : "#1A1205"} />
             <h3>{r.t}</h3>
             <p>{r.d}</p>
           </li>
         ))}
       </ul>
+    </div>
+  </section>
+)
+
+const Match = ({ t }: { t: Copy["match"] }) => (
+  <section className="match night" id="match">
+    <div className="wrap">
+      <p className="eyebrow">{t.eyebrow}</p>
+      <h2>{t.title}</h2>
+      <p className="lead">{t.lead}</p>
+      <figure className="viz">
+        <img className="a" src="badges/lucia-quote.webp" alt="" width={260} height={461} />
+        <div className="ways">
+          <p className="way">
+            <span className="want">{t.viz.wants}</span>
+            <i aria-hidden="true" />
+            <span className="is">{t.viz.is}</span>
+          </p>
+          <p className="way back">
+            <span className="is">{t.viz.is}</span>
+            <i aria-hidden="true" />
+            <span className="want">{t.viz.wants}</span>
+          </p>
+          <p className="both">
+            <Glyph name="check" size={16} color="#30D158" />
+            {t.viz.both}
+          </p>
+        </div>
+        <img className="b" src="badges/kai-quote.webp" alt="" width={260} height={461} />
+      </figure>
+      <ol className="steps">
+        {t.steps.map((s) => (
+          <li key={s.t}>
+            <strong>{s.t}</strong>
+            <span>{s.d}</span>
+          </li>
+        ))}
+      </ol>
+      <h3 className="sub">{t.whyTitle}</h3>
+      <ul className="whys">
+        {t.why.map((w) => (
+          <li key={w.t}>
+            <Glyph name={w.icon} size={24} color="#FFB23F" />
+            <strong>{w.t}</strong>
+            <span>{w.d}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="note">{t.note}</p>
     </div>
   </section>
 )
@@ -156,7 +206,7 @@ const Shots = ({ label }: { label: string }) => (
 )
 
 const StorySection = ({ s, i, t, lang }: { s: Story; i: number; t: Copy; lang: Lang }) => (
-  <section id={s.id} className={`story${s.dark ? " night" : ""}${i % 2 ? " flip" : ""}`}>
+  <section id={s.id} className={`story${s.dark ? " night" : ""}${i % 2 ? " flip" : " warm"}`}>
     <div className="wrap grid">
       <div className="text">
         <p className="tag">{s.tag}</p>
@@ -363,6 +413,7 @@ const App = () => {
         <Hero t={t} lang={lang} />
         <Problem t={t.problem} />
         <Rules t={t.rules} />
+        <Match t={t.match} />
         <Speeds t={t.speeds} />
         {t.stories.map((s, i) => (
           <StorySection key={s.id} s={s} i={i} t={t} lang={lang} />

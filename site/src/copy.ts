@@ -38,7 +38,13 @@ const en = {
     description:
       "For anyone lonely in a city. just-mate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
   },
-  nav: { how: "How it works", safety: "Safety", venues: "Venues", join: "Join the waitlist" },
+  nav: {
+    how: "How it works",
+    match: "Matching",
+    safety: "Safety",
+    venues: "Venues",
+    join: "Join the waitlist",
+  },
   clip: {
     sound: "Play with sound",
     mute: "Mute",
@@ -88,25 +94,68 @@ const en = {
     ],
   },
   rules: {
-    eyebrow: "The constitution",
-    title: "Three rules. Every feature is tested against them.",
+    eyebrow: "Three promises",
+    title: "We do the hard part. You only show up.",
     items: [
       {
-        icon: "scan-face",
-        t: "No faces.",
-        d: "No profile photos anywhere. People see your vibe badge, never a picture to judge.",
+        icon: "users",
+        t: "We find your people.",
+        d: "Our own AI model is trained to find people you'll actually talk to: shared interests, the same intent, within walking distance.",
       },
       {
-        icon: "message-circle",
-        t: "No chat.",
-        d: "Nothing to type. A yes on both sides, then a real conversation, face to face.",
+        icon: "calendar-heart",
+        t: "We make the plan.",
+        d: "One small plan nearby: an activity you both picked, a public venue, a time you're both free. You only say yes.",
       },
       {
-        icon: "map-pin",
-        t: "No people pins.",
-        d: "Zones with a soft glow, never anyone's location. Places can be pinned, people never.",
+        icon: "compass",
+        t: "Already out? Meet now.",
+        d: "Someone nearby wants the same thing right now. Both phones ping at once, and a compass walks you together.",
       },
     ],
+  },
+  match: {
+    eyebrow: "Matching · our own AI model",
+    title: "Not random. Someone you'll have something to talk about.",
+    lead: "just-mate doesn't pair you with whoever happens to be nearby. A matching model we trained ourselves looks for kindred spirits: people who care about the same things as you, who are the kind of person you'd like to meet, and to whom you are too. For an introvert, that's the difference between dreading small talk and having something to say from the first minute.",
+    viz: {
+      wants: "who I'd like to meet",
+      is: "who I am",
+      both: "scored both ways, then added up",
+    },
+    steps: [
+      {
+        t: "You, in your own words",
+        d: "Your interests, four short questions written from your answers, and a one-line vibe. For dating, a swipe over generated faces teaches it your taste, and one selfie is described in words, then dropped. None of it is ever shown to anyone.",
+      },
+      {
+        t: "Two portraits in numbers",
+        d: "Your profile becomes two vectors: who you are, and who you'd like to meet. Built from text, never from a photo.",
+      },
+      {
+        t: "It has to fit both ways",
+        d: "The model asks whether you're who they're after, and whether they're who you're after. Only pairs that score high enough can ever ping, and better fits go first.",
+      },
+    ],
+    whyTitle: "Why it matters if you're lonely or shy",
+    why: [
+      {
+        icon: "message-circle",
+        t: "The first sentence is easy",
+        d: "You meet over something you both love, not over the weather.",
+      },
+      {
+        icon: "users",
+        t: "One right person, not a room",
+        d: "No crowd to perform for. One person who fits beats ten who don't.",
+      },
+      {
+        icon: "sparkles",
+        t: "Chosen, not chance",
+        d: "You both know the app thinks you'll get along. That makes walking up to a stranger far less scary.",
+      },
+    ],
+    note: "Today the model is trained on 25,000 synthetic profiles and scores Now matches for real accounts; plans still use the explainable score. Once live, it learns from what really happens: which matches turned into a meeting.",
   },
   speeds: {
     eyebrow: "How it works",
@@ -264,6 +313,7 @@ const pl: Copy = {
   },
   nav: {
     how: "Jak to działa",
+    match: "Dopasowanie",
     safety: "Bezpieczeństwo",
     venues: "Lokale",
     join: "Zapisz się",
@@ -317,25 +367,68 @@ const pl: Copy = {
     ],
   },
   rules: {
-    eyebrow: "Konstytucja",
-    title: "Trzy zasady. Każdą funkcję sprawdzamy właśnie nimi.",
+    eyebrow: "Trzy obietnice",
+    title: "Najtrudniejsze robimy my. Ty tylko przychodzisz.",
     items: [
       {
-        icon: "scan-face",
-        t: "Bez twarzy.",
-        d: "Nigdzie nie ma zdjęć profilowych. Inni widzą twoją plakietkę z vibe'em, nigdy zdjęcie do oceniania.",
+        icon: "users",
+        t: "Znajdziemy twoich ludzi.",
+        d: "Nasz własny model AI jest wytrenowany, by znaleźć ludzi, z którymi naprawdę pogadasz: wspólne zainteresowania, ten sam zamiar, w zasięgu spaceru.",
       },
       {
-        icon: "message-circle",
-        t: "Bez czatu.",
-        d: "Nie ma nic do pisania. Obustronne „tak”, a potem prawdziwa rozmowa, twarzą w twarz.",
+        icon: "calendar-heart",
+        t: "Robimy plan za ciebie.",
+        d: "Jeden mały plan w pobliżu: aktywność, którą oboje wybraliście, publiczne miejsce i godzina, gdy oboje macie czas. Ty tylko mówisz tak.",
       },
       {
-        icon: "map-pin",
-        t: "Bez pinezek z ludźmi.",
-        d: "Strefy z delikatną poświatą, nigdy niczyja lokalizacja. Miejsca mogą mieć pinezkę, ludzie nigdy.",
+        icon: "compass",
+        t: "Już jesteś na mieście? Poznaj kogoś teraz.",
+        d: "Ktoś w pobliżu chce teraz tego samego. Oba telefony odzywają się naraz, a kompas prowadzi was do siebie.",
       },
     ],
+  },
+  match: {
+    eyebrow: "Dopasowanie · nasz własny model AI",
+    title: "Nie przypadek. Ktoś, z kim będzie o czym rozmawiać.",
+    lead: "just-mate nie łączy cię z pierwszą lepszą osobą w pobliżu. Model dopasowania, który wytrenowaliśmy sami, szuka bratnich dusz: ludzi, których obchodzi to samo co ciebie, którzy są kimś, kogo chcesz poznać, a ty kimś, kogo oni chcą poznać. Dla introwertyka to różnica między strachem przed small talkiem a rozmową, która idzie od pierwszej minuty.",
+    viz: {
+      wants: "kogo chcę poznać",
+      is: "kim jestem",
+      both: "liczone w obie strony i sumowane",
+    },
+    steps: [
+      {
+        t: "Ty, własnymi słowami",
+        d: "Twoje zainteresowania, cztery krótkie pytania ułożone z twoich odpowiedzi i vibe w jednym zdaniu. W randkach przeglądasz wygenerowane twarze, żeby model poznał twój gust, a jedno selfie zostaje raz opisane słowami i usunięte. Nikt nigdy tego nie zobaczy.",
+      },
+      {
+        t: "Dwa portrety w liczbach",
+        d: "Twój profil zamienia się w dwa wektory: kim jesteś i kogo chcesz poznać. Powstają z tekstu, nigdy ze zdjęcia.",
+      },
+      {
+        t: "Musi pasować w obie strony",
+        d: "Model sprawdza, czy jesteś osobą, której ktoś szuka, i czy on jest tym, kogo szukasz ty. Powiadomienie dostaje tylko para z dość wysokim wynikiem, a lepsze dopasowania idą pierwsze.",
+      },
+    ],
+    whyTitle: "Dlaczego to ważne dla osób samotnych i nieśmiałych",
+    why: [
+      {
+        icon: "message-circle",
+        t: "Pierwsze zdanie przychodzi samo",
+        d: "Spotykacie się przy czymś, co oboje lubicie, a nie przy rozmowie o pogodzie.",
+      },
+      {
+        icon: "users",
+        t: "Jedna właściwa osoba zamiast tłumu",
+        d: "Nie ma przed kim występować. Jedna osoba, która pasuje, jest lepsza niż dziesięć, które nie pasują.",
+      },
+      {
+        icon: "sparkles",
+        t: "Wybór, nie przypadek",
+        d: "Oboje wiecie, że aplikacja uznała, że się dogadacie. Dzięki temu dużo łatwiej podejść do obcej osoby.",
+      },
+    ],
+    note: "Dziś model jest wytrenowany na 25 000 syntetycznych profili i ocenia dopasowania w trybie Teraz dla prawdziwych kont; plany wciąż korzystają z wyjaśnialnego wyniku. Po starcie będzie się uczył z tego, co dzieje się naprawdę: które dopasowania skończyły się spotkaniem.",
   },
   speeds: {
     eyebrow: "Jak to działa",
@@ -529,7 +622,8 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "p-full": "Lokale płacą za wypełnienie pustych wieczorów. Poznawanie ludzi zostaje darmowe.",
     "m-plan-0": "Plan: aplikacja proponuje jeden mały plan. Ty tylko mówisz tak.",
     "m-plan-1": "Rusza, gdy oboje jesteście na tak.",
-    "rules-0": "Znajdziemy twoich ludzi. Nasza własna AI jest wytrenowana, by znaleźć ludzi, z którymi naprawdę pogadasz.",
+    "rules-0":
+      "Znajdziemy twoich ludzi. Nasza własna AI jest wytrenowana, by znaleźć ludzi, z którymi naprawdę pogadasz.",
     "rules-1": "Robimy plan za ciebie. Ty tylko mówisz tak.",
     "rules-2": "Już jesteś na mieście? Poznaj kogoś teraz.",
   },

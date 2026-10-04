@@ -15,26 +15,26 @@ const base: Profile = {
 export const DEMO_PROFILES: Record<"a" | "b", Profile> = {
   a: {
     ...base,
-    name: "Ola",
-    gender: "woman",
+    name: "Tomek",
+    gender: "man",
     interests: ["photography", "coffee", "travel", "running"],
     qa: [
       { q: "Perfect first hour with someone new?", a: "a long walk, no plan" },
-      { q: "Your friends would call you…", a: "the planner" },
+      { q: "Your friends would call you…", a: "the one who says yes" },
     ],
-    vibe: "early bird with a film camera — opinions on oat milk",
+    vibe: "quietly funny — will out-argue you about pizza",
   },
   b: {
     ...base,
     mode: "mate",
-    name: "Kuba",
-    gender: "man",
+    name: "Ola",
+    gender: "woman",
     interests: ["coffee", "running", "street food", "cinema"],
     qa: [
-      { q: "Nothing planned tonight. What's the move?", a: "grab a pint" },
+      { q: "Nothing planned tonight. What's the move?", a: "a run by the river" },
       { q: "Pick a deal-breaker.", a: "no banter" },
     ],
-    vibe: "quietly funny — will out-argue you about pizza",
+    vibe: "early bird with a film camera — opinions on oat milk",
   },
 }
 

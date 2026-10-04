@@ -1,0 +1,56 @@
+# Match-scorer container — runs two HTTP servers in one process:
+#   :8000  match_scorer     (target_emb + self_emb + soft_jacc → score)
+#   :8001  interest_matcher (interests_a + interests_b → soft_jacc breakdown)
+#
+# Both use the same Python + numpy + onnxruntime dependency stack; only the
+# Python script + ONNX checkpoints + interest vocabulary are loaded at boot.
+#
+# Build:  docker build -f ml/Dockerfile.scorer -t match-scorer ml/
+# Run:    docker run --rm -p 8000:8000 -p 8001:8001 match-scorer
+#
+# Override model / vocab locations / ports via env (see below).
+
+FROM python:3.11-slim AS base
+
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app/scripts:/app/src
+
+WORKDIR /app
+
+# Runtime deps pinned to the same versions DEPLOYMENT.md §2.1 was tested
+# against. Mismatched ABI → silent crashes ("DLL load failed").
+COPY pyproject.toml uv.lock ./
+RUN pip install --no-cache-dir 'numpy==1.26.4' 'onnxruntime==1.19.2'
+
+# Runtime artifacts only (see .dockerignore).
+COPY scripts/match_scorer_server.py scripts/interest_matcher_server.py scripts/run_servers.py scripts/
+COPY checkpoints ./checkpoints
+COPY data/interest_embeddings.npz data/interest_index.json ./data/
+COPY src ./src
+
+ARG MATCH_SCORER_MODEL_FILE=model_v3_best.onnx
+ARG INTEREST_MATCHER_MODEL_FILE=interest_matcher.onnx
+
+ENV MATCH_SCORER_MODEL=/app/checkpoints/${MATCH_SCORER_MODEL_FILE} \
+    INTEREST_MATCHER_MODEL=/app/checkpoints/${INTEREST_MATCHER_MODEL_FILE} \
+    INTEREST_MATCHER_DATA_DIR=/app/data \
+    HOST=0.0.0.0 \
+    MATCH_SCORER_PORT=8000 \
+    INTEREST_MATCHER_PORT=8001 \
+    LOG_LEVEL=info
+
+EXPOSE 8000 8001
+
+# Healthcheck on the lighter endpoint. The interest_matcher boot loads
+# interest_embeddings.npz (~few MB) and is slightly slower to come up.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=3 \
+    CMD curl -fsS http://localhost:8000/health || exit 1
+
+CMD ["python", "scripts/run_servers.py"]

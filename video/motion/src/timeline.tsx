@@ -65,14 +65,14 @@ const turn = sc(
   135,
   Turn,
   [vo("turn-0", 4), vo("turn-1", DOOR_AT.line2)],
-  [fx("flip", DOOR_AT.open, 0.6), fx("chime", DOOR_AT.open + 24, 0.4)],
+  [fx("chime", DOOR_AT.open + 24, 0.4)],
 )
 const rules = sc(
   "rules",
-  112,
+  300,
   Rules,
   RULES_AT.map((a, i) => vo(`rules-${i}`, a + 3)),
-  RULES_AT.map((a) => fx("whoosh", a, 0.5)),
+  RULES_AT.map((a) => fx("pop", a, 0.25)),
 )
 const outroShort = (frames = 95) =>
   sc(
@@ -121,10 +121,10 @@ const MAIN: Piece = {
     rules,
     sc(
       "speeds",
-      215,
+      125,
       Speeds,
-      [vo("speeds-0", 4), vo("speeds-1", SPEEDS_AT.plan + 2), vo("speeds-2", SPEEDS_AT.now + 2)],
-      [fx("whoosh", SPEEDS_AT.plan, 0.4), fx("whoosh", SPEEDS_AT.now, 0.4)],
+      [vo("speeds-1", SPEEDS_AT.plan + 2), vo("speeds-2", SPEEDS_AT.now + 2)],
+      [],
     ),
     sc(
       "plan",
@@ -279,7 +279,7 @@ const ANIA: Piece = {
       ),
       [vo("a-intro", 6)],
     ),
-    sc("faces", 110, Faces, [vo("a-badge", 42)], [fx("whoosh", 36, 0.4), fx("pop", 48, 0.4)]),
+    sc("faces", 110, Faces, [vo("a-badge", 42)], [fx("pop", 48, 0.4)]),
     sc(
       "ping",
       110,
@@ -355,7 +355,7 @@ const MARTA: Piece = {
       260,
       SafetyBeats,
       SAFE_AT.map((a, i) => vo(`s-${i}`, a + 6)),
-      SAFE_AT.map((a) => fx("whoosh", a, 0.3)),
+      [],
     ),
     sc("next", 80, SafetyNext, [], tick([6, 12, 18, 24])),
     outroShort(),

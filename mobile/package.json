@@ -1,7 +1,7 @@
 {
   "name": "@justmate/mobile",
   "main": "expo-router/entry",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "dependencies": {
     "@better-auth/expo": "^1.7.7",
     "@expo-google-fonts/inter": "^0.4.2",

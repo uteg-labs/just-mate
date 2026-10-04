@@ -25,7 +25,7 @@ import { type } from "@/theme/type"
 import type { StepProps } from "./flow"
 import { Step } from "./Step"
 
-const COUNT = 6
+const COUNT = 10
 const THRESHOLD = 110
 const FLICK = 800
 const FLING = 520
@@ -63,10 +63,9 @@ type Sample = { traits: string; uri?: string }
 // "everyone" alternates the groups
 function samplesFor(all: TasteSample[], seek: Seek): Sample[] {
   const groups = SEEK_GROUPS[seek].map((g) => all.filter((s) => s.group === g))
-  return Array.from(
-    { length: COUNT },
-    (_, i) => groups[i % groups.length]?.[Math.floor(i / groups.length)],
-  )
+  const rounds = Math.max(...groups.map((g) => g.length))
+  return Array.from({ length: rounds }, (_, i) => groups.map((g) => g[i]))
+    .flat()
     .filter((s) => s !== undefined)
     .map((s) => ({ traits: s.description, uri: `${apiURL}${s.photo}` }))
 }
@@ -187,10 +186,11 @@ export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
   const [votes, setVotes] = useState<boolean[]>([])
   const [pending, setPending] = useState<boolean>()
   const [isWriting, setIsWriting] = useState(false)
+  const [isConfirmed, setIsConfirmed] = useState(false)
   const seek = profile.date.seek
   const count = samples?.length ?? COUNT
   const index = votes.length
-  const isDone = index >= count
+  const isDone = index >= count || isConfirmed
   const into = votes.filter(Boolean).length
 
   useEffect(() => {
@@ -223,12 +223,24 @@ export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
       .finally(() => setIsWriting(false))
   }
 
+  const likedTraits = (all: boolean[]) =>
+    (samples ?? []).filter((_, i) => all[i]).map((s) => s.traits)
+
   const vote = (isInto: boolean) => {
     const all = [...votes, isInto]
     setVotes(all)
     setPending(undefined)
-    if (all.length === count)
-      writeTaste((samples ?? []).filter((_, i) => all[i]).map((s) => s.traits))
+    if (all.length === count) writeTaste(likedTraits(all))
+  }
+
+  const confirm = () => {
+    setIsConfirmed(true)
+    writeTaste(likedTraits(votes))
+  }
+
+  const skip = () => {
+    set({ taste: "" })
+    next()
   }
 
   return (
@@ -237,17 +249,30 @@ export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
       title={t("onboarding.swipe.title")}
       sub={t("onboarding.swipe.sub")}
       cta={
-        <Button
-          title={
-            isDone
-              ? t("onboarding.swipe.cta")
-              : t("onboarding.swipe.ctaLeft", { count: count - index })
-          }
-          fullWidth
-          loading={isWriting}
-          disabled={!isDone}
-          onPress={next}
-        />
+        isDone ? (
+          <Button
+            title={t("onboarding.swipe.cta")}
+            fullWidth
+            loading={isWriting}
+            onPress={next}
+          />
+        ) : (
+          <View style={styles.actions}>
+            <Button
+              title={t("onboarding.swipe.confirm", { count: into })}
+              fullWidth
+              disabled={into === 0 || pending !== undefined}
+              onPress={confirm}
+            />
+            <Button
+              title={t("onboarding.swipe.skip")}
+              variant="ghost"
+              fullWidth
+              disabled={pending !== undefined}
+              onPress={skip}
+            />
+          </View>
+        )
       }
     >
       {isDone ? (
@@ -262,7 +287,7 @@ export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
           <Icon name="circle-check" size={40} color={c.success} strokeWidth={1.75} />
           <Text style={[type.headline, { color: c.fg1 }]}>{t("onboarding.swipe.done")}</Text>
           <Text style={[type.footnote, { color: c.fg2 }]}>
-            {t("onboarding.swipe.tally", { into, not: count - into })}
+            {t("onboarding.swipe.tally", { into, not: index - into })}
           </Text>
         </Animated.View>
       ) : !samples ? (
@@ -321,6 +346,7 @@ const styles = StyleSheet.create({
   stampLeft: { left: space.l, transform: [{ rotate: "-8deg" }] },
   stampRight: { right: space.l, transform: [{ rotate: "8deg" }] },
   done: { alignItems: "center", justifyContent: "center", gap: space.s, padding: space.xl },
+  actions: { gap: space.s },
   buttons: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: space.xl },
   count: { minWidth: 48, textAlign: "center", fontVariant: ["tabular-nums"] },
 })

@@ -26,6 +26,7 @@ export type MapChromeProps = {
   shape: Shape
   live: Live
   picks: string
+  hasActivity: boolean
   initials: string
   mode: Mode
   onMode: (mode: Mode) => void
@@ -65,6 +66,7 @@ export const MapChrome = ({
   shape,
   live,
   picks,
+  hasActivity,
   initials,
   mode,
   onMode,
@@ -98,6 +100,8 @@ export const MapChrome = ({
     <View style={[StyleSheet.absoluteFill, { backgroundColor: c.mapBg }]}>
       <ZoneMap
         zones={live.search ? live.zones : []}
+        hasDummy={hasActivity && (shape === "select" || isSearch)}
+        canRecenter={shape === "select" || isSearch}
         onZone={isSearch ? setZone : undefined}
         venues={venues}
         selected={venue}

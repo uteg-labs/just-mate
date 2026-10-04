@@ -196,7 +196,8 @@ export const Surface = () => {
   }, [isProfileFailed, t])
 
   useEffect(() => {
-    if (live.refused) Alert.alert(t("home.refused"))
+    if (!live.refused) return
+    Alert.alert(t(`home.refusedWhy.${live.refused.code}`, { defaultValue: t("home.refused") }))
   }, [live.refused, t])
 
   useEffect(() => {
@@ -235,7 +236,8 @@ export const Surface = () => {
 
   const switchMode = (next: Mode) => {
     haptic.select()
-    if (profile && (next === "mate" || profile.adult) && !isSetUp(profile, next)) {
+    if (next === "date" && !profile?.adult) return Alert.alert(t("home.refusedWhy.adult_required"))
+    if (profile && !isSetUp(profile, next)) {
       setDraft({ ...profile, mode: next })
       return setPlace({ at: "setup", step: "who" })
     }
@@ -380,6 +382,7 @@ export const Surface = () => {
             setProfile={setDraft}
             onDone={finishOnboarding}
             onExit={exitOnboarding}
+            resumeFor={userId}
           />
         )
 
@@ -611,7 +614,11 @@ export const Surface = () => {
         />
         {shape && (
           <Animated.View pointerEvents="box-none" style={[StyleSheet.absoluteFill, lift]}>
-            <Morph shape={shape} render={render} />
+            <Morph
+              shape={shape}
+              render={render}
+              canCollapse={shape === "select" || shape === "search"}
+            />
           </Animated.View>
         )}
       </View>

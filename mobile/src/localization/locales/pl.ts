@@ -230,6 +230,8 @@ export const pl = {
     offline: "offline",
     openSettings: "Otwórz ustawienia",
     recenter: "Wycentruj na mnie",
+    sheetCollapse: "Pokaż całą mapę",
+    sheetExpand: "Przywróć panel",
     zone: "~{{n}} pasujących osób w pobliżu",
     headlines: {
       date: [
@@ -250,6 +252,11 @@ export const pl = {
     loadFailed: "Nie udało się wczytać profilu. Sprawdź połączenie.",
     retry: "Spróbuj ponownie",
     refused: "Nie udało się. Spróbuj za chwilę.",
+    refusedWhy: {
+      adult_required: "Randki są od 18 lat. Ekipa jest otwarta dla ciebie.",
+      invalid_category: "Ta wersja aplikacji jest nieaktualna. Zaktualizuj ją i spróbuj ponownie.",
+      invalid_intents: "Ta wersja aplikacji jest nieaktualna. Zaktualizuj ją i spróbuj ponownie.",
+    },
     ended: {
       vanished: "Kompas zamknięty. Znów nikt cię nie widzi.",
       expired: "Czas minął. Znów nikt cię nie widzi.",
@@ -404,6 +411,8 @@ export const pl = {
   },
   postmeet: {
     yourVibe: "twój vibe",
+    icebreaker: "na początek rozmowy",
+    icebreakerLoading: "wymyślam, co powiedzieć…",
     found: "znaleźliście się",
     title: "Idź się przywitać.",
     sub: "Znaleźliście się. Reszta zależy od was.",

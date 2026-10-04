@@ -1,14 +1,15 @@
 import type { Profile } from "@justmate/protocol"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { badgeDesign, badgeDesignFromHash } from "@/components/surface/badgeDesign"
 import { VibeBadge } from "@/components/surface/VibeBadge"
-import { Button, Icon, useScheme } from "@/components/ui"
+import { Button, Icon, Thinking, useScheme } from "@/components/ui"
+import { api } from "@/lib/api"
 import type { Match } from "@/lib/store"
-import { layout, space } from "@/theme/layout"
+import { layout, radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
 import { type Pronoun, tagOf } from "./MatchCard"
@@ -42,7 +43,24 @@ export const PostMeet = ({
   const { c } = useScheme()
   const insets = useSafeAreaInsets()
   const [isAgain, setIsAgain] = useState(false)
+  const [line, setLine] = useState<string | null>()
   const { partner, mode } = match
+
+  useEffect(() => {
+    let isLive = true
+    api
+      .icebreaker({
+        mode,
+        interests: profile.interests,
+        partnerInterests: partner.interests,
+        partnerVibe: partner.vibe,
+      })
+      .then((reply) => isLive && setLine(reply.line))
+      .catch(() => isLive && setLine(null))
+    return () => {
+      isLive = false
+    }
+  }, [mode, profile.interests, partner.interests, partner.vibe])
 
   return (
     <View style={[styles.page, { paddingBottom: Math.max(insets.bottom, 36) }]}>
@@ -83,6 +101,16 @@ export const PostMeet = ({
           {partnerName ? t("postmeet.sayHi", { name: partnerName }) : t("postmeet.title")}
         </Text>
         <Text style={[type.body, { color: c.fg2 }]}>{t("postmeet.sub")}</Text>
+        {line !== null && (
+          <View style={[styles.icebreaker, { backgroundColor: c.surfaceCard }]}>
+            <Text style={[type.mono, { color: c.fg2 }]}>{t("postmeet.icebreaker")}</Text>
+            {line ? (
+              <Text style={[type.headline, { color: c.fg1 }]}>{line}</Text>
+            ) : (
+              <Thinking label={t("postmeet.icebreakerLoading")} lines={1} />
+            )}
+          </View>
+        )}
         {!!walkedM && (
           <View style={styles.found}>
             <Icon name="footprints" size={14} strokeWidth={2} color={c.fg2} />
@@ -125,6 +153,12 @@ const styles = StyleSheet.create({
   band: { height: BAND_H, flexDirection: "row", justifyContent: "center", gap: 14 },
   tilt: { transformOrigin: "top" },
   copy: { flex: 1, justifyContent: "flex-end", gap: 10 },
+  icebreaker: {
+    gap: space.s,
+    padding: space.l,
+    borderRadius: radius.card,
+    borderCurve: "continuous",
+  },
   found: { flexDirection: "row", alignItems: "center", gap: 6 },
   extras: {
     flexDirection: "row",

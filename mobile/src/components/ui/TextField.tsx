@@ -13,7 +13,7 @@ export type TextFieldProps = Omit<TextInputProps, "style"> & { label: string; ki
 
 const KIND: Record<TextFieldKind, TextInputProps> = {
   text: {},
-  name: { textContentType: "name", autoComplete: "name", autoCapitalize: "words" },
+  name: { textContentType: "givenName", autoComplete: "given-name", autoCapitalize: "words" },
   email: {
     keyboardType: "email-address",
     textContentType: "emailAddress",
@@ -30,7 +30,9 @@ const KIND: Record<TextFieldKind, TextInputProps> = {
   },
 }
 
-// pill input under a mono label; focus draws the 1px ring at 2px offset (DESIGN.md §11)
+// pill input under a mono label; focus draws the 1px ring at 2px offset (DESIGN.md §11).
+// the ring is always on and only its color flips: adding an outline on android swaps the
+// background drawable, which resets the input's padding to the platform default
 export const TextField = ({ label, kind = "text", onFocus, onBlur, ...input }: TextFieldProps) => {
   const { c } = useScheme()
   const [focused, setFocused] = useState(false)
@@ -59,8 +61,8 @@ export const TextField = ({ label, kind = "text", onFocus, onBlur, ...input }: T
             color: c.fg1,
             backgroundColor: c.surfaceCard,
             boxShadow: `inset 0 0 0 1px ${c.separator}`,
+            outlineColor: focused ? c.focusRing : "transparent",
           },
-          focused && { outlineWidth: 1, outlineColor: c.focusRing, outlineOffset: 2 },
         ]}
       />
     </View>
@@ -74,5 +76,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: radius.pill,
     borderCurve: "continuous",
+    outlineWidth: 1,
+    outlineOffset: 2,
   },
 })

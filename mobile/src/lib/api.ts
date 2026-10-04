@@ -3,6 +3,8 @@ import type {
   AppearanceRequest,
   CharacterReply,
   CharacterRequest,
+  IcebreakerReply,
+  IcebreakerRequest,
   Profile,
   QuestionReply,
   QuestionRequest,
@@ -60,6 +62,9 @@ export const api = {
   taste: (body: TasteRequest) => request<TasteReply>("POST", "/api/onboarding/taste", body),
   appearance: (body: AppearanceRequest) =>
     request<AppearanceReply>("POST", "/api/onboarding/appearance", body),
+
+  icebreaker: (body: IcebreakerRequest) =>
+    request<IcebreakerReply>("POST", "/api/onboarding/icebreaker", body),
 
   tasteSamples: () => request<TasteSample[]>("GET", "/taste"),
   venues: () => request<Venue[]>("GET", "/api/venues"),

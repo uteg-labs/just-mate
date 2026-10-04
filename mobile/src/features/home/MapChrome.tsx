@@ -18,6 +18,7 @@ import {
 } from "@/components/ui"
 import { ZoneMap } from "@/components/ZoneMap"
 import type { Live } from "@/lib/store"
+import { useVenues } from "@/lib/venues"
 import { layout, radius } from "@/theme/layout"
 import { duration } from "@/theme/motion"
 import { font, type } from "@/theme/type"
@@ -31,7 +32,7 @@ export type MapChromeProps = {
   mode: Mode
   onMode: (mode: Mode) => void
   onProfile: () => void
-  /** the where step: venues to pick from on the map */
+  /** the where step: venues to pick from on the map; home shows every venue of the mode */
   venues?: Venue[]
   venue?: Venue
   onVenue?: (id: string) => void
@@ -79,6 +80,7 @@ export const MapChrome = ({
   const { c, shadow } = useScheme()
   const insets = useSafeAreaInsets()
   const [zone, setZone] = useState<number>()
+  const places = useVenues()
 
   const isAuth = shape === "auth"
   const isSearch = shape === "search"
@@ -87,6 +89,7 @@ export const MapChrome = ({
   const isTracking =
     !!live.search || !!live.session || !!live.going || shape === "select" || shape === "where"
   const top = insets.top + 4
+  const isHome = shape === "select" || isSearch
 
   useEffect(() => {
     if (zone === undefined) return
@@ -103,12 +106,12 @@ export const MapChrome = ({
       <ZoneMap
         track={isTracking}
         zones={live.search ? live.zones : []}
-        hasDummy={hasActivity && (shape === "select" || isSearch)}
-        canRecenter={shape === "select" || isSearch}
+        hasDummy={hasActivity && isHome}
+        canRecenter={isHome}
         onZone={isSearch ? setZone : undefined}
-        venues={venues}
+        venues={isHome ? places.filter((v) => v.modes.includes(mode)) : venues}
         selected={venue}
-        onVenue={onVenue}
+        onVenue={isHome ? undefined : onVenue}
       />
       <View
         pointerEvents="none"

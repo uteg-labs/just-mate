@@ -1,13 +1,20 @@
 import { describe, expect, test } from "bun:test"
 
-import { type Question, SAMPLE_QUESTIONS, SAMPLE_VIBES } from "../src/onboarding/samples"
+import {
+  type Question,
+  SAMPLE_ICEBREAKERS,
+  SAMPLE_QUESTIONS,
+  SAMPLE_VIBES,
+} from "../src/onboarding/samples"
 
 delete process.env.OPENAI_API_KEY
 const {
   describeAppearance,
+  isIcebreaker,
   isQuestion,
   isVibe,
   writeCharacter,
+  writeIcebreaker,
   writeQuestion,
   writeRelated,
   writeTaste,
@@ -27,6 +34,17 @@ describe("without an API key", () => {
     const avoid = SAMPLE_VIBES.slice(1)
     const reply = await writeVibe({ mode: "date", interests: ["coffee"], qa: [], avoid })
     expect(reply).toEqual({ vibe: SAMPLE_VIBES[0] as string, source: "sample" })
+  })
+
+  test("the ice-breaker falls back to a sample line for the mode", async () => {
+    const reply = await writeIcebreaker({
+      mode: "mate",
+      interests: ["chess"],
+      partnerInterests: ["chess", "climbing"],
+      partnerVibe: "",
+    })
+    expect(reply.source).toBe("sample")
+    expect(SAMPLE_ICEBREAKERS.mate).toContain(reply.line as never)
   })
 
   test("related interests fall back to the fixed list minus what is on screen", async () => {
@@ -87,5 +105,13 @@ describe("output rules", () => {
     expect(
       isVibe("plans the trip — forgets the charger", ["plans the trip — forgets the charger"]),
     ).toBe(false)
+  })
+
+  test("an ice-breaker is one short line without quotes or emoji", () => {
+    expect(isIcebreaker("What's the last thing you got properly into?")).toBe(true)
+    expect(isIcebreaker("")).toBe(false)
+    expect(isIcebreaker(' "Hey you" ')).toBe(false)
+    expect(isIcebreaker("Nice to meet you 👋")).toBe(false)
+    expect(isIcebreaker("a".repeat(141))).toBe(false)
   })
 })

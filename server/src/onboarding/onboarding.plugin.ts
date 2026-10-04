@@ -2,6 +2,7 @@ import {
   type Parsed,
   parseAppearanceRequest,
   parseCharacterRequest,
+  parseIcebreakerRequest,
   parseQuestionRequest,
   parseRelatedRequest,
   parseTasteRequest,
@@ -13,6 +14,7 @@ import { authPlugin } from "../auth/auth.plugin"
 import {
   describeAppearance,
   writeCharacter,
+  writeIcebreaker,
   writeQuestion,
   writeRelated,
   writeTaste,
@@ -33,6 +35,7 @@ export const onboardingPlugin = new Elysia({ name: "onboarding", prefix: "/api/o
   .post("/related", route(parseRelatedRequest, writeRelated), { authenticated: true })
   .post("/character", route(parseCharacterRequest, writeCharacter), { authenticated: true })
   .post("/taste", route(parseTasteRequest, writeTaste), { authenticated: true })
+  .post("/icebreaker", route(parseIcebreakerRequest, writeIcebreaker), { authenticated: true })
   .post("/appearance", route(parseAppearanceRequest, describeAppearance), {
     authenticated: true,
   })

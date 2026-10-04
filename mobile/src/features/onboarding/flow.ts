@@ -1,4 +1,4 @@
-import type { Mode, Profile } from "@justmate/protocol"
+import { AGE_RANGE_TOP, type Mode, type Profile } from "@justmate/protocol"
 import { createContext, type Dispatch, type SetStateAction } from "react"
 
 export const FLOWS = {
@@ -32,7 +32,7 @@ export type StepProps = {
 export const SaveContext = createContext({ isSaving: false, hasFailed: false })
 
 // the age slider tops out at 60, which stores as AGE_MAX and reads "60+"
-export const SLIDER_MAX = 60
+export const SLIDER_MAX = AGE_RANGE_TOP
 
 export function ageLabel(min: number, max: number) {
   return `${min} – ${max >= SLIDER_MAX ? `${SLIDER_MAX}+` : max}`

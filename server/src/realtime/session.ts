@@ -16,7 +16,7 @@ import {
 } from "@justmate/protocol"
 
 import { type BlockStore, isBlocked, rememberBlocks } from "../matching/blocks"
-import { canMatch, compat, matchRadiusM, partnerCard, sharedIntents } from "../matching/compat"
+import { compat, gateMiss, matchRadiusM, partnerCard, sharedIntents } from "../matching/compat"
 import { bearing, bucketFor, cellCentre, distanceM, geohash } from "../matching/geo"
 import { MATCH_ALGORITHM_VERSION, type MatchScoreRecord, type MatchStore } from "../matching/match"
 import { pairThreshold } from "../matching/scorer_http"
@@ -113,6 +113,8 @@ const MAX_WAIT_BONUS = 0.1
 
 // faster than a sprint is a spoofed fix, the kind that walks a fake baseline for triangulation
 const MAX_SPEED_MPS = 10
+// caps the accuracy slack, so a spoofed `acc` can't buy a jump
+const MAX_FIX_SLACK_M = 100
 
 // coarse enough that cold bearings from far-apart spots can't be intersected into a pin
 const BEARING_STEP = 10
@@ -121,9 +123,21 @@ const COLD_CELL_PRECISION = 7
 const REPORTABLE_MS = 86_400_000
 const PAUSE_REPORTERS = 2
 
+const RELAXED_RADIUS_M = 50_000
+const RELAXED_COOLDOWN_MS = 30_000
+
 export const config: Config = { ...DEFAULT_CONFIG }
 
 export const clock = { now: () => Date.now() }
+
+export const STALE_FIX_MS = Number(process.env.MATCH_STALE_FIX_MS ?? 30_000)
+
+export const matching = { relaxed: (process.env.MATCH_RELAXED ?? "0") === "1" }
+
+if (matching.relaxed)
+  console.info(
+    `[matching] relaxed matching is on: any same-mode pair within ${RELAXED_RADIUS_M / 1000} km, ${RELAXED_COOLDOWN_MS / 1000} s cooldown`,
+  )
 
 export const clients = new Map<string, Client>()
 
@@ -131,6 +145,9 @@ export const clients = new Map<string, Client>()
 export const cooldowns = new Map<string, number>()
 
 export const matchScores = new Map<string, MatchScoreRecord>()
+
+// pair key, or a positionless searcher's id → why the last tick did not offer it
+let misses = new Map<string, string>()
 
 // sessionId → both user ids, kept after the end so post-meet can still report
 export const pastSessions = new Map<string, { ids: string[]; endedAt: number }>()
@@ -309,12 +326,18 @@ function position(client: Client, msg: unknown) {
   const last = client.position
   const elapsedMs = now - (client.fixAt ?? 0)
   if (last && elapsedMs < fixIntervalMs(client) / 2) return
-  if (last && distanceM(last, parsed.value) > (MAX_SPEED_MPS * elapsedMs) / 1000) {
+  if (last && isTooFast(last, parsed.value, elapsedMs)) {
     return error(client, "position_too_fast", "see PROTOCOL.md › position")
   }
 
   client.position = parsed.value
   client.fixAt = now
+}
+
+// two fixes of one standing phone sit up to their accuracies apart, so that much is not movement
+function isTooFast(from: Position, to: Position, elapsedMs: number): boolean {
+  const slackM = Math.min(from.acc + to.acc, MAX_FIX_SLACK_M)
+  return distanceM(from, to) > (MAX_SPEED_MPS * elapsedMs) / 1000 + slackM
 }
 
 function fixIntervalMs(client: Client): number {
@@ -429,13 +452,20 @@ function offer({ a, b, intent, score, rankingScore }: Candidate, now: number) {
   }
 }
 
-function expireOffer(offer: Offer, state: "expired" | "dismissed" | "vanished" | "disconnected") {
+type OfferEnd = "expired" | "dismissed" | "vanished" | "disconnected"
+
+function expireOffer(offer: Offer, state: OfferEnd) {
+  dropOffer(offer, state)
+  coolDown(offer.pair)
+}
+
+// no cooldown, so the active side can meet the same person again once they report
+function dropOffer(offer: Offer, state: OfferEnd) {
   for (const client of offer.pair) {
     client.offer = undefined
     client.conn.send({ t: "offer_expired", offerId: offer.id })
   }
   if (offer.store) persist(offer, () => offer.store?.finish(offer.id, state, new Date(clock.now())))
-  coolDown(offer.pair)
 }
 
 function startSession(offer: Offer) {
@@ -534,7 +564,8 @@ function pairKey([a, b]: Pair): string {
 
 // demo pairs skip it so the stage run can be rehearsed back to back
 function coolDown(pair: Pair) {
-  if (!pair[0].demo) cooldowns.set(pairKey(pair), clock.now() + config.pairCooldownMs)
+  const ms = matching.relaxed ? RELAXED_COOLDOWN_MS : config.pairCooldownMs
+  if (!pair[0].demo) cooldowns.set(pairKey(pair), clock.now() + ms)
 }
 
 export function tick() {
@@ -559,6 +590,7 @@ function sessionTick() {
   for (const client of clients.values()) {
     if (client.demo && isLocating(client))
       client.position = demoPosition(client.demo, walkingMs(client, now))
+    if (client.offer?.pair.some((c) => isStale(c, now))) dropOffer(client.offer, "disconnected")
     if (client.offer && now >= client.offer.expiresAt) expireOffer(client.offer, "expired")
     if (client.session && now >= client.session.expiresAt) endSession(client.session, "expired")
   }
@@ -592,16 +624,39 @@ function isSearching(client: Client): client is Searcher {
   )
 }
 
+// a backgrounded phone stops reporting but keeps its socket open
+function isStale(client: Client, now: number): boolean {
+  return !client.demo && now - (client.fixAt ?? 0) > STALE_FIX_MS
+}
+
 function isCompatible(a: Searcher, b: Searcher): boolean {
-  if (a.dangerous || b.dangerous || isBlocked(a.id, b.id)) return false
-  const isSameSide = demoAccountOf(a.id) === demoAccountOf(b.id)
-  return isSameSide && canMatch(a, b) && compatibilityScore(a, b) >= pairThreshold(config)
+  return !incompatibility(a, b)
+}
+
+function incompatibility(a: Searcher, b: Searcher): string | undefined {
+  if (a.dangerous || b.dangerous) return "paused"
+  if (isBlocked(a.id, b.id)) return "blocked"
+  if (demoAccountOf(a.id) !== demoAccountOf(b.id)) return "demo split"
+
+  const gate = gateMiss(a, b, matching.relaxed)
+  if (gate) return gate
+  if (matching.relaxed) return
+
+  const ml = mlScore(a, b)
+  const score = ml ?? compat(a, b)
+  const threshold = pairThreshold(config)
+  if (score >= threshold) return
+  return `score ${score.toFixed(2)} < ${threshold} (${ml === undefined ? "rules" : "ml"})`
 }
 
 // the rules-based score stands in until the scorer has written this pair's current row
 function compatibilityScore(a: Searcher, b: Searcher): number {
+  return mlScore(a, b) ?? compat(a, b)
+}
+
+function mlScore(a: Searcher, b: Searcher): number | undefined {
   const score = matchScores.get(pairKey([a, b]))
-  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : compat(a, b)
+  return score?.algorithmVersion === MATCH_ALGORITHM_VERSION ? score.score : undefined
 }
 
 function relay(me: Client, session: Session) {
@@ -624,10 +679,27 @@ function relay(me: Client, session: Session) {
 }
 
 function pairUp(now: number) {
-  const pool = [...clients.values()].filter((c): c is Searcher => isSearching(c) && !c.offer)
-  const candidates = pool
-    .flatMap((a, i) => pool.slice(i + 1).flatMap((b) => candidate(a, b, now)))
-    .sort((x, y) => y.rankingScore - x.rankingScore || y.score - x.score || x.meters - y.meters)
+  const pool = [...clients.values()].filter(
+    (c): c is Searcher => isSearching(c) && !c.offer && !isStale(c, now),
+  )
+  const candidates: Candidate[] = []
+  const missed = new Map<string, string>()
+  for (const client of clients.values()) {
+    if (!client.search || client.session) continue
+    if (!client.position) missed.set(client.id, "no position")
+    else if (isStale(client, now)) missed.set(client.id, "stale position")
+  }
+  for (const [i, a] of pool.entries()) {
+    for (const b of pool.slice(i + 1)) {
+      const pick = candidate(a, b, now)
+      if (typeof pick === "string") missed.set(pairKey([a, b]), pick)
+      else candidates.push(pick)
+    }
+  }
+  logMisses(missed)
+  candidates.sort(
+    (x, y) => y.rankingScore - x.rankingScore || y.score - x.score || x.meters - y.meters,
+  )
 
   const taken = new Set<Client>()
   for (const pick of candidates) {
@@ -637,20 +709,34 @@ function pairUp(now: number) {
   }
 }
 
-function candidate(a: Searcher, b: Searcher, now: number): Candidate[] {
-  const intent = sharedIntents(a.search, b.search)[0]
+// one line per miss each time its reason changes, so production logs explain a missed match
+function logMisses(next: Map<string, string>) {
+  for (const [key, why] of next)
+    if (misses.get(key) !== why) console.info(`[matching] ${key} not offered: ${why}`)
+  misses = next
+}
+
+// a candidate, or why the pair is not one
+function candidate(a: Searcher, b: Searcher, now: number): Candidate | string {
+  const miss = incompatibility(a, b)
+  if (miss) return miss
+  if ((cooldowns.get(pairKey([a, b])) ?? 0) > now) return "cooldown"
+
+  const radiusM = matching.relaxed ? RELAXED_RADIUS_M : matchRadiusM(a.search, b.search, config)
   const meters = distanceM(a.position, b.position)
-  if (!intent || !isCompatible(a, b) || (cooldowns.get(pairKey([a, b])) ?? 0) > now) return []
-  if (meters > matchRadiusM(a.search, b.search, config)) return []
+  if (meters > radiusM) return `beyond ${radiusM} m`
+
+  const intent = sharedIntents(a.search, b.search)[0] ?? a.search.intents[0]
+  if (!intent) return "intents"
   const score = compatibilityScore(a, b)
   const waitingMs = Math.max(now - a.searchStartedAt, now - b.searchStartedAt)
   const waitBonus = Math.min(waitingMs / config.autoStopMs, 1) * MAX_WAIT_BONUS
-  return [{ a, b, intent, meters, score, rankingScore: score + waitBonus }]
+  return { a, b, intent, meters, score, rankingScore: score + waitBonus }
 }
 
 function sendZones(me: Searcher, now: number) {
   const others = [...clients.values()].flatMap((c) =>
-    c !== me && isSearching(c) && isCompatible(me, c) ? [c.position] : [],
+    c !== me && isSearching(c) && !isStale(c, now) && isCompatible(me, c) ? [c.position] : [],
   )
   const ghosts = me.demo ? ghostPositions(now) : []
 

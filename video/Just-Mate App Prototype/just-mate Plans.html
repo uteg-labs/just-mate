@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>just-mate · plans</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="assets/brand/favicon.svg">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/colors.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/typography.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/motion.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/tokens/base.css">
+<link rel="stylesheet" href="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="_ds/justmate-design-system-dee0675e-755d-4af3-a914-93d105b273a8/_ds_bundle.js"></script>
+<script src="app/icons-extra.js"></script>
+<script src="app/plans/plans-icons.js"></script>
+<style>
+html,body{height:100%}
+body{background:var(--surface-chip);display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;overflow:hidden}
+a{color:var(--link)}a:hover{color:var(--fg-1)}
+.jm-input::placeholder{color:var(--fg-3)}
+@keyframes ob-next{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes ob-back{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes jm-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes jm-fade{from{opacity:0}to{opacity:1}}
+@keyframes jm-pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes badge-drop{0%{transform:translateY(-110%) rotate(0deg)}45%{transform:translateY(2%) rotate(-6deg)}62%{transform:translateY(-1%) rotate(4deg)}78%{transform:translateY(0) rotate(-2deg)}90%{transform:rotate(.8deg)}100%{transform:none}}
+@keyframes badge-turn{from{transform:rotateY(-110deg);opacity:.2}to{transform:none;opacity:1}}
+</style></head>
+<body><div id="root" style="display:contents"></div>
+<script type="text/babel" src="app/tweaks-panel.jsx"></script>
+<script type="text/babel" src="app/ios-frame.jsx"></script>
+<script type="text/babel" src="app/shared.jsx"></script>
+<script type="text/babel" src="app/Morph.jsx"></script>
+<script type="text/babel" src="app/Heat.jsx"></script>
+<script type="text/babel" src="app/Badge.jsx"></script>
+<script type="text/babel" src="app/Bento.jsx"></script>
+<script type="text/babel" src="app/Home.jsx"></script>
+<script type="text/babel" src="app/Onboarding.jsx"></script>
+<script type="text/babel" src="app/plans/PlansData.jsx"></script>
+<script type="text/babel" src="app/plans/PlansViews.jsx"></script>
+<script type="text/babel" src="app/plans/PlanCreate.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "slowmo": "1×",
+  "autoTake": true,
+  "planNow": true
+}/*EDITMODE-END*/;
+Object.assign(JM_SHAPES, { plans: { k: "full", tone: "page" }, create: { k: "full", tone: "page" }, where: { k: "sheet", tone: "paper" }, plan: { k: "full", tone: "page" }, offer: { k: "card", tone: "ink" } });
+const PL_POOL = [
+  { mode: "date", intents: ["cinema"], day: 3, time: "20:00", place: "lumen", alts: ["dvor", "altitude"], match: 92, walkThem: 10, expires: "4 h",
+    vibe: { name: "Lena", q: "quietly funny — will out-argue you about pizza", opener: "pineapple. defend your position.", interests: ["street food", "cinema", "jazz"] } },
+  { mode: "mate", intents: ["beer", "pub quiz"], day: 2, time: "19:00", place: "tap", alts: ["meeple", "altitude"], match: 90, walkThem: 6, expires: "5 h",
+    vibe: { name: "Jonas", q: "techno on fridays — crosswords on sundays", opener: "seven letters, means 'found by compass'?", interests: ["concerts", "pub quiz", "coding"] } },
+];
+const plLoad = () => { try { const s = JSON.parse(localStorage.getItem("jm-plans-list") || "null"); return Array.isArray(s) && s.length && s.every((p) => p.kind !== "invite" || p.slots) ? s : PL_SEED; } catch (e) { return PL_SEED; } };
+const plProfile = (() => { try { return JSON.parse(localStorage.getItem("jm-proto-profile") || "{}"); } catch (e) { return {}; } })();
+
+function PlansApp() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const dur = 520 * ({ "1×": 1, "½×": 2, "¼×": 4 }[t.slowmo] || 1);
+  const [shape, setShape] = React.useState(() => { const s = localStorage.getItem("jm-plans-shape"); return ["select", "plans"].includes(s) ? s : "select"; });
+  const [plans, setPlans] = React.useState(plLoad);
+  const [tab, setTab] = React.useState(plProfile.mode || "date");
+  const [cat, setCat] = React.useState(null);
+  const [intent, setIntent] = React.useState([]);
+  const [planMode, setPlanMode] = React.useState(false);
+  const [planPlace, setPlanPlace] = React.useState(null);
+  const [elapsed, setElapsed] = React.useState(0);
+  const [offer, setOffer] = React.useState(null);
+  const [offerKey, setOfferKey] = React.useState(0);
+  const [detail, setDetail] = React.useState(null);
+  const [draft, setDraft] = React.useState(null);
+  const [create, setCreate] = React.useState({ key: 0, step: 0 });
+  const [poolI, setPoolI] = React.useState(0);
+  const [scale, setScale] = React.useState(1);
+  const autoRef = React.useRef(t.autoTake); autoRef.current = t.autoTake;
+
+  React.useEffect(() => { localStorage.setItem("jm-plans-shape", ["select", "plans"].includes(shape) ? shape : "select"); }, [shape]);
+  React.useEffect(() => { localStorage.setItem("jm-plans-list", JSON.stringify(plans.map(({ fresh, ...p }) => p))); }, [plans]);
+  React.useEffect(() => {
+    const f = () => { const w = window.innerWidth, h = window.innerHeight; if (!w || !h) return; setScale(Math.max(0.2, Math.min(1, (h - 32) / JM_PH, (w - 32) / JM_PW))); };
+    f(); window.addEventListener("resize", f); const ro = new ResizeObserver(f); ro.observe(document.documentElement);
+    return () => { window.removeEventListener("resize", f); ro.disconnect(); };
+  }, []);
+  React.useEffect(() => { if (shape !== "search") return; setElapsed(0); const i = setInterval(() => setElapsed((e) => e + 1), 1000); return () => clearInterval(i); }, [shape]);
+
+  const pronoun = (p) => (p && p.mode === "date" ? ({ women: "her", men: "his" }[plProfile.seek] || "their") : "their");
+  const initials = ((plProfile.name || "").trim() || "Alex").slice(0, 2);
+  const me = (plProfile.name || "").trim() || "Alex";
+  const update = (id, patch) => setPlans((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  const remove = (id) => setPlans((ps) => ps.filter((p) => p.id !== id));
+  const changeTab = (v) => { if (v !== tab) { setTab(v); setCat(null); setIntent([]); } };
+  const setDraftPatch = (patch) => setDraft((x) => ({ ...x, ...patch }));
+
+  const openOffer = (p, kind, from = "plans") => { setOffer({ plan: p, kind, from }); setOfferKey((k) => k + 1); setShape("offer"); };
+  const openTaker = (p, from = "plans") => { const s = p.pick || plSlots(p)[0]; openOffer({ ...p, status: "taken", day: s.day, time: s.time }, "taker", from); };
+  const openDetail = (p) => { setDetail(p); setShape("plan"); };
+  const open = (p, from = "plans") => (p.kind === "proposal" ? openOffer(p, "proposal", from) : p.status === "taken" && from === "select" ? openTaker(p, from) : openDetail(p));
+  const accept = (placeId) => {
+    const { plan, kind } = offer;
+    const fit = (PL_PLACES.find((x) => plFits(x, plan.intents)) || PL_PLACES[1]).id;
+    const done = kind === "taker"
+      ? { ...plan, kind: "confirmed", vibe: plan.taker, match: plan.taker.match, status: undefined, slots: undefined, pick: undefined, place: plan.place === "auto" || (!plan.place && !plan.spot) ? fit : plan.place, fresh: true }
+      : { ...plan, kind: "confirmed", place: placeId, fresh: true };
+    update(plan.id, done); setDetail(done); setShape("plan");
+  };
+  const pass = () => {
+    const { plan, kind } = offer;
+    if (kind === "taker") update(plan.id, { status: "open", pick: undefined, taker: PL_TAKERS[Math.floor(Math.random() * PL_TAKERS.length)] }); else remove(plan.id);
+    setShape(offer.from);
+  };
+  const enterPlanMode = (on) => { setPlanMode(on); if (!on) setPlanPlace(null); setShape("select"); };
+  const startPlan = () => {
+    setDraft((d) => ({ slots: {}, flex: true, until: "day", ...(d && d.keep ? d : {}), keep: false, mode: tab, cat, intents: intent, place: planPlace || (d && d.keep ? d.place : null), spot: d && d.keep && !planPlace ? d.spot : null }));
+    setCreate((c) => ({ key: c.key + 1, step: 0 })); setShape("create");
+  };
+  const toWhere = () => setShape("where");
+  const toReview = () => { setCreate((c) => ({ key: c.key + 1, step: 2 })); setShape("create"); };
+  const toWhen = () => { setCreate((c) => ({ key: c.key + 1, step: 0 })); setShape("create"); };
+  const editWhat = () => { setDraft((d) => ({ ...d, keep: true })); setPlanMode(true); setShape("select"); };
+  const exitPlan = () => { setPlanMode(false); setPlanPlace(null); setCat(null); setIntent([]); setShape("select"); };
+  const send = () => {
+    const d = draft, id = "i" + Date.now(), slots = pcSlots(d);
+    const inv = { id, kind: "invite", mode: d.mode, intents: d.intents, day: slots[0].day, time: slots[0].time, slots, place: d.spot ? null : d.place, spot: d.spot, status: "open", until: d.until,
+      taker: PL_TAKERS[Math.floor(Math.random() * PL_TAKERS.length)], fresh: true };
+    setPlans((ps) => [...ps, inv]); setPlanMode(false); setPlanPlace(null); setCat(null); setIntent([]); setShape("plans");
+    setTimeout(() => { if (autoRef.current) setPlans((ps) => ps.map((p) => (p.id === id && p.status === "open" ? { ...p, status: "taken", pick: slots[Math.floor(Math.random() * slots.length)], fresh: true } : p))); }, 6000);
+  };
+  const arrive = () => {
+    const p = { ...PL_POOL[poolI % PL_POOL.length], id: "p" + Date.now(), kind: "proposal", fresh: true };
+    setPoolI((i) => i + 1); setPlans((ps) => [p, ...ps]); openOffer(p, "proposal", shape === "select" ? "select" : "plans");
+  };
+  const jumpTaker = () => {
+    let inv = plans.find((p) => p.kind === "invite");
+    if (!inv) { inv = { ...PL_SEED[3], id: "i" + Date.now() }; setPlans((ps) => [...ps, inv]); }
+    update(inv.id, { status: "taken" }); openTaker(inv);
+  };
+  const jumpConfirmed = () => { const c = plans.find((p) => p.kind === "confirmed") || PL_SEED[2]; if (!plans.some((p) => p.id === c.id)) setPlans((ps) => [...ps, c]); openDetail(c); };
+  const cur = detail && (plans.find((p) => p.id === detail.id) || detail);
+
+  const render = (n) => {
+    switch (n) {
+      case "select": return <PlansHomeSheet tab={tab} onTab={changeTab} cat={cat} setCat={setCat} intent={intent} setIntent={setIntent} onFind={() => setShape("search")}
+        plans={plans} interests={plProfile.interests || []} onOpenPlan={(p) => open(p, "select")} onAllPlans={() => setShape("plans")}
+        planMode={planMode} onPlanMode={enterPlanMode} planPlace={planPlace} setPlanPlace={setPlanPlace} onPlan={startPlan} />;
+      case "search": return <SearchSheet tab={tab} cat={cat} picks={intent} setPicks={setIntent} label={intent.length ? jmPicksLabel(intent) : "beer"} icon={jmIntentIcon(tab, cat, intent[0])} elapsed={elapsed} onStop={() => setShape("select")} />;
+      case "plans": return <PlansPage plans={plans} onBack={() => setShape("select")} onOpen={(p) => (p.status === "taken" ? openDetail(p) : open(p))} onNew={() => enterPlanMode(true)} />;
+      case "create": return draft ? <PlanCreate key={create.key} step={create.step} draft={draft} setDraft={setDraft} onWhere={toWhere} onEditWhat={editWhat} onSend={send} onBack={() => setShape("select")} onExit={exitPlan} /> : null;
+      case "where": return draft ? <PlanWhereSheet d={draft} set={setDraftPatch} onBack={toWhen} onNext={toReview} onExit={exitPlan} /> : null;
+      case "plan": return <PlanDetail key={cur && cur.id} plan={cur} now={t.planNow} onBack={() => setShape("plans")} onCompass={() => setShape("compass")}
+        onCancel={() => { remove(cur.id); setShape("plans"); }} onOpenTaker={() => openTaker(cur)} />;
+      case "offer": return offer ? <PlanOfferCard key={offerKey} plan={offer.plan} kind={offer.kind} pronoun={pronoun(offer.plan)} onAccept={accept} onPass={pass} onLater={() => setShape(offer.from)} /> : null;
+      case "compass": return <CompassContent intent={cur ? jmPicksLabel(cur.intents) : "plan"} quote={cur && cur.vibe ? cur.vibe.q : JM_VIBES[0]} onVanish={() => setShape("plan")} onMet={() => setShape("postmeet")} />;
+      case "postmeet": return <PostMeetContent match={cur && cur.vibe} me={me} myDesign={jmBadgeDesign({ interests: plProfile.interests || [], qa: plProfile.qa || [], mode: plProfile.mode || "date" })} pronoun={pronoun(cur)}
+        onBack={() => { if (cur) remove(cur.id); setShape("plans"); }} />;
+      default: return null;
+    }
+  };
+  const night = shape === "compass" || shape === "postmeet";
+  return (
+    <>
+      <div style={{ width: JM_PW * scale, height: JM_PH * scale, flexShrink: 0 }}>
+        <div style={{ width: JM_PW, height: JM_PH, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
+          <IOSDevice dark={night} statusHidden={shape === "offer"}>
+            <div data-screen-label={shape} style={{ position: "relative", zIndex: 0, height: JM_PH, overflow: "hidden", fontFamily: "var(--font-sans)", color: "var(--fg-1)" }}>
+              <MapChrome shape={shape} live={shape === "search"} initials={initials} intent={intent.length ? jmPicksLabel(intent) : "beer"} tab={tab} onTab={changeTab} modeSwitch="map" onProfile={() => {}} />
+              <PlanWhereMap visible={shape === "where"} d={draft} set={setDraftPatch} />
+              <div style={{ position: "absolute", inset: 0, zIndex: 6, background: "var(--scrim)", opacity: shape === "offer" ? 1 : 0, transition: "opacity var(--dur-default) ease", pointerEvents: "none" }} />
+              <Morph shape={shape} render={render} dur={dur} />
+            </div>
+          </IOSDevice>
+        </div>
+      </div>
+      <TweaksPanel>
+        <TweakSection label="Jump to" />
+        <TweakButton label="Home · map" onClick={() => enterPlanMode(false)} />
+        <TweakButton label="Plan mode" secondary onClick={() => enterPlanMode(true)} />
+        <TweakButton label="All plans" secondary onClick={() => setShape("plans")} />
+        <TweakButton label="Proposal card" secondary onClick={() => { const p = plans.find((x) => x.kind === "proposal"); p ? openOffer(p, "proposal") : arrive(); }} />
+        <TweakButton label="Someone took my invitation" secondary onClick={jumpTaker} />
+        <TweakButton label="Confirmed plan" secondary onClick={jumpConfirmed} />
+        <TweakSection label="Simulate" />
+        <TweakButton label="A proposal arrives" secondary onClick={arrive} />
+        <TweakToggle label="Invitations get taken (6 s)" value={t.autoTake} onChange={(v) => setTweak("autoTake", v)} />
+        <TweakToggle label="It's plan time (compass)" value={t.planNow} onChange={(v) => setTweak("planNow", v)} />
+        <TweakButton label="Reset plans" secondary onClick={() => { setPlans(PL_SEED); enterPlanMode(false); }} />
+        <TweakSection label="Motion" />
+        <TweakRadio label="Morph speed" value={t.slowmo} options={["1×", "½×", "¼×"]} onChange={(v) => setTweak("slowmo", v)} />
+      </TweaksPanel>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<PlansApp />);
+</script></body></html>

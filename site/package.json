@@ -1,0 +1,24 @@
+{
+  "name": "@justmate/site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx serve dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/fonts": "4.0.532",
+    "@remotion/player": "4.0.532",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@types/node": "^26",
+    "@types/react": "~19.2.2",
+    "@types/react-dom": "~19.2.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.0"
+  }
+}

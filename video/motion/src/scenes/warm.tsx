@@ -43,28 +43,29 @@ export const buzz = (f: number, at: number) => {
 }
 
 // 5 · The three rules — three colour panels slam in on the beat.
-export const RULES_AT = [0, 34, 68]
+export const RULES_AT = [0, 156, 226]
+// The three promises: matching (own AI model), Plan (we make the plan), Now (meet right away).
 const RULES = [
   {
-    title: "No faces.",
-    sub: "a badge with your vibe, never a photo",
+    title: "We find your people.",
+    sub: "our own AI · trained to find people you'll actually talk to",
     bg: c.glow,
     fg: c.onGlow,
-    icon: "scan-face",
+    icon: "users",
   },
   {
-    title: "No chat.",
-    sub: "status chips, then a real conversation",
+    title: "We make the plan.",
+    sub: "one small plan nearby · you only say yes",
     bg: c.mint,
     fg: "#06302B",
-    icon: "message-circle",
+    icon: "calendar-heart",
   },
   {
-    title: "No people pins.",
-    sub: "only the venue is on the map",
+    title: "Already out? Meet now.",
+    sub: "someone nearby wants the same · both phones ping",
     bg: c.ink,
     fg: c.white,
-    icon: "map-pin",
+    icon: "compass",
   },
 ]
 export const Rules = ({ dur }: S) => {
@@ -109,14 +110,14 @@ export const Rules = ({ dur }: S) => {
                 transform: `translateY(${(1 - txt) * 40}px)`,
               }}
             >
-              <Icon name={r.icon} size={110} color={r.fg} stroke={1.6} slash />
+              <Icon name={r.icon} size={110} color={r.fg} stroke={1.6} />
               <div
                 style={{
                   fontFamily: font,
                   fontWeight: 750,
-                  fontSize: 108,
-                  letterSpacing: -5,
-                  lineHeight: 1,
+                  fontSize: 96,
+                  letterSpacing: -4,
+                  lineHeight: 1.02,
                   color: r.fg,
                   marginTop: 50,
                 }}

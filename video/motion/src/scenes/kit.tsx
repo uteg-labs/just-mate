@@ -100,12 +100,12 @@ export const Persona = ({
 }
 
 // Main · two speeds: Plan when you need a reason to go, Now when you're already out.
-export const SPEEDS_AT = { plan: 96, now: 160 }
+export const SPEEDS_AT = { plan: 4, now: 66 }
 export const Speeds = ({ dur }: S) => {
   const f = useCurrentFrame()
   const pl = sp(f, SPEEDS_AT.plan, 20)
   const nw = sp(f, SPEEDS_AT.now, 20)
-  const title = 1 - sp(f, SPEEDS_AT.plan - 6, 12)
+  const title = SPEEDS_AT.plan > 30 ? 1 - sp(f, SPEEDS_AT.plan - 6, 12) : 0
   const half = W / 2
   const ring = (k: number) => ((f - SPEEDS_AT.now - k * 12) % 36) / 36
   return (

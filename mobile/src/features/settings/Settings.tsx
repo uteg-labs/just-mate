@@ -35,6 +35,7 @@ import { type } from "@/theme/type"
 
 export type SettingsProps = {
   profile: Profile
+  blockedCount: number
   setProfile: (next: SetStateAction<Profile>) => void
   onBack: () => void
   onEdit: (step: OnboardingStep) => void
@@ -138,6 +139,7 @@ const Group = ({ label, children }: { label: string; children: ReactNode }) => {
 
 export const Settings = ({
   profile,
+  blockedCount,
   setProfile,
   onBack,
   onEdit,
@@ -328,6 +330,7 @@ export const Settings = ({
 
       <Group label={t("settings.groups.privacy")}>
         <Row icon="camera" label={t("settings.photos")} value={t("settings.photosValue")} />
+        <Row icon="ban" label={t("settings.blocked")} value={String(blockedCount)} />
         <Row
           icon="download"
           label={t("settings.download")}

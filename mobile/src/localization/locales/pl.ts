@@ -205,6 +205,7 @@ export const pl = {
     helpBody: "Bezpłatne telefony wsparcia w Polsce. Wybierz, aby zadzwonić.",
     helpAdults: "116 123 · dla dorosłych",
     helpYoung: "116 111 · dla dzieci i młodzieży",
+    blocked: "Zablokowane osoby",
     download: "Pobierz moje dane",
     downloadError: "nie udało się pobrać danych. spróbuj za chwilę.",
     email: "E-mail",
@@ -218,7 +219,11 @@ export const pl = {
     footer: "just-mate · prototyp · ścieżka produkcyjna symulowana",
   },
   home: {
-    brand: { tagline: "Spotkaj się naprawdę.", rules: "bez twarzy · bez czatu · bez pinezek" },
+    brand: {
+      tagline: "Spotkaj się naprawdę.",
+      line: "Na wieczory, których wolisz nie spędzać w samotności.",
+      rules: "bez twarzy · bez czatu · bez pinezek",
+    },
     invisible: "poza mapą",
     searching: "szukasz",
     searchingFor: ": {{picks}}",
@@ -253,6 +258,8 @@ export const pl = {
       plan_expired: "Plan wygasł i zniknął z listy.",
       plan_filled: "To zaproszenie trafiło do kogoś innego.",
       plan_cancelled: "Plan został odwołany.",
+      reported:
+        "Zgłoszone. Już was ze sobą nie połączymy. Nie czujesz się bezpiecznie? Dzwoń pod 112.",
     },
   },
   picks: {
@@ -384,6 +391,7 @@ export const pl = {
     finding: "szukam sygnału…",
     lookingFor: "szukasz",
     vanish: "Zniknij",
+    report: "Zgłoś",
     met: "Spotkaliśmy się",
     buckets: {
       cold: "zimno",
@@ -406,7 +414,7 @@ export const pl = {
     againNoted: "Cieszymy się, że wyszło.",
     report: "Zgłoś",
     reported:
-      "Zgłoszenia trafią do nas w następnej wersji. Nie czujesz się bezpiecznie? Dzwoń pod 112.",
+      "Zgłoszone. Już was ze sobą nie połączymy. Nie czujesz się bezpiecznie? Dzwoń pod 112.",
   },
   reset: {
     back: "Wstecz",

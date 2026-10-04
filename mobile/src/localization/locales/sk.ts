@@ -205,6 +205,7 @@ export const sk = {
     helpBody: "Bezplatné linky pomoci v Poľsku. Ťukni a zavolaj.",
     helpAdults: "116 123 · pre dospelých",
     helpYoung: "116 111 · pre deti a mladých",
+    blocked: "Zablokovaní ľudia",
     download: "Stiahnuť moje dáta",
     downloadError: "dáta sa nepodarilo načítať. skús to o chvíľu.",
     email: "E-mail",
@@ -218,7 +219,11 @@ export const sk = {
     footer: "just-mate · prototyp · produkčná cesta simulovaná",
   },
   home: {
-    brand: { tagline: "Stretni sa naozaj.", rules: "bez tvárí · bez chatu · bez špendlíkov" },
+    brand: {
+      tagline: "Stretni sa naozaj.",
+      line: "Na večery, ktoré nechceš tráviť osamote.",
+      rules: "bez tvárí · bez chatu · bez špendlíkov",
+    },
     invisible: "mimo mapy",
     searching: "hľadáš",
     searchingFor: ": {{picks}}",
@@ -248,6 +253,7 @@ export const sk = {
       plan_expired: "Plán vypršal a zmizol zo zoznamu.",
       plan_filled: "Táto pozvánka pripadla niekomu inému.",
       plan_cancelled: "Plán bol zrušený.",
+      reported: "Nahlásené. Už vás spolu nespojíme. Necítiš sa bezpečne? Volaj 112.",
     },
   },
   picks: {
@@ -379,6 +385,7 @@ export const sk = {
     finding: "hľadám signál…",
     lookingFor: "hľadáš",
     vanish: "Zmiznúť",
+    report: "Nahlásiť",
     met: "Stretli sme sa",
     buckets: {
       cold: "zima",
@@ -400,7 +407,7 @@ export const sk = {
     again: "Zopakovať o týždeň?",
     againNoted: "Teší nás, že to vyšlo.",
     report: "Nahlásiť",
-    reported: "Hlásenia sa k nám dostanú v ďalšej verzii. Necítiš sa bezpečne? Volaj 112.",
+    reported: "Nahlásené. Už vás spolu nespojíme. Necítiš sa bezpečne? Volaj 112.",
   },
   reset: {
     back: "Späť",

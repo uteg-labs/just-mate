@@ -38,8 +38,9 @@ After meeting: **We met** unlocks the other person's first name, shows how far y
 - **Vanish** — one tap ends the session for both, instantly.
 - **No triangulation** — the server refuses implausible position jumps and coarsens bearings, so a modified client can't turn the compass into a pin.
 - **Moderation** — free-text profile answers run through the OpenAI moderation model; a flagged user silently never sees or is seen by anyone.
+- **Report** — on the compass or after meeting: blocks that person for you and ends the session; two independent reports pause the account.
 
-Production path (not in the build): phone and ID verification, report-and-block with an automatic pause, women-only plans.
+Production path (not in the build): phone and ID verification, women-only plans.
 
 ## Why now (the wedge: *consented serendipity*)
 
@@ -121,7 +122,7 @@ bun run lint && bun run typecheck && bun run test
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | The seeded venue list for Kraków |
 | Plans proposed from real profiles and free times, Accept plan, "you're both in" on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
-| Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
+| Compass (device heading via expo-location), haptics, vanish, post-meet name and distance, Report → block, two reports → pause | "Same again next week?" is a local acknowledgement, labelled production path |
 
 Not in the build by decision: remote push (the app is in the foreground whenever you are searching). The ML model scores Now matches for real accounts; it is trained on synthetic data, so plans and the stage demo use the explainable score.
 

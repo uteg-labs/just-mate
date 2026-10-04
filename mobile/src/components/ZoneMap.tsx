@@ -1,4 +1,4 @@
-import type { Venue } from "@justmate/protocol"
+import type { ServerMsg, Venue } from "@justmate/protocol"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
@@ -11,13 +11,15 @@ import { colors } from "@/theme/colors"
 
 // the only map in the app: swap the map provider here and nowhere else (BUILD-PLAN risks)
 
-type Zone = { h: string; n: number }
+type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 
 type Coordinates = { latitude: number; longitude: number }
 
 type Circle = { id: string; center: Coordinates; radius: number; color: string; lineWidth: 0 }
 
 export type ZoneMapProps = {
+  /** watch your position; off, the dot stays at the last fix */
+  track: boolean
   zones?: Zone[]
   onZone?: (n: number) => void
   /** public venues, the only other points this map ever draws */
@@ -232,8 +234,15 @@ const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue }: CanvasP
   )
 }
 
-export const ZoneMap = ({ zones = [], onZone, venues = [], selected, onVenue }: ZoneMapProps) => {
-  const position = useOwnPosition()
+export const ZoneMap = ({
+  track,
+  zones = [],
+  onZone,
+  venues = [],
+  selected,
+  onVenue,
+}: ZoneMapProps) => {
+  const position = useOwnPosition(track)
   const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
   const [isCentered, setIsCentered] = useState(false)
   const me = position && { latitude: position.lat, longitude: position.lng }

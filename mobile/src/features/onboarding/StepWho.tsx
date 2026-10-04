@@ -65,6 +65,7 @@ export const StepWho = ({ profile, setProfile, next, eyebrow }: StepProps) => {
         max={SLIDER_MAX}
         value={[prefs.ageMin, Math.min(prefs.ageMax, SLIDER_MAX)]}
         onChange={setAge}
+        labels={[t("onboarding.who.ageMin"), t("onboarding.who.ageMax")]}
       />
     </Field>
   )

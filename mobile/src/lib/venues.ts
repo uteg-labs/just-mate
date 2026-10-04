@@ -57,8 +57,12 @@ export function venueIcon(kind: VenueKind): IconName {
   return KIND_ICON[kind]
 }
 
-export function walkMin(from: LatLng, to: LatLng): number {
+export function metersBetween(from: LatLng, to: LatLng): number {
   const north = (to.lat - from.lat) * M_PER_DEG
   const east = (to.lng - from.lng) * M_PER_DEG * Math.cos((from.lat * Math.PI) / 180)
-  return Math.max(1, Math.round(Math.hypot(north, east) / WALK_M_PER_MIN))
+  return Math.hypot(north, east)
+}
+
+export function walkMin(from: LatLng, to: LatLng): number {
+  return Math.max(1, Math.round(metersBetween(from, to) / WALK_M_PER_MIN))
 }

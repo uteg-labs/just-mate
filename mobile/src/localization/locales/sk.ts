@@ -14,7 +14,7 @@ export const sk = {
     errors: {
       credentials: "tento e-mail a heslo k sebe nesedia.",
       exists: "účet s týmto e-mailom už existuje. skús sa prihlásiť.",
-      generic: "nepodarilo sa spojiť s just-mate. skús to o chvíľu.",
+      generic: "nepodarilo sa spojiť s JustMate. skús to o chvíľu.",
     },
   },
   onboarding: {
@@ -28,7 +28,7 @@ export const sk = {
       last: "posledný krok",
     },
     saveError: "profil sa nepodarilo uložiť. skús to o chvíľu.",
-    offline: "nepodarilo sa spojiť s just-mate. skontroluj pripojenie a skús znova.",
+    offline: "nepodarilo sa spojiť s JustMate. skontroluj pripojenie a skús znova.",
     retry: "Skúsiť znova",
     mode: {
       title: "Prečo si tu?",
@@ -49,7 +49,7 @@ export const sk = {
       cta: "Volaj ma {{name}}",
       ctaName: "Napíš svoje meno",
       ctaAge: "Doplň svoj vek",
-      ctaAgeRange: "just-mate je od 16 rokov",
+      ctaAgeRange: "JustMate je od 16 rokov",
       ctaAdult: "Rande je od 18 rokov",
     },
     interests: {
@@ -198,7 +198,6 @@ export const sk = {
     minutes: "{{count}} min",
     autoStop: "Prestať hľadať po 30 min",
     haptics: "Vibrácie",
-    sounds: "Zvuky",
     reduceMotion: "Obmedziť pohyb",
     photos: "Vkus a fotky",
     photosValue: "nikdy sa neukladajú",
@@ -218,7 +217,7 @@ export const sk = {
     deleteConfirm: "Zmazať",
     deleteError: "účet sa nepodarilo zmazať. skús to o chvíľu.",
     cancel: "Zrušiť",
-    footer: "just-mate · prototyp · produkčná cesta simulovaná",
+    footer: "JustMate · prototyp · produkčná cesta simulovaná",
   },
   home: {
     brand: {
@@ -410,6 +409,17 @@ export const sk = {
     },
     over: "nad {{m}} m",
     under: "pod {{m}} m",
+    sides: {
+      ahead: "rovno pred tebou",
+      right: "po tvojej pravej",
+      behind: "za tebou",
+      left: "po tvojej ľavej",
+    },
+  },
+  location: {
+    off: "Poloha je vypnutá",
+    denied: "Zapni ju v Nastaveniach, aby ťa ľudia nablízku mohli nájsť.",
+    openSettings: "Otvoriť Nastavenia",
   },
   postmeet: {
     yourVibe: "tvoj vibe",

@@ -7,6 +7,7 @@ export const LINKS = {
   github: "https://github.com/uteg-labs/just-mate",
   deck: "JustMate-Deck.pdf",
   whitepaper: "JustMate-Whitepaper.pdf",
+  youtube: "https://www.youtube.com/@JustMateApp",
 }
 
 export const TEAM = [
@@ -34,14 +35,14 @@ export type Story = {
 
 const en = {
   meta: {
-    title: "just-mate · Meet for real",
+    title: "JustMate · Meet for real",
     description:
-      "For anyone lonely in a city. just-mate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
+      "For anyone lonely in a city. JustMate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
   },
   nav: {
     how: "How it works",
     match: "Matching",
-    safety: "Safety",
+    security: "Security",
     venues: "Venues",
     join: "Join the waitlist",
   },
@@ -55,9 +56,10 @@ const en = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Meet for real.",
-    lead: "For anyone lonely in a city. just-mate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
+    lead: "For anyone lonely in a city. JustMate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
     join: "Join the waitlist",
     watch: "Watch with sound · 54 s",
+    films: "All our films on YouTube",
   },
   problem: {
     eyebrow: "The problem",
@@ -117,7 +119,7 @@ const en = {
   match: {
     eyebrow: "Matching · our own AI model",
     title: "Not random. Someone you'll have something to talk about.",
-    lead: "just-mate doesn't pair you with whoever happens to be nearby. A matching model we trained ourselves looks for kindred spirits: people who care about the same things as you, who are the kind of person you'd like to meet, and to whom you are too. For an introvert, that's the difference between dreading small talk and having something to say from the first minute.",
+    lead: "JustMate doesn't pair you with whoever happens to be nearby. A matching model we trained ourselves looks for kindred spirits: people who care about the same things as you, who are the kind of person you'd like to meet, and to whom you are too. For an introvert, that's the difference between dreading small talk and having something to say from the first minute.",
     viz: {
       wants: "who I'd like to meet",
       is: "who I am",
@@ -171,7 +173,7 @@ const en = {
       poster: 210,
       tag: "Plan · Tomek, 28",
       title: "The app proposes. You only say yes.",
-      body: "Tomek moved to Kraków four months ago and works from home. On Sunday night just-mate offers him one plan: board games · Thu 19:00 · 9 min on foot · with one other person, shown by their vibe badge.",
+      body: "Tomek moved to Kraków four months ago and works from home. On Sunday night JustMate offers him one plan: board games · Thu 19:00 · 9 min on foot · with one other person, shown by their vibe badge.",
       points: [
         "One concrete plan, not a menu: activity, public venue, time and walk time.",
         "Just the two of you. It's on only when both tap Accept plan: then “you're both in” on both phones.",
@@ -209,28 +211,12 @@ const en = {
       ],
     },
     {
-      id: "safety",
-      piece: "Marta",
-      poster: 240,
-      tag: "Safety · Marta, 31",
-      title: "Serendipity, without the creepiness.",
-      body: "Marta walks home alone at night. Nobody knows where she is unless she said: now, this person, yes. And she can end it instantly.",
-      points: [
-        "Invisible until you search.",
-        "Zones, never your location. Positions live only inside an active session and are never stored.",
-        "Nothing unlocks unless both say yes.",
-        "Vanish: one tap ends it, for both.",
-      ],
-      note: "Production path: verified-only matching, women-only plans, report = block, meeting point first.",
-      dark: true,
-    },
-    {
       id: "venues",
       piece: "Piotr",
       poster: 330,
       tag: "Venues · Piotr, 38",
       title: "Venues fill quiet nights. Meeting stays free.",
-      body: "Piotr runs a board-game café. On Tuesday and Thursday nights the tables stay empty. He lists two table slots a week, and just-mate fills them with people who wanted exactly that.",
+      body: "Piotr runs a board-game café. On Tuesday and Thursday nights the tables stay empty. He lists two table slots a week, and JustMate fills them with people who wanted exactly that.",
       points: [
         "Partners see counts and check-ins, never identities.",
         "A hosted plan looks like any plan, labelled with the venue that hosts it.",
@@ -240,21 +226,92 @@ const en = {
     },
   ] as Story[],
   shots: "Real screens from the hackathon build",
+  security: {
+    eyebrow: "Security and privacy",
+    title: "Built so it can't be a stalker tool.",
+    lead: "The first question about any app that knows where you are: who else can see it? On JustMate the answer is nobody, by construction. Every safety feature is free, forever.",
+    items: [
+      {
+        icon: "compass",
+        t: "A direction, never a position",
+        d: "Your partner's phone gets a bearing and a distance bucket, nothing more. The protocol has no field for anyone's coordinates.",
+      },
+      {
+        icon: "eye-off",
+        t: "No location history",
+        d: "Your position lives in server memory only while you search or walk to someone, and is dropped when the session ends. Nothing to leak.",
+      },
+      {
+        icon: "hand",
+        t: "Mutual, and one tap to vanish",
+        d: "A plan or a compass unlocks only when both say yes, and a pass is never forwarded. Vanish ends it for both, instantly, with no trace of who pressed it.",
+      },
+      {
+        icon: "shield-check",
+        t: "Moderation and age gates",
+        d: "Every saved profile passes automatic moderation, and flagged people are never matched. Adults are never matched with minors; dating is 18+, enforced on the server.",
+      },
+      {
+        icon: "lock",
+        t: "Report, block, pause",
+        d: "No chat means no DM channel to harass anyone. Report from the compass or after meeting: that person is blocked for you and the session ends. Two independent reports pause them.",
+      },
+      {
+        icon: "file-text",
+        t: "Your data, your call",
+        d: "Download everything we hold about you, or delete your account, right from Settings.",
+      },
+    ],
+    data: [
+      {
+        icon: "lock",
+        t: "Kept",
+        items: [
+          "Your account: email and a password hash",
+          "Your profile: mode, first name, age, interests, answers, vibe, preferences",
+          "Matching text written from it and two matching vectors; your selfie only as a short description of hair and face shape, never age, ethnicity or gender",
+          "Plans: who, which venue, and a rough area (a ~1 km cell) to pick a venue halfway",
+        ],
+      },
+      {
+        icon: "timer",
+        t: "Only while you search",
+        items: [
+          "Your exact position, for matching and the compass",
+          "What you're up for right now",
+          "Dropped the moment the session ends",
+        ],
+      },
+      {
+        icon: "x",
+        t: "Never",
+        items: [
+          "Any photo of you",
+          "Location history",
+          "Messages",
+          "Mood or health data",
+          "Anyone's coordinates on your phone",
+        ],
+      },
+    ],
+    note: "Production path: phone and ID verification (today the selfie check is simulated), women-only plans with verified-only matching, meeting point first, a trusted contact, and human review with an appeal before any ban. GDPR: location is processed only inside your explicit choice to search, and a data protection impact assessment comes before launch.",
+  },
   pays: {
     eyebrow: "Business model",
     title: "Those who earn from people going out pay. Meeting never does.",
     items: [
       { n: "€39 / month", d: "Partner venues list plan slots. The primary revenue." },
       { n: "15%", d: "of an optional prepaid first round at partner venues." },
-      { n: "€4.99 / month", d: "just-mate+: host your own plans, travel mode." },
+      { n: "€4.99 / month", d: "JustMate+: host your own plans, travel mode." },
       { n: "€500–2,000", d: "per festival or conference: official zones and plans." },
     ],
     readout:
       "Estimate for one city: about 21 partner venues cover the running costs. A new city opens with plans, the Now loop lights up as density grows.",
   },
   care: {
-    title: "Not therapy. A reason to go out.",
-    body: "just-mate is a social-connection product, not a medical one. We never claim to treat anything, we never ask how you feel, and there are no guilt mechanics: no streaks to lose, no “a week without going out”. Invitations are easy to ignore and a decline is silent.",
+    not: "Not therapy.",
+    reason: "A reason to go out.",
+    body: "JustMate is a social-connection product, not a medical one. We never claim to treat anything, we never ask how you feel, and there are no guilt mechanics: no streaks to lose, no “a week without going out”. Invitations are easy to ignore and a decline is silent.",
   },
   demo: {
     eyebrow: "HackYeah 2026 · built in 24 hours",
@@ -278,6 +335,7 @@ const en = {
     deck: "Deck",
     whitepaper: "Whitepaper",
     github: "Source code",
+    youtube: "Films",
     team: "Team",
   },
   join: {
@@ -290,7 +348,7 @@ const en = {
     cityHint: "Kraków",
     submit: "Join the waitlist",
     sending: "Joining…",
-    done: "You're on the list. We'll write when just-mate opens near you.",
+    done: "You're on the list. We'll write when JustMate opens near you.",
     error: "That didn't go through. Try again in a minute.",
     invalid: "Check the email address.",
     privacy:
@@ -307,14 +365,14 @@ export type Copy = typeof en
 
 const pl: Copy = {
   meta: {
-    title: "just-mate · Spotkaj kogoś naprawdę",
+    title: "JustMate · Spotkaj kogoś naprawdę",
     description:
-      "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
+      "Dla wszystkich, którym w nowym mieście doskwiera samotność. JustMate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
   },
   nav: {
     how: "Jak to działa",
     match: "Dopasowanie",
-    safety: "Bezpieczeństwo",
+    security: "Ochrona danych",
     venues: "Lokale",
     join: "Zapisz się",
   },
@@ -328,9 +386,10 @@ const pl: Copy = {
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
     title: "Spotkaj kogoś naprawdę.",
-    lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. just-mate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
+    lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. JustMate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
     join: "Zapisz się na listę",
     watch: "Obejrzyj z dźwiękiem · 54 s",
+    films: "Wszystkie nasze filmy na YouTube",
   },
   problem: {
     eyebrow: "Problem",
@@ -390,7 +449,7 @@ const pl: Copy = {
   match: {
     eyebrow: "Dopasowanie · nasz własny model AI",
     title: "Nie przypadek. Ktoś, z kim będzie o czym rozmawiać.",
-    lead: "just-mate nie łączy cię z pierwszą lepszą osobą w pobliżu. Model dopasowania, który wytrenowaliśmy sami, szuka bratnich dusz: ludzi, których obchodzi to samo co ciebie, którzy są kimś, kogo chcesz poznać, a ty kimś, kogo oni chcą poznać. Dla introwertyka to różnica między strachem przed small talkiem a rozmową, która idzie od pierwszej minuty.",
+    lead: "JustMate nie łączy cię z pierwszą lepszą osobą w pobliżu. Model dopasowania, który wytrenowaliśmy sami, szuka bratnich dusz: ludzi, których obchodzi to samo co ciebie, którzy są kimś, kogo chcesz poznać, a ty kimś, kogo oni chcą poznać. Dla introwertyka to różnica między strachem przed small talkiem a rozmową, która idzie od pierwszej minuty.",
     viz: {
       wants: "kogo chcę poznać",
       is: "kim jestem",
@@ -444,7 +503,7 @@ const pl: Copy = {
       poster: 210,
       tag: "Plan · Tomek, 28",
       title: "Aplikacja proponuje. Ty tylko mówisz tak.",
-      body: "Tomek przeprowadził się do Krakowa cztery miesiące temu i pracuje z domu. W niedzielę wieczorem just-mate proponuje mu jeden plan: planszówki · czw 19:00 · 9 min pieszo · z jedną osobą, którą widać po jej plakietce.",
+      body: "Tomek przeprowadził się do Krakowa cztery miesiące temu i pracuje z domu. W niedzielę wieczorem JustMate proponuje mu jeden plan: planszówki · czw 19:00 · 9 min pieszo · z jedną osobą, którą widać po jej plakietce.",
       points: [
         "Jeden konkretny plan zamiast menu: aktywność, publiczne miejsce, godzina i czas dojścia.",
         "Tylko wy dwoje. Plan dochodzi do skutku, gdy oboje klikniecie „Przyjmij plan”: wtedy na obu telefonach widać „oboje jesteście na tak”.",
@@ -482,28 +541,12 @@ const pl: Copy = {
       ],
     },
     {
-      id: "safety",
-      piece: "Marta",
-      poster: 240,
-      tag: "Bezpieczeństwo · Marta, 31",
-      title: "Spontaniczne spotkania, bez poczucia zagrożenia.",
-      body: "Marta wraca nocą sama do domu. Nikt nie wie, gdzie jest, dopóki ona sama nie powie: teraz, ta osoba, tak. I może to zakończyć w sekundę.",
-      points: [
-        "Nikt cię nie widzi, dopóki nie zaczniesz szukać.",
-        "Strefy, nigdy twoja lokalizacja. Pozycje istnieją tylko w trakcie aktywnej sesji i nigdy nie są zapisywane.",
-        "Nic się nie odblokuje, jeśli obie strony nie powiedzą „tak”.",
-        "Zniknij: jedno stuknięcie kończy wszystko, dla obojga.",
-      ],
-      note: "Ścieżka produkcyjna: dopasowania tylko ze zweryfikowanymi, plany tylko dla kobiet, zgłoszenie = blokada, najpierw punkt spotkania.",
-      dark: true,
-    },
-    {
       id: "venues",
       piece: "Piotr",
       poster: 330,
       tag: "Lokale · Piotr, 38",
       title: "Lokale wypełniają puste wieczory. Spotkania zostają darmowe.",
-      body: "Piotr prowadzi kawiarnię z planszówkami. We wtorki i czwartki wieczorem stoliki stoją puste. Wystawia dwa stoliki w tygodniu, a just-mate wypełnia je ludźmi, którzy chcieli dokładnie tego.",
+      body: "Piotr prowadzi kawiarnię z planszówkami. We wtorki i czwartki wieczorem stoliki stoją puste. Wystawia dwa stoliki w tygodniu, a JustMate wypełnia je ludźmi, którzy chcieli dokładnie tego.",
       points: [
         "Partnerzy widzą liczby i wejścia, nigdy tożsamości.",
         "Plan w lokalu wygląda jak każdy inny, z nazwą lokalu, który go organizuje.",
@@ -513,21 +556,92 @@ const pl: Copy = {
     },
   ],
   shots: "Prawdziwe ekrany z wersji z hackathonu",
+  security: {
+    eyebrow: "Bezpieczeństwo i prywatność",
+    title: "Zbudowane tak, żeby nie dało się nikogo śledzić.",
+    lead: "Pierwsze pytanie o każdą aplikację, która wie, gdzie jesteś: kto jeszcze to widzi? W JustMate odpowiedź brzmi: nikt, z samej konstrukcji. Każda funkcja bezpieczeństwa jest darmowa, na zawsze.",
+    items: [
+      {
+        icon: "compass",
+        t: "Kierunek, nigdy pozycja",
+        d: "Telefon drugiej osoby dostaje tylko kierunek i przedział odległości. Protokół nie ma nawet pola na czyjeś współrzędne.",
+      },
+      {
+        icon: "eye-off",
+        t: "Brak historii lokalizacji",
+        d: "Twoja pozycja jest w pamięci serwera tylko wtedy, gdy szukasz albo idziesz do kogoś, i znika po zakończeniu sesji. Nie ma czego wykraść.",
+      },
+      {
+        icon: "hand",
+        t: "Obustronnie i jedno stuknięcie, by zniknąć",
+        d: "Plan albo kompas odblokowuje się tylko po obustronnym „tak”, a odmowa nigdy nie jest przekazywana dalej. Zniknij kończy wszystko dla obojga, od razu, bez śladu, kto to zrobił.",
+      },
+      {
+        icon: "shield-check",
+        t: "Moderacja i bramki wieku",
+        d: "Każdy zapisany profil przechodzi automatyczną moderację, a oznaczone osoby nigdy nie są dopasowywane. Dorośli nigdy nie trafiają na niepełnoletnich; randki są od 18 lat, pilnuje tego serwer.",
+      },
+      {
+        icon: "lock",
+        t: "Zgłoś, zablokuj, wstrzymaj",
+        d: "Bez czatu nie ma prywatnych wiadomości, którymi można nękać. Zgłoszenie z kompasu albo po spotkaniu blokuje tę osobę i kończy sesję. Dwa niezależne zgłoszenia wstrzymują jej konto.",
+      },
+      {
+        icon: "file-text",
+        t: "Twoje dane, twoja decyzja",
+        d: "Pobierz wszystko, co o tobie przechowujemy, albo usuń konto, prosto z ustawień.",
+      },
+    ],
+    data: [
+      {
+        icon: "lock",
+        t: "Przechowujemy",
+        items: [
+          "Konto: e-mail i skrót hasła",
+          "Profil: tryb, imię, wiek, zainteresowania, odpowiedzi, vibe, preferencje",
+          "Tekst do dopasowania napisany na jego podstawie i dwa wektory; selfie tylko jako krótki opis włosów i kształtu twarzy, nigdy wieku, pochodzenia czy płci",
+          "Plany: kto, który lokal i przybliżony obszar (komórka ~1 km), by wybrać miejsce w połowie drogi",
+        ],
+      },
+      {
+        icon: "timer",
+        t: "Tylko podczas szukania",
+        items: [
+          "Twoja dokładna pozycja, do dopasowania i kompasu",
+          "Na co masz teraz ochotę",
+          "Usuwane w chwili zakończenia sesji",
+        ],
+      },
+      {
+        icon: "x",
+        t: "Nigdy",
+        items: [
+          "Żadne twoje zdjęcie",
+          "Historia lokalizacji",
+          "Wiadomości",
+          "Dane o nastroju czy zdrowiu",
+          "Czyjekolwiek współrzędne na twoim telefonie",
+        ],
+      },
+    ],
+    note: "Ścieżka produkcyjna: weryfikacja telefonu i dokumentu (dziś kontrola selfie jest symulowana), plany tylko dla kobiet z dopasowaniem tylko zweryfikowanych, najpierw punkt spotkania, zaufany kontakt oraz weryfikacja przez człowieka z możliwością odwołania przed każdą blokadą. RODO: lokalizacja jest przetwarzana tylko w ramach twojej wyraźnej decyzji o szukaniu, a ocena skutków dla ochrony danych powstanie przed startem.",
+  },
   pays: {
     eyebrow: "Model biznesowy",
     title: "Płacą ci, którzy zarabiają na tym, że ludzie wychodzą. Spotkania nigdy.",
     items: [
       { n: "39 € / mies.", d: "Lokale partnerskie wystawiają terminy planów. Główny przychód." },
       { n: "15%", d: "z opcjonalnej przedpłaconej pierwszej kolejki w lokalach partnerskich." },
-      { n: "4,99 € / mies.", d: "just-mate+: własne plany, tryb podróży." },
+      { n: "4,99 € / mies.", d: "JustMate+: własne plany, tryb podróży." },
       { n: "500–2000 €", d: "za festiwal lub konferencję: oficjalne strefy i plany." },
     ],
     readout:
       "Szacunek dla jednego miasta: około 21 lokali partnerskich pokrywa koszty utrzymania. Nowe miasto startuje z planami, a tryb Teraz rozkręca się wraz z gęstością.",
   },
   care: {
-    title: "To nie terapia. To powód, żeby wyjść.",
-    body: "just-mate to produkt do budowania relacji, nie wyrób medyczny. Nigdy nie twierdzimy, że coś leczymy, nie pytamy, jak się czujesz, i nie ma mechanizmów poczucia winy: żadnych serii do stracenia, żadnego „tydzień bez wyjścia”. Zaproszenia łatwo zignorować, a odmowa jest cicha.",
+    not: "To nie terapia.",
+    reason: "To powód, żeby wyjść.",
+    body: "JustMate to produkt do budowania relacji, nie wyrób medyczny. Nigdy nie twierdzimy, że coś leczymy, nie pytamy, jak się czujesz, i nie ma mechanizmów poczucia winy: żadnych serii do stracenia, żadnego „tydzień bez wyjścia”. Zaproszenia łatwo zignorować, a odmowa jest cicha.",
   },
   demo: {
     eyebrow: "HackYeah 2026 · zbudowane w 24 godziny",
@@ -551,6 +665,7 @@ const pl: Copy = {
     deck: "Prezentacja",
     whitepaper: "Whitepaper",
     github: "Kod źródłowy",
+    youtube: "Filmy",
     team: "Zespół",
   },
   join: {
@@ -563,7 +678,7 @@ const pl: Copy = {
     cityHint: "Kraków",
     submit: "Zapisz się",
     sending: "Zapisywanie…",
-    done: "Jesteś na liście. Napiszemy, gdy just-mate ruszy w twojej okolicy.",
+    done: "Jesteś na liście. Napiszemy, gdy JustMate ruszy w twojej okolicy.",
     error: "Nie udało się. Spróbuj ponownie za minutę.",
     invalid: "Sprawdź adres e-mail.",
     privacy:
@@ -579,7 +694,7 @@ const pl: Copy = {
 export const COPY: Record<Lang, Copy> = { en, pl }
 
 const enCaptions = Object.fromEntries(
-  Object.entries(vo.lines).map(([k, v]) => [k, v.replaceAll("Just Mate", "just-mate")]),
+  Object.entries(vo.lines).map(([k, v]) => [k, v.replaceAll("Just Mate", "JustMate")]),
 )
 
 export const CAPTIONS: Record<Lang, Record<string, string>> = {
@@ -588,14 +703,14 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "hook-0": "Co szósta osoba jest samotna.",
     "turn-0": "Aplikacje rozwiązały dopasowanie.",
     "turn-1": "Nikt nie rozwiązał drzwi.",
-    plan: "W niedzielę wieczorem just-mate proponuje mu jeden mały plan. Wystarczy, że powie tak.",
+    plan: "W niedzielę wieczorem JustMate proponuje mu jeden mały plan. Wystarczy, że powie tak.",
     on: "Plan rusza tylko wtedy, gdy oboje powiecie tak. I teraz oboje jesteście na tak.",
     table: "Kompas otwiera się. Idą sobie naprzeciw. Spotkaliśmy się.",
     again: "Przywitaj się z Olą. Powtórka za tydzień? Tak zaczynają się przyjaźnie.",
     safety: "Wzajemna zgoda. Publiczne miejsca. Jedno stuknięcie, by zniknąć.",
     "logo-0": "To nie terapia. To powód, żeby wyjść.",
-    "logo-1": "just-mate. Spotkaj kogoś naprawdę.",
-    "speeds-0": "just-mate wyciąga cię z domu w dwóch tempach.",
+    "logo-1": "JustMate. Spotkaj kogoś naprawdę.",
+    "speeds-0": "JustMate wyciąga cię z domu w dwóch tempach.",
     "speeds-1": "Plan, gdy potrzebujesz powodu, żeby wyjść.",
     "speeds-2": "Teraz, gdy już jesteś na mieście.",
     "m-table": "Dwie plakietki, bez twarzy. I jedno stuknięcie: powtórka za tydzień.",
@@ -611,14 +726,9 @@ export const CAPTIONS: Record<Lang, Record<string, string>> = {
     "a-badge": "Tutaj jej vibe to jedyne, co ktokolwiek widzi.",
     "a-match": "Ktoś w pobliżu też ma ochotę na kawę. Oboje mówią tak.",
     "a-meet": "Imiona odblokowują się dopiero po spotkaniu.",
-    "s-intro": "Marta chce spontanicznych spotkań, bez poczucia zagrożenia.",
-    "s-0": "Niewidoczna, dopóki sama nie zacznie szukać.",
-    "s-1": "Strefy, nigdy jej lokalizacja.",
-    "s-2": "Nic się nie odblokuje, jeśli obie strony nie powiedzą tak.",
-    "s-3": "I jedno stuknięcie kończy wszystko, dla obojga.",
     "p-intro":
       "Piotr prowadzi kawiarnię z planszówkami. We wtorki i czwartki wieczorem stoliki stoją puste.",
-    "p-list": "Wystawia dwa stoliki. just-mate wypełnia je ludźmi, którzy chcieli dokładnie tego.",
+    "p-list": "Wystawia dwa stoliki. JustMate wypełnia je ludźmi, którzy chcieli dokładnie tego.",
     "p-full": "Lokale płacą za wypełnienie pustych wieczorów. Poznawanie ludzi zostaje darmowe.",
     "m-plan-0": "Plan: aplikacja proponuje jeden mały plan. Ty tylko mówisz tak.",
     "m-plan-1": "Rusza, gdy oboje jesteście na tak.",

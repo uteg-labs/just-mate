@@ -61,7 +61,7 @@ The mode decides the onboarding flow, the interest list, the profile questions, 
 
 ### 0. Auth (sheet over the map)
 
-Above the sheet, on the map: the wordmark **just-mate**, "Meet for real.", and mono "no faces · no chat · no pins".
+Above the sheet, on the map: the wordmark **JustMate**, "Meet for real.", and mono "no faces · no chat · no pins".
 
 - `Segmented`: **Log in** / **Create account**.
 - Fields: `email` ("you@example.com") and `password` ("6 characters or more"). The button stays disabled until the email looks valid and the password has 6+ characters.
@@ -234,7 +234,7 @@ Back arrow "Back to the map" · large title "Settings".
 | privacy and safety | Taste and photos ("never stored") · Blocked people (how many you reported, from `ready`) · Download my data |
 | account | Email · Log out |
 
-- Footer: ghost **Delete account** · mono "just-mate · prototype · production path simulated".
+- Footer: ghost **Delete account** · mono "JustMate · prototype · production path simulated".
 - Profile rows reopen their single onboarding step in "editing" mode; done returns to Settings.
 - Language is kept on the device, not in the profile; Auto follows the phone and falls back to English. Auth emails follow it.
 - Defaults: language Auto · haptics on · sounds off · reduce motion off · auto-stop on · walk up to 10 min · open the map in the profile's mode.

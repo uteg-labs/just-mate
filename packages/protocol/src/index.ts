@@ -251,7 +251,7 @@ export type Profile = {
   mate: MatePrefs
   /** "I'm 18 or older"; always equals `age >= ADULT_AGE`. Required for date mode. */
   adult: boolean
-  /** Selfie check: one photo, described once and dropped; the liveness check is simulated in this build. */
+  /** Selfie check passed. Server-owned: `parseProfile` drops the client's value and the server keeps the stored one; nothing sets it yet. */
   verified: boolean
   /** Visible hair and face features from the selfie, written by the server's model; `""` when skipped. Never shown to anyone. */
   appearance: string
@@ -420,10 +420,11 @@ function parseSettings(v: unknown): Settings | undefined {
 /**
  * Validates an untrusted profile (e.g. a `PUT /api/profile` body) and returns a clean copy
  * without unknown keys. Errors name the first failing field: `invalid_age`, `invalid_adult`, ….
+ * `verified` is server-owned, so the copy always carries `false`; the server restores the stored value.
  */
 export function parseProfile(input: unknown): Parsed<Profile> {
   if (!isObject(input)) return fail("profile")
-  const { mode, name, gender, age, interests, qa, vibe, adult, verified } = input
+  const { mode, name, gender, age, interests, qa, vibe, adult } = input
   const { appearance, taste, character, partnerCharacter } = input
 
   if (!isOneOf(MODES, mode)) return fail("mode")
@@ -443,7 +444,6 @@ export function parseProfile(input: unknown): Parsed<Profile> {
 
   const isAdultAge = age >= ADULT_AGE
   if (adult !== isAdultAge || (mode === "date" && !isAdultAge)) return fail("adult")
-  if (typeof verified !== "boolean") return fail("verified")
   if (!isText(appearance, APPEARANCE_MAX, 0)) return fail("appearance")
   if (!isText(taste, TASTE_MAX, 0)) return fail("taste")
   if (!isText(character, CHARACTER_MAX, 0)) return fail("character")
@@ -462,7 +462,7 @@ export function parseProfile(input: unknown): Parsed<Profile> {
       date,
       mate,
       adult,
-      verified,
+      verified: false,
       appearance,
       taste,
       character,

@@ -65,8 +65,8 @@ if [ ${#missing[@]} -gt 0 ]; then
   for f in "${missing[@]}"; do echo "  - $f" >&2; done
   echo "" >&2
   echo "Run your training pipeline first. Typical flow:" >&2
-  echo "  python ml/scripts/train_experiments_v3.py --config best" >&2
-  echo "  python ml/scripts/export_v3_onnx.py --pt best.pt --onnx model_v3_best.onnx" >&2
+  echo "  python ml/scripts/train_experiments_v3.py   # → checkpoints/model_v3.pt" >&2
+  echo "  python ml/scripts/export_v3_onnx.py         # → checkpoints/model_v3_best.{onnx,json}" >&2
   exit 1
 fi
 

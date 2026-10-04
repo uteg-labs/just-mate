@@ -1,4 +1,4 @@
-import { type FormEvent, type SyntheticEvent, useEffect, useState } from "react"
+import { type FormEvent, Fragment, type SyntheticEvent, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { Clip, clips } from "./Clip"
 import { COPY, type Copy, LANGS, type Lang, LINKS, SHOTS, type Story, TEAM } from "./copy"
@@ -18,12 +18,12 @@ const Header = ({ t, lang, setLang }: { t: Copy; lang: Lang; setLang: (l: Lang) 
     <div className="wrap row">
       <a className="brand" href="#top">
         <img src="favicon.svg" alt="" width={28} height={28} />
-        <span>just-mate</span>
+        <span>JustMate</span>
       </a>
       <nav className="links" aria-label="Sections">
         <a href="#how">{t.nav.how}</a>
         <a href="#match">{t.nav.match}</a>
-        <a href="#safety">{t.nav.safety}</a>
+        <a href="#security">{t.nav.security}</a>
         <a href="#venues">{t.nav.venues}</a>
       </nav>
       <div className="langs">
@@ -70,6 +70,10 @@ const Hero = ({ t, lang }: { t: Copy; lang: Lang }) => {
       </div>
       <div className="wrap wide" id="film">
         <Clip id="Main" poster={540} lang={lang} t={t.clip} eager />
+        <a className="yt" href={LINKS.youtube} target="_blank" rel="noreferrer">
+          <Glyph name="youtube" size={18} color="#737373" />
+          {t.hero.films}
+        </a>
       </div>
     </section>
   )
@@ -229,6 +233,41 @@ const StorySection = ({ s, i, t, lang }: { s: Story; i: number; t: Copy; lang: L
   </section>
 )
 
+const Security = ({ t }: { t: Copy["security"] }) => (
+  <section className="security" id="security">
+    <div className="wrap">
+      <p className="eyebrow">{t.eyebrow}</p>
+      <h2>{t.title}</h2>
+      <p className="lead">{t.lead}</p>
+      <ul className="guards">
+        {t.items.map((g) => (
+          <li key={g.t}>
+            <Glyph name={g.icon} size={24} color="#14B8A6" />
+            <strong>{g.t}</strong>
+            <span>{g.d}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="ledger">
+        {t.data.map((col, i) => (
+          <div key={col.t} className={`col ${["held", "live", "never"][i]}`}>
+            <h3>
+              <Glyph name={col.icon} size={20} color={["#171717", "#B86E00", "#737373"][i]} />
+              {col.t}
+            </h3>
+            <ul>
+              {col.items.map((d) => (
+                <li key={d}>{d}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+      <p className="note">{t.note}</p>
+    </div>
+  </section>
+)
+
 const Pays = ({ t }: { t: Copy["pays"] }) => (
   <section className="pays">
     <div className="wrap">
@@ -251,7 +290,12 @@ const Care = ({ t }: { t: Copy["care"] }) => (
   <section className="care aurora">
     <div className="wrap narrow">
       <img src="favicon.svg" alt="" width={56} height={56} />
-      <h2>{t.title}</h2>
+      <h2>
+        <span className="not">{t.not}</span>
+        <span>
+          <mark>{t.reason}</mark>
+        </span>
+      </h2>
       <p>{t.body}</p>
     </div>
   </section>
@@ -295,6 +339,10 @@ const Demo = ({ t }: { t: Copy["demo"] }) => (
         <a className="btn tint" href={LINKS.github} target="_blank" rel="noreferrer">
           <Glyph name="github" size={18} />
           {t.github}
+        </a>
+        <a className="btn tint" href={LINKS.youtube} target="_blank" rel="noreferrer">
+          <Glyph name="youtube" size={18} />
+          {t.youtube} · YouTube
         </a>
       </div>
       <p className="team">
@@ -384,7 +432,7 @@ const Footer = ({ t }: { t: Copy["footer"] }) => (
     <div className="wrap row">
       <p className="brand">
         <img src="favicon.svg" alt="" width={24} height={24} />
-        <span>just-mate</span>
+        <span>JustMate</span>
         <em>{t.tagline}</em>
       </p>
       <p>{t.built}</p>
@@ -416,7 +464,10 @@ const App = () => {
         <Match t={t.match} />
         <Speeds t={t.speeds} />
         {t.stories.map((s, i) => (
-          <StorySection key={s.id} s={s} i={i} t={t} lang={lang} />
+          <Fragment key={s.id}>
+            <StorySection s={s} i={i} t={t} lang={lang} />
+            {s.id === "date" && <Security t={t.security} />}
+          </Fragment>
         ))}
         <Pays t={t.pays} />
         <Care t={t.care} />

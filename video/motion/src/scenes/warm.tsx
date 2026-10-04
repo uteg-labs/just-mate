@@ -4,6 +4,7 @@ import { Mark, Mono, Wordmark } from "../components/brand"
 import { Icon } from "../components/Icon"
 import { Badge, Button, Fill, Glow, Grid, Rise } from "../components/ui"
 import { c, font, H, W } from "../theme"
+import { Opener } from "./kit"
 
 type S = { dur: number }
 
@@ -531,10 +532,138 @@ const along = (t: number) => {
 }
 
 export const OPEN_AT = 46
+
+// The app's compass during the walk: the arrow points from the dot to the venue, relative to the
+// direction of walking (bearing − heading), so it swings at every corner; colour = distance bucket.
+const TARGET = ROUTE[ROUTE.length - 1]
+const PX_TO_M = 0.62 // route ≈ 1130 px ≈ 700 m, "9 min on foot"
+const deg = (dx: number, dy: number) => (Math.atan2(dx, -dy) * 180) / Math.PI
+const WalkCompass = ({ f, walk, at }: { f: number; walk: number; at: number }) => {
+  const t = sp(f, at, 16, true)
+  if (f < at) return null
+  const [x, y] = along(walk)
+  const [ax, ay] = along(Math.max(0, walk - 0.05))
+  const [bx, by] = along(Math.min(1, walk + 0.05))
+  const heading = deg(bx - ax, by - ay)
+  const bearing = deg(TARGET[0] - x, TARGET[1] - y)
+  const rot = bearing - heading + Math.sin(f / 5) * 2
+  const m = Math.hypot(TARGET[0] - x, TARGET[1] - y) * PX_TO_M
+  const b =
+    m < 30
+      ? { name: "burning", sub: "under 30 m", color: c.tempBurning }
+      : m < 80
+        ? { name: "hot", sub: "under 80 m", color: c.tempHot }
+        : m < 200
+          ? { name: "warm", sub: "under 200 m", color: c.tempWarm }
+          : { name: "cold", sub: "over 200 m", color: c.tempCold }
+  const size = 300
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 1560,
+        top: 560,
+        width: size,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 14,
+        opacity: t,
+        transform: `scale(${0.6 + t * 0.4})`,
+        transformOrigin: "50% 0",
+      }}
+    >
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: 999,
+          background: c.ink,
+          position: "relative",
+          boxShadow: `0 30px 70px rgba(0,0,0,0.3), 0 0 60px ${b.color}55`,
+        }}
+      >
+        <svg
+          aria-hidden="true"
+          width={size}
+          height={size}
+          viewBox="0 0 200 200"
+          style={{ position: "absolute", inset: 0 }}
+        >
+          {Array.from({ length: 48 }, (_, n) => n).map((i) => {
+            const a = (i / 48) * Math.PI * 2
+            const long = i % 12 === 0
+            return (
+              <line
+                key={i}
+                x1={100 + Math.sin(a) * (long ? 78 : 83)}
+                y1={100 - Math.cos(a) * (long ? 78 : 83)}
+                x2={100 + Math.sin(a) * 89}
+                y2={100 - Math.cos(a) * 89}
+                stroke={long ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.2)"}
+                strokeWidth={long ? 1.4 : 0.8}
+                strokeLinecap="round"
+              />
+            )
+          })}
+        </svg>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: `rotate(${rot}deg)`,
+          }}
+        >
+          <svg
+            aria-hidden="true"
+            width={size * 0.46}
+            height={size * 0.46}
+            viewBox="0 0 24 24"
+            style={{ overflow: "visible", filter: `drop-shadow(0 0 14px ${b.color})` }}
+          >
+            <polygon
+              points="12 2 19 21 12 17 5 21 12 2"
+              fill={b.color}
+              stroke={b.color}
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 20px",
+          borderRadius: 999,
+          background: c.white,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+        }}
+      >
+        <span
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 99,
+            background: b.color === c.tempBurning ? c.tempHot : b.color,
+          }}
+        />
+        <span style={{ fontFamily: font, fontWeight: 650, fontSize: 28, color: c.fg }}>
+          {b.name}
+        </span>
+        <Mono size={15}>{b.sub}</Mono>
+      </div>
+    </div>
+  )
+}
 export const Opens = ({ dur }: S) => {
   const f = useCurrentFrame()
   const draw = lerp(f, 6, 34, 0, 1)
-  const walk = lerp(f, 30, dur, 0, 0.45)
+  const walk = lerp(f, 30, dur, 0, 0.93, (x) => x)
   const [sx, sy] = along(walk)
   const pin = sp(f, 10, 14, true)
   const card = sp(f, 6, 18)
@@ -613,6 +742,7 @@ export const Opens = ({ dur }: S) => {
           boxShadow: `0 0 0 8px ${c.self}38, 0 0 26px ${c.self}`,
         }}
       />
+      <WalkCompass f={f} walk={walk} at={OPEN_AT + 2} />
       <div style={{ position: "absolute", left: 130, top: 120 }}>
         <Rise text="Thursday." size={120} color={c.fg} delay={2} />
         <div style={{ marginTop: 14, opacity: sp(f, 20, 12) }}>
@@ -866,7 +996,19 @@ export const Again = ({ dur }: S) => {
           position: "absolute",
           left: 0,
           right: 0,
-          top: 690,
+          top: 560,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Opener text="seven letters, means 'found by compass'?" f={f} at={30} dark />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 800,
           display: "flex",
           justifyContent: "center",
         }}
@@ -874,8 +1016,8 @@ export const Again = ({ dur }: S) => {
         <div
           style={{
             position: "relative",
-            opacity: sp(f, 40, 12),
-            transform: `translateY(${(1 - sp(f, 40, 12)) * 30}px) scale(${1 - press * 0.05})`,
+            opacity: sp(f, 46, 12),
+            transform: `translateY(${(1 - sp(f, 46, 12)) * 30}px) scale(${1 - press * 0.05})`,
           }}
         >
           <div style={{ opacity: 1 - done }}>

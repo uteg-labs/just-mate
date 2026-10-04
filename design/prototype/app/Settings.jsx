@@ -112,7 +112,7 @@ function SettingsContent({ profile, settings, setSetting, onBack, onEdit, onLogo
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
           <Button variant="ghost" size="sm">Delete account</Button>
-          <span className="t-mono" style={{ color: "var(--fg-3)" }}>just-mate · prototype · production path simulated</span>
+          <span className="t-mono" style={{ color: "var(--fg-3)" }}>JustMate · prototype · production path simulated</span>
         </div>
       </div>
     </div>

@@ -1,0 +1,270 @@
+<!-- ============ 08 ARCHITECTURE ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">08</span> Architecture</div>
+  <h1>Two processes, one contract</h1>
+  <p class="lede">A native app and a Bun server speak one typed protocol: <b>HTTP</b> for accounts, the profile and onboarding; <b>one WebSocket per phone</b> for everything live. The contract was written first — <code>PROTOCOL.md</code> → <code>@justmate/protocol</code> → code — so mobile and backend were built in parallel against it.</p>
+
+  <figure>
+    <svg viewBox="0 0 700 418" width="100%">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#171717"/></marker>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#B86E00"/></marker>
+        <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#8a8a90"/></marker>
+      </defs>
+      <!-- protocol band -->
+      <rect x="0" y="0" width="700" height="24" rx="12" fill="#FFF1DC"/>
+      <text x="350" y="16" text-anchor="middle" font-size="10.5" fill="#5b3a00"><tspan font-weight="700">@justmate/protocol</tspan> — one TypeScript package: wire types, validators (parseProfile), categories, badgeSeed · imported by app and server</text>
+
+      <!-- mobile -->
+      <rect x="0" y="36" width="210" height="236" rx="14" fill="#F4F4F5"/>
+      <text x="14" y="58" font-size="12.5" font-weight="700">Mobile app</text>
+      <text x="14" y="72" font-size="9" fill="#5f5f63" class="sm">EXPO DEV-CLIENT · iOS + ANDROID</text>
+      <g font-size="9.6">
+        <rect x="12" y="82" width="186" height="30" rx="7" fill="#fff"/><text x="22" y="95" font-weight="600">One morphing surface</text><text x="22" y="106" fill="#5f5f63" font-size="8.6">auth · onboarding · select · plans · settings</text>
+        <rect x="12" y="118" width="186" height="30" rx="7" fill="#fff"/><text x="22" y="131" font-weight="600">Map &amp; heat zones</text><text x="22" y="142" fill="#5f5f63" font-size="8.6">expo-maps · Apple / Google · geohash-6</text>
+        <rect x="12" y="154" width="186" height="30" rx="7" fill="#fff"/><text x="22" y="167" font-weight="600">Compass &amp; haptics</text><text x="22" y="178" fill="#5f5f63" font-size="8.6">magnetometer heading · expo-haptics</text>
+        <rect x="12" y="190" width="186" height="30" rx="7" fill="#fff"/><text x="22" y="203" font-weight="600">Location (foreground only)</text><text x="22" y="214" fill="#5f5f63" font-size="8.6">sent only while searching or in a session</text>
+        <rect x="12" y="226" width="186" height="34" rx="7" fill="#fff"/><text x="22" y="239" font-weight="600">Session in secure store</text><text x="22" y="251" fill="#5f5f63" font-size="8.6">Reanimated springs · i18n EN / PL</text>
+      </g>
+
+      <!-- channels -->
+      <text x="335" y="56" text-anchor="middle" font-size="10" font-weight="700">HTTPS · JSON</text>
+      <path d="M214 64H456" stroke="#171717" stroke-width="1.5" marker-end="url(#a2)" marker-start="url(#a2)"/>
+      <g font-size="8.4" class="sm" fill="#3d3d42">
+        <text x="226" y="80">/api/auth/*  email+password, magic link</text>
+        <text x="226" y="92">/api/profile  GET · PUT whole profile</text>
+        <text x="226" y="104">/api/onboarding/*  live LLM text</text>
+        <text x="226" y="116">/api/account  export · delete</text>
+      </g>
+      <text x="335" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#8A5200">WebSocket /ws · one per phone</text>
+      <path d="M214 154H456" stroke="#B86E00" stroke-width="2.2" marker-end="url(#a3)" marker-start="url(#a3)"/>
+      <g font-size="8.4" class="sm" fill="#3d3d42">
+        <text x="226" y="171">→ hello · search_on · position</text>
+        <text x="226" y="183">→ accept · dismiss · vanish · met · report</text>
+        <text x="226" y="195">→ plans_get · plan_join · again</text>
+        <text x="226" y="211">← ready · zones · match_offer</text>
+        <text x="226" y="223">← session_start · partner_position</text>
+        <text x="240" y="235">{bearing, bucket} — never lat/lng</text>
+        <text x="226" y="247">← offer_expired · session_end</text>
+        <text x="226" y="259">← plan_update</text>
+      </g>
+
+      <!-- server -->
+      <rect x="462" y="36" width="238" height="236" rx="14" fill="#0A0A0D"/>
+      <text x="476" y="58" font-size="12.5" font-weight="700" fill="#fff">Server</text>
+      <text x="476" y="72" font-size="9" fill="#a8a8b0" class="sm">BUN + ELYSIA · TYPESCRIPT</text>
+      <g font-size="9.6">
+        <rect x="474" y="82" width="214" height="30" rx="7" fill="#1f1f24"/><text x="484" y="95" font-weight="600" fill="#fff">Auth · Profile · Account</text><text x="484" y="106" fill="#a8a8b0" font-size="8.6">Better Auth + Drizzle ORM · cookie sessions</text>
+        <rect x="474" y="118" width="214" height="30" rx="7" fill="#1f1f24"/><text x="484" y="131" font-weight="600" fill="#fff">Onboarding helpers</text><text x="484" y="142" fill="#a8a8b0" font-size="8.6">LLM calls with hard timeouts → fixed samples</text>
+        <rect x="474" y="154" width="214" height="30" rx="7" fill="#2a2014"/><text x="484" y="167" font-weight="600" fill="#FFB23F">Realtime loop · 1 s tick</text><text x="484" y="178" fill="#d9c7a8" font-size="8.6">expire · relay bearing · pair · zones every 2 s</text>
+        <rect x="474" y="190" width="214" height="30" rx="7" fill="#1f1f24"/><text x="484" y="203" font-weight="600" fill="#fff">Matching · geo</text><text x="484" y="214" fill="#a8a8b0" font-size="8.6">hard gates · model or compat score · bearing</text>
+        <rect x="474" y="226" width="214" height="34" rx="7" fill="#1f1f24"/><text x="484" y="239" font-weight="600" fill="#fff">Plans engine · demo mode</text><text x="484" y="251" fill="#a8a8b0" font-size="8.6">seeded public venues · scripted stage tracks</text>
+      </g>
+
+      <!-- data stores -->
+      <rect x="462" y="300" width="114" height="60" rx="10" fill="#fff" stroke="#c8c8cc"/>
+      <text x="519" y="321" text-anchor="middle" font-size="10.5" font-weight="700">PostgreSQL</text>
+      <text x="519" y="335" text-anchor="middle" font-size="8.4" fill="#5f5f63">users · sessions</text>
+      <text x="519" y="347" text-anchor="middle" font-size="8.4" fill="#5f5f63">profiles — no positions</text>
+      <rect x="586" y="300" width="114" height="60" rx="10" fill="#fff" stroke="#c8c8cc"/>
+      <text x="643" y="321" text-anchor="middle" font-size="10.5" font-weight="700">OpenAI API</text>
+      <text x="643" y="335" text-anchor="middle" font-size="8.4" fill="#5f5f63">gpt-4o-mini · moderation</text>
+      <text x="643" y="347" text-anchor="middle" font-size="8.4" fill="#5f5f63">embeddings · 8–12 s caps</text>
+      <path d="M519 298V276" stroke="#171717" stroke-width="1.3" marker-end="url(#a2)"/>
+      <path d="M643 298V276" stroke="#171717" stroke-width="1.3" marker-end="url(#a2)"/>
+
+      <!-- ML band -->
+      <rect x="0" y="300" width="448" height="118" rx="14" fill="#F4F4F5"/>
+      <text x="14" y="321" font-size="11" font-weight="700">Matching model — trained offline (Python), served over HTTP</text>
+      <g font-size="8.6">
+        <rect x="12" y="334" width="78" height="40" rx="7" fill="#fff"/><text x="51" y="350" text-anchor="middle" font-weight="600">25k synthetic</text><text x="51" y="363" text-anchor="middle" fill="#5f5f63">profiles</text>
+        <rect x="100" y="334" width="78" height="40" rx="7" fill="#fff"/><text x="139" y="350" text-anchor="middle" font-weight="600">OpenAI embed</text><text x="139" y="363" text-anchor="middle" fill="#5f5f63">self + target</text>
+        <rect x="188" y="334" width="78" height="40" rx="7" fill="#fff"/><text x="227" y="350" text-anchor="middle" font-weight="600">125k triplets</text><text x="227" y="363" text-anchor="middle" fill="#5f5f63">hard negatives</text>
+        <rect x="276" y="334" width="78" height="40" rx="7" fill="#fff"/><text x="315" y="350" text-anchor="middle" font-weight="600">PyTorch</text><text x="315" y="363" text-anchor="middle" fill="#5f5f63">Siamese + head</text>
+        <rect x="364" y="334" width="72" height="40" rx="7" fill="#FFB23F"/><text x="400" y="350" text-anchor="middle" font-weight="700" fill="#1A1205">ONNX</text><text x="400" y="363" text-anchor="middle" fill="#1A1205">match_scorer</text>
+      </g>
+      <g stroke="#8a8a90" stroke-width="1.2"><path d="M90 354H98" marker-end="url(#a4)"/><path d="M178 354H186" marker-end="url(#a4)"/><path d="M266 354H274" marker-end="url(#a4)"/><path d="M354 354H362" marker-end="url(#a4)"/></g>
+      <text x="14" y="392" font-size="8.4" fill="#5f5f63">ONNX scorer container over HTTP · on a profile change the server scores that person against everyone</text>
+      <text x="14" y="405" font-size="8.4" fill="#5f5f63">Now reads the stored pair scores · plans and demo use the explainable formula, also the fallback</text>
+      <path d="M436 342 C 452 342, 452 220, 472 205" fill="none" stroke="#8a8a90" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#a4)"/>
+    </svg>
+    <figcaption><b>System overview.</b> The only coordinates a phone ever receives are venues. Position data flows phone → server memory → (as a bearing and a bucket) → the one matched partner, and is dropped when the session ends.</figcaption>
+  </figure>
+
+  <div class="grid3 mt6">
+    <div class="card"><div class="cap">Stack · mobile</div><p class="small mt2 mb0">Expo SDK 57, React Native 0.86, Expo Router, Reanimated 4, Gesture Handler, Bottom Sheet, <b>expo-maps</b> (native, hence a dev-client build — not Expo Go), expo-location, expo-sensors, expo-haptics, expo-secure-store, Better Auth Expo client, i18next.</p></div>
+    <div class="card"><div class="cap">Stack · server</div><p class="small mt2 mb0">Bun, Elysia (HTTP + <code>ws</code>), TypeBox validation, <b>Better Auth</b> (email + password, magic link, password reset over SMTP), <b>Drizzle ORM</b> with versioned migrations on PostgreSQL, OpenAI API over plain <code>fetch</code> (<code>gpt-4o-mini</code>, moderation, embeddings), i18next for server-side strings.</p></div>
+    <div class="card"><div class="cap">Stack · ML</div><p class="small mt2 mb0">Python with uv, PyTorch, scikit-learn, ONNX Runtime, OpenAI <code>text-embedding-3-small</code>. The scorer runs as an HTTP container, released to GHCR and deployed with Dokploy. A Jupyter evaluation notebook with ROC/PR curves, calibration, top-K retrieval and t-SNE of the learned space.</p></div>
+  </div>
+</section>
+
+<section class="chapter">
+  <h2 class="mt0">A match, end to end</h2>
+  <figure>
+    <svg viewBox="0 0 700 300" width="100%">
+      <defs>
+        <marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#171717"/></marker>
+        <marker id="s2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10z" fill="#B86E00"/></marker>
+      </defs>
+      <g font-size="11" font-weight="700" text-anchor="middle">
+        <rect x="20" y="0" width="100" height="26" rx="13" fill="#F4F4F5"/><text x="70" y="17">Phone A</text>
+        <rect x="300" y="0" width="100" height="26" rx="13" fill="#0A0A0D"/><text x="350" y="17" fill="#fff">Server</text>
+        <rect x="580" y="0" width="100" height="26" rx="13" fill="#F4F4F5"/><text x="630" y="17">Phone B</text>
+      </g>
+      <g stroke="#d0d0d4" stroke-width="1.2" stroke-dasharray="3 3"><path d="M70 28V298"/><path d="M350 28V298"/><path d="M630 28V298"/></g>
+      <g font-size="9.2" class="sm" fill="#171717">
+        <path d="M72 48H346" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="80" y="43">search_on {mate, food, [beer]}</text>
+        <path d="M628 48H354" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="620" y="43" text-anchor="end">search_on {mate, food, [beer, coffee]}</text>
+        <path d="M72 76H346" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="80" y="71">position {lat, lng, acc} · every 2 s</text>
+        <path d="M628 76H354" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="620" y="71" text-anchor="end">position · every 2 s</text>
+        <path d="M346 104H74" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="338" y="99" text-anchor="end">zones {cells: [{h, n}]}</text>
+        <rect x="352" y="112" width="210" height="18" rx="4" fill="#F4F4F5"/><text x="358" y="125" fill="#5f5f63">gates pass · ≤ 800 m · compat ≥ 0.45</text>
+        <path d="M346 146H74" stroke="#B86E00" stroke-width="2" marker-end="url(#s2)"/><text x="338" y="141" text-anchor="end" fill="#8A5200" font-weight="500">match_offer {badge, "beer", 45 s}</text>
+        <path d="M354 146H626" stroke="#B86E00" stroke-width="2" marker-end="url(#s2)"/><text x="362" y="141" fill="#8A5200" font-weight="500">match_offer — same tick</text>
+        <path d="M72 172H346" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="80" y="167">accept {offerId}</text>
+        <path d="M628 172H354" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="620" y="167" text-anchor="end">accept {offerId}</text>
+        <path d="M346 198H74" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="338" y="193" text-anchor="end">session_start {10 min}</text>
+        <path d="M354 198H626" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="362" y="193">session_start {10 min}</text>
+        <path d="M346 226H74" stroke="#B86E00" stroke-width="2" marker-end="url(#s2)"/><text x="338" y="221" text-anchor="end" fill="#8A5200" font-weight="500">partner_position {bearing: 271, "warm"}</text>
+        <path d="M354 226H626" stroke="#B86E00" stroke-width="2" marker-end="url(#s2)"/><text x="362" y="221" fill="#8A5200" font-weight="500">{bearing: 91, "warm"} · every 1 s</text>
+        <path d="M628 254H354" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="620" y="249" text-anchor="end">met {sessionId} — in burning</text>
+        <path d="M346 282H74" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="338" y="277" text-anchor="end">session_end {met} → names unlock</text>
+        <path d="M354 282H626" stroke="#171717" stroke-width="1.2" marker-end="url(#s1)"/><text x="362" y="277">session_end {met} · positions dropped</text>
+      </g>
+    </svg>
+  </figure>
+
+  <div class="grid2 mt4">
+    <div>
+      <h3 class="mt0">Protocol rules that carry the product</h3>
+      <ul class="clean small">
+        <li><b>The server is authoritative.</b> Clients only <i>request</i> (accept, vanish) and <i>report</i> (position).</li>
+        <li><b>A dismiss is never forwarded.</b> Expiry, dismiss, disconnect and a replaced search all look the same to the other side: <code>offer_expired</code>.</li>
+        <li><b>Bearing and bucket only</b>, computed server-side; exact metres go only to demo sockets for tuning and are never rendered.</li>
+        <li><b>One offer or one session per user.</b> Greedy pairing by score each tick; ties go to the shorter distance.</li>
+        <li><b>Socket close = search off.</b> Nothing live survives a reconnect — there is nothing to reconnect <i>to</i>.</li>
+        <li><b>Relative times</b> (<code>expiresInMs</code>), so phone clock skew never matters; unknown events are ignored, never fatal.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="mt0">Built for a live stage</h3>
+      <p class="small">GPS inside an arena is unreliable, and nobody waits until Thursday on stage. A <b>demo mode</b> (<code>?demo=a|b</code>, dev builds only) feeds scripted positions through the <i>identical</i> pipeline: phone B converges on A over 40 s (cold → warm → hot → burning). The track is defined relative to the stage, because the compass arrow uses the phone's real magnetometer — a mismatched script would point into the audience.</p>
+      <p class="small mb0">Demo sockets pair only with each other; nine server-side <b>ghosts</b> add map density and <b>never match</b>. A dev time-skip makes a plan start two minutes after it is proposed. All of it is labelled in the README's real-vs-canned table.</p>
+    </div>
+  </div>
+  <div class="grid2 mt4">
+    <div class="card">
+      <div class="cap">Every 1-second tick, the server</div>
+      <ol class="small mt2 mb0" style="padding-left:4.4mm">
+        <li>expires offers (45 s) and sessions (10 min), and puts the pair in cooldown;</li>
+        <li>relays <code>partner_position</code> as bearing + bucket to both members of each session;</li>
+        <li>pairs searchers: all pairs passing the gates, highest score first, at most one offer per user;</li>
+        <li>every 2 s, sends each searcher their <code>zones</code>, omitting cells under k = 3.</li>
+      </ol>
+    </div>
+    <div class="card ink">
+      <div class="cap">config · sent once in ready</div>
+      <pre class="mono" style="margin:2mm 0 0;font-size:7.2pt;line-height:1.5;color:#ececf0">offerTtlMs 45000      sessionTtlMs 600000
+pairCooldownMs 300000 autoStopMs 1800000
+walkRadiusM {5:400, 10:800, 15:1200}
+buckets {warm:200, hot:80, burning:30}
+zonePrecision 6       kAnonymity 3</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 09 MATCHING & AI ============ -->
+<section class="chapter">
+  <div class="eyebrow"><span class="n">09</span> Matching &amp; AI</div>
+  <h1>Not a random stranger.<br><span class="soft">Someone you'll have something to talk about.</span></h1>
+  <p class="lede">JustMate doesn't pair you with whoever happens to be nearby. <span class="hl">Our own AI model scores who you'd like to meet against who they are, in both directions</span>, and scores Now matches for real accounts. Plans and the stage demo run on a transparent score we can put on a slide and defend in Q&amp;A, which is also the model's fallback. An LLM interviews you and writes your vibe.</p>
+
+  <div class="split">
+    <div>
+      <h2 class="mt0">Hard gates — never learned, never scored</h2>
+      <p class="small">Whatever scores a pair, it only sees pairs that already passed every rule below:</p>
+      <ul class="clean small">
+        <li>Both searching, same mode and category, <b>at least one shared intent</b> (the context of the match: "this is a beer match")</li>
+        <li>Within <b>walking distance</b>: haversine ≤ the shorter of both walk settings (400 / 800 / 1200 m)</li>
+        <li><b>Age and safety:</b> adult flag equal on both sides; Date requires adults; each side's gender preference and age range accept the other — checked both ways</li>
+        <li>Pair not in cooldown; neither has an open offer or session; not self; not a ghost; demo sockets only with demo sockets</li>
+      </ul>
+      <h2>The explainable score</h2>
+      <div class="card ink" style="padding:4mm 5mm">
+        <pre class="mono" style="margin:0;font-size:8pt;line-height:1.55;color:#f2f2f4;white-space:pre-wrap">compat = 0.7 × Jaccard(interests) + 0.3 × min(1, |shared intents|)
+match  ⇔ gates pass  ∧  compat ≥ 0.45</pre>
+      </div>
+      <p class="small mt2">Mode and intents gate, interests score. In Now the score is never shown — the badge and the shared intent carry the moment; a plan proposal shows it as a match percentage.</p>
+      <div class="card white mt4">
+        <div class="cap">Worked example · Mate · Food and drink</div>
+        <table class="mt2" style="margin-bottom:1mm">
+          <tbody>
+            <tr><td style="width:22%">A picks</td><td>beer · coffee</td></tr>
+            <tr><td>B picks</td><td>beer</td></tr>
+            <tr><td>A interests</td><td><b>board games</b> · climbing · <b>chess</b> · <b>coding</b> · pub quiz</td></tr>
+            <tr><td>B interests</td><td><b>board games</b> · <b>chess</b> · <b>coding</b> · concerts · cycling</td></tr>
+            <tr><td>Jaccard</td><td class="mono">3 shared / 7 distinct = 0.43</td></tr>
+            <tr class="total"><td>compat</td><td class="mono">0.7 × 0.43 + 0.3 × 1 = 0.60 ≥ 0.45 → a <b>beer</b> match, if they are within walking distance</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card glow">
+        <div class="cap" style="color:#8A5200">Why distance, not zone</div>
+        <p class="small mt2" style="color:#3b2d12">Zones are a <i>display</i> unit (geohash-6, ~1.2 × 0.6 km in Kraków). Matching on "same cell" would pair people up to <b>1.35 km</b> apart — more than the <b>~830 m</b> a person walks in the 10-minute window — and would never pair two people 50 m apart on either side of a cell boundary.</p>
+        <p class="small mb0" style="color:#3b2d12"><b>800 m by default</b> (a 10-minute walk): walking toward each other that is ~400 m, <b>about 5 minutes each</b>, leaving half the window to find each other.</p>
+      </div>
+      <div class="card mt4">
+        <div class="cap">Zones on the map</div>
+        <p class="small mt2 mb0">Each searcher gets, every 2 s, the count of compatible searchers per geohash-6 cell within 2 km. Cells with fewer than 3 are omitted, so a glow can never be followed to <i>the only</i> person in it.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<section class="chapter">
+  <h2 class="mt0">The LLM in onboarding</h2>
+  <table>
+    <thead><tr><th style="width:18%">Endpoint</th><th>What it writes</th><th class="num" style="width:11%">Timeout</th></tr></thead>
+    <tbody>
+      <tr><td><code>question</code></td><td>The next onboarding question, written from your previous answers, with exactly four short options</td><td class="num mono">12 s</td></tr>
+      <tr><td><code>vibe</code></td><td>Your badge line: two lowercase clauses, ≤ 60 characters, no names or emoji, never one you rejected</td><td class="num mono">10 s</td></tr>
+      <tr><td><code>related</code></td><td>Three interests close to the one you just picked</td><td class="num mono">8 s</td></tr>
+      <tr><td><code>character</code></td><td>Five "trait — concrete detail" lines for matching; no looks, age, names or places; never sent to a match</td><td class="num mono">10 s</td></tr>
+      <tr><td><code>icebreaker</code></td><td>After you've met: one opening line from the interests you share or their vibe — a light question, no pickup lines, looks or emoji</td><td class="num mono">8 s</td></tr>
+      <tr><td><code>taste</code> · <code>appearance</code></td><td>Traits shared by the sample photos you liked; visible hair and face features from your selfie — never age, ethnicity, emotion or identity. The photo is not stored or logged</td><td class="num mono">8 s · 12 s</td></tr>
+    </tbody>
+  </table>
+  <p class="small mb0">Model: OpenAI <b><code>gpt-4o-mini</code></b> with strict JSON-schema output (overridable via <code>OPENAI_MODEL</code>). On a missing key, a timeout, an API error or output that breaks the rules, the server returns a fixed sample (<code>source: "sample"</code>), so the app never waits on an error path.</p>
+
+  <h2>The learned compatibility model</h2>
+  <div class="split">
+    <div>
+      <p>An <b>asymmetric Siamese network</b>. Each profile is embedded twice with OpenAI <code>text-embedding-3-small</code> (1536-d): once as <i>who I am</i> (self) and once as <i>who I'm looking for</i> (target). A shared encoder projects both into a 128-d compatibility space; a match head scores the pair.</p>
+      <table class="small" style="font-size:7.8pt">
+        <tbody>
+          <tr><td style="width:27%">Shared encoder</td><td class="mono">1536 → 256 → 128 · LayerNorm + ReLU · L2-normalised</td></tr>
+          <tr><td>Match head</td><td class="mono">[ |z<sub>a</sub>−z<sub>b</sub>| , z<sub>a</sub>⊙z<sub>b</sub> , cos ] · 257 → 128 → 32 → 1</td></tr>
+          <tr><td>Direction</td><td class="mono">head(target<sub>A</sub>, self<sub>B</sub>) → sigmoid</td></tr>
+          <tr><td>Pair score</td><td class="mono">dir(A→B) + dir(B→A) — symmetric, range 0–2</td></tr>
+          <tr><td>Loss</td><td class="mono">triplet (margin 1.0) + 0.5 · BCE</td></tr>
+          <tr><td>Training</td><td class="mono">cosine LR · input noise σ 0.01 · hard negatives re-mined every 2 epochs · 80/20 split by anchor</td></tr>
+        </tbody>
+      </table>
+      <p class="small mt2">Why two heads: raw embeddings encode general similarity, not compatibility. The triplet loss reshapes the space; the head learns the decision boundary and handles calibration.</p>
+      <p class="small mb0"><span class="tag m1">Production path</span> Retrain on real outcomes — mutual accept + met → 1, dismissed or vanished → 0, <b>same again</b> as the strongest positive; per-user vectors cached in PostgreSQL with pgvector; threshold calibrated on held-out real interactions (target FPR ≤ 5%, TPR ≥ 80%).</p>
+    </div>
+    <div>
+      <div class="grid2" style="gap:3mm">
+        <div class="card stat"><div class="v">0.765</div><div class="l">validation ROC-AUC</div></div>
+        <div class="card stat"><div class="v">0.753</div><div class="l">F1 at the best symmetric threshold (0.85)</div></div>
+        <div class="card stat"><div class="v">25k</div><div class="l">synthetic profiles with descriptions</div></div>
+        <div class="card stat"><div class="v">125k</div><div class="l">training triplets (5 per anchor)</div></div>
+      </div>
+      <div class="honest mt4"><b>Honest limit.</b> Before launch there are no real meetings to learn from, so the labels are synthetic and rule-based, and we make no quality claims from them. The model is exported to ONNX and served by a scorer container over HTTP. When a profile changes, the server scores that person against everyone; <b>Now pairs only above the model's threshold</b> and falls back to the explainable score while a pair has no model score. <b>Plans and the stage demo run on the explainable score.</b></div>
+      <p class="small mt4 mb0"><b>Evaluated</b> in a regenerable notebook: ROC and PR curves, confusion matrix, accuracy per hard-negative bucket, a reliability (calibration) curve, top-K retrieval over all 25k profiles, and a t-SNE of the learned space.</p>
+    </div>
+  </div>
+</section>

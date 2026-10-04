@@ -99,7 +99,13 @@ const mateWalk = ({ dur }: { dur: number }) => (
 const kaiMet =
   (sub: string) =>
   ({ dur }: { dur: number }) => (
-    <Met dur={dur} screen="mate-postmeet" title="Say hi to Kai." sub={sub} />
+    <Met
+      dur={dur}
+      screen="mate-postmeet"
+      title="Say hi to Kai."
+      sub={sub}
+      opener="best pierogi in town, go."
+    />
   )
 const matePing =
   (at: number, before: string, after: string) =>
@@ -157,7 +163,7 @@ const MAIN: Piece = {
     sc("walk", 110, mateWalk, [vo("m-walk", 6)], [fx("rise", 56, 0.3)]),
     sc(
       "met",
-      95,
+      120,
       kaiMet("Names unlock. Nothing else does."),
       [vo("m-meet", 8)],
       [fx("chime", 6, 0.35)],
@@ -209,7 +215,7 @@ const TOMEK: Piece = {
       [vo("on", 4)],
       [fx("pop", ON_TAP, 0.35), fx("buzz", ON_AT, 0.8), fx("chime", ON_AT + 2, 0.4)],
     ),
-    sc("opens", 80, Opens, [], tick([10, OPEN_AT])),
+    sc("opens", 125, Opens, [], tick([10, OPEN_AT])),
     sc("table", 108, Table, [vo("table", 4)], met),
     sc("again", 134, Again, [vo("again", 4)], again),
     outroShort(),
@@ -248,7 +254,7 @@ const LUCIA: Piece = {
     sc("walk", 110, mateWalk, [vo("l-walk", 4)], [fx("rise", 60, 0.3)]),
     sc(
       "met",
-      95,
+      125,
       kaiMet("A beer, and someone to explore the city with."),
       [vo("l-meet", 6)],
       [fx("chime", 6, 0.35)],
@@ -312,13 +318,14 @@ const ANIA: Piece = {
     ),
     sc(
       "met",
-      85,
+      120,
       ({ dur }) => (
         <Met
           dur={dur}
           screen="date-postmeet"
           title="Say hi to Tomas."
           sub="Names unlock only once you've met."
+          opener="what's the last thing you shot on film?"
         />
       ),
       [vo("a-meet", 6)],

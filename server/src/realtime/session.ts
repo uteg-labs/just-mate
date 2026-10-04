@@ -73,6 +73,7 @@ export type Session = {
   planId?: string
   persisted: Promise<void>
   store?: MatchStore
+  wasBurning?: boolean
 }
 
 export type Client = {
@@ -116,15 +117,21 @@ type Candidate = {
 
 const ZONE_RADIUS_M = 2000
 const MAX_WAIT_BONUS = 0.1
+// the date scorer's pair score sums both directions, so it tops out at 2 where the rest top out at 1
+const DATE_SCORE_MAX = 2
 
 // faster than a sprint is a spoofed fix, the kind that walks a fake baseline for triangulation
 const MAX_SPEED_MPS = 10
 // caps the accuracy slack, so a spoofed `acc` can't buy a jump
 const MAX_FIX_SLACK_M = 100
+// slack accrues with time, so fixes every 500 ms can't each claim the full cap
+const FIX_SLACK_MPS = 10
 
 // coarse enough that cold bearings from far-apart spots can't be intersected into a pin
 const BEARING_STEP = 10
 const COLD_CELL_PRECISION = 7
+// buckets measure to the partner's ~20 m cell, so walking a bucket edge traces the cell, not a pin
+const BUCKET_CELL_PRECISION = 8
 
 const REPORTABLE_MS = 86_400_000
 const PAUSE_REPORTERS = 2
@@ -345,7 +352,7 @@ function position(client: Client, msg: unknown) {
 
 // two fixes of one standing phone sit up to their accuracies apart, so that much is not movement
 function isTooFast(from: Position, to: Position, elapsedMs: number): boolean {
-  const slackM = Math.min(from.acc + to.acc, MAX_FIX_SLACK_M)
+  const slackM = Math.min(from.acc + to.acc, MAX_FIX_SLACK_M, (FIX_SLACK_MPS * elapsedMs) / 1000)
   return distanceM(from, to) > (MAX_SPEED_MPS * elapsedMs) / 1000 + slackM
 }
 
@@ -541,7 +548,8 @@ function endSession(session: Session, reason: SessionEndReason) {
     [a, b],
     [b, a],
   ] as const) {
-    const partnerName = reason === "met" ? them.profile?.name.split(" ")[0] : undefined
+    const partnerName =
+      reason === "met" && session.wasBurning ? them.profile?.name.split(" ")[0] : undefined
     client.session = undefined
     client.planGo = undefined
     stopSearch(client)
@@ -665,12 +673,14 @@ function compatibilityScore(a: Searcher, b: Searcher) {
     return {
       score: score.score,
       threshold: pairThreshold(a.search.mode),
+      scale: a.search.mode === "date" ? DATE_SCORE_MAX : 1,
       algorithmVersion: score.algorithmVersion,
       source: a.search.mode,
     }
   return {
     score: compat(a, b),
     threshold: rulesThreshold(),
+    scale: 1,
     algorithmVersion: RULES_MATCH_ALGORITHM_VERSION,
     source: "rules",
   }
@@ -682,7 +692,9 @@ function relay(me: Client, session: Session) {
   if (!me.position || !them.position) return
 
   const meters = distanceM(me.position, them.position)
-  const bucket = bucketFor(meters, config.buckets)
+  const cellM = distanceM(me.position, cellCentre(them.position, BUCKET_CELL_PRECISION))
+  const bucket = bucketFor(me.demo ? meters : cellM, config.buckets)
+  if (bucket === "burning") session.wasBurning = true
   const towards =
     me.demo || bucket !== "cold" ? them.position : cellCentre(them.position, COLD_CELL_PRECISION)
   const degrees = Math.round(bearing(me.position, towards) / BEARING_STEP) * BEARING_STEP
@@ -745,10 +757,11 @@ function candidate(a: Searcher, b: Searcher, now: number): Candidate | string {
 
   const intent = sharedIntents(a.search, b.search)[0] ?? a.search.intents[0]
   if (!intent) return "intents"
-  const { score, algorithmVersion } = compatibilityScore(a, b)
+  const { score, scale, algorithmVersion } = compatibilityScore(a, b)
   const waitingMs = Math.max(now - a.searchStartedAt, now - b.searchStartedAt)
   const waitBonus = Math.min(waitingMs / config.autoStopMs, 1) * MAX_WAIT_BONUS
-  return { a, b, intent, meters, score, rankingScore: score + waitBonus, algorithmVersion }
+  const rankingScore = score / scale + waitBonus
+  return { a, b, intent, meters, score, rankingScore, algorithmVersion }
 }
 
 function sendZones(me: Searcher, now: number) {

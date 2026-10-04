@@ -1,6 +1,7 @@
 import type { Venue } from "@justmate/protocol"
 import type { TFunction } from "i18next"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from "react-native"
 
 import { AnimatedPressable, Icon, type IconName, usePress, useScheme } from "@/components/ui"
@@ -21,19 +22,37 @@ export function planTitle(t: TFunction, plan: LivePlan): string {
   return more > 0 ? `${title} +${more}` : title
 }
 
-// "board-game café · ★ 4.8 · 7 min walk"
+// "board-game café · 7 min walk"
 export function venueMeta(t: TFunction, venue: Venue, walk?: number): string {
-  return [
-    t(`plans.kinds.${venue.kind}`),
-    venue.rating ? `★ ${venue.rating}` : undefined,
-    walk ? t("plans.walk", { n: walk }) : undefined,
-  ]
+  return [t(`plans.kinds.${venue.kind}`), walk ? t("plans.walk", { n: walk }) : undefined]
     .filter(Boolean)
     .join(" · ")
 }
 
 export function venueHours(t: TFunction, venue: Venue): string {
   return venue.closes ? t("plans.openTill", { time: venue.closes }) : t("plans.alwaysOpen")
+}
+
+export type VenueLineProps = { venue: Venue; walk?: number }
+
+// "board-game café · [star] 4.8 · 7 min walk · open till 23:00"
+export const VenueLine = ({ venue, walk }: VenueLineProps) => {
+  const { t } = useTranslation()
+  const { c } = useScheme()
+
+  return (
+    <Text numberOfLines={1} style={[type.footnote, { color: c.fg2 }]}>
+      {t(`plans.kinds.${venue.kind}`)}
+      {!!venue.rating && (
+        <>
+          {" · "}
+          <Icon name="star" size={12} color={c.fg2} /> {venue.rating}
+        </>
+      )}
+      {walk ? ` · ${t("plans.walk", { n: walk })}` : ""}
+      {` · ${venueHours(t, venue)}`}
+    </Text>
+  )
 }
 
 export type SectionProps = { label: string; right?: ReactNode; children: ReactNode }

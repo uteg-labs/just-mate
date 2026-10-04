@@ -24,7 +24,7 @@ import numpy as np
 from just_mate_ml.data.embed import EMBEDDING_DIM, parse_profiles
 
 
-ML_DIR = Path("/Users/serhiivielkin/Projects/hackyear/just-mate/ml")
+ML_DIR = Path(__file__).resolve().parents[3]
 INT_NPZ = ML_DIR / "data" / "interest_embeddings.npz"
 INT_JSON = ML_DIR / "data" / "interest_index.json"
 
@@ -70,81 +70,6 @@ def _soft_jaccard_batch(int_a_idx: np.ndarray, j_int_lists: list[np.ndarray],
         sims = a @ vec[b_idx].T  # (|A|, |B|)
         out[k] = (sims.max(axis=1).mean() + sims.max(axis=0).mean()) / 2
     return out
-
-
-def _build_candidate_pool(
-    i: int,
-    n_total: int,
-    interests: list[set[str]],
-    cos_ij: np.ndarray,
-    cos_ji: np.ndarray,
-    int_vec: np.ndarray,
-    int_name_to_row: dict[str, int],
-    forbid_pos: set[int],
-    forbid_neg: set[int],
-    max_pool: int = 50,
-    sample_size: int = 1500,
-    jaccard_threshold: float = 0.4,
-    soft_threshold: float = 0.55,
-    rng: random.Random | None = None,
-) -> tuple[list[int], list[int]]:
-    rng = rng or random.Random()
-    all_candidates = list(range(n_total))
-    all_candidates.pop(i)
-    sample = rng.sample(all_candidates, min(sample_size, len(all_candidates)))
-    int_i = list(interests[i])
-
-    pos_scores: list[tuple[float, int]] = []
-    neg_by_type: dict[str, list[tuple[float, int]]] = defaultdict(list)
-
-    for j in sample:
-        if j in forbid_pos:
-            continue
-        j_int = _jaccard(interests[i], interests[j])
-        c_ij = float(cos_ij[i, j])
-        c_ji = float(cos_ji[i, j])
-        s_soft = _soft_jaccard(int_i, list(interests[j]),
-                                int_vec, int_name_to_row)
-
-        interest_ok = j_int >= jaccard_threshold
-        pref_ab = c_ij >= 0.50
-        pref_ba = c_ji >= 0.50
-        soft_ok = s_soft >= soft_threshold
-
-        if interest_ok and pref_ab and pref_ba and soft_ok:
-            score = j_int + 0.5 * (c_ij + c_ji) + 0.5 * s_soft
-            pos_scores.append((score, j))
-            continue
-        if j in forbid_neg:
-            continue
-
-        if j_int == 0.0:
-            neg_by_type["no_overlap"].append((1.0 - c_ij, j))
-        elif not interest_ok:
-            neg_by_type["low_overlap"].append((1.0 - c_ij, j))
-        elif not soft_ok:
-            neg_by_type["soft_mismatch"].append((1.0 - c_ij, j))
-        elif not pref_ab and not pref_ba:
-            neg_by_type["both_reject"].append((1.0 - 0.5 * (c_ij + c_ji), j))
-        elif pref_ab and c_ji < 0.30:
-            neg_by_type["opposite_values"].append((c_ij, j))
-        elif pref_ab and not pref_ba:
-            neg_by_type["one_sided_ab"].append((c_ij, j))
-        elif pref_ba and not pref_ab:
-            neg_by_type["one_sided_ba"].append((c_ji, j))
-        else:
-            neg_by_type["other"].append((1.0 - 0.5 * (c_ij + c_ji), j))
-
-    pos_scores.sort(key=lambda x: -x[0])
-    pos_pool = [j for _, j in pos_scores[:max_pool]]
-
-    neg_pool: list[int] = []
-    for bucket in ("no_overlap", "low_overlap", "soft_mismatch", "both_reject",
-                   "opposite_values", "one_sided_ab", "one_sided_ba", "other"):
-        items = sorted(neg_by_type[bucket], key=lambda x: x[0])
-        neg_pool.extend(j for _, j in items[:max_pool])
-
-    return pos_pool, neg_pool
 
 
 def build_triplets(

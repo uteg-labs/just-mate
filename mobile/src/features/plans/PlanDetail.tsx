@@ -12,7 +12,7 @@ import { venueIcon, walkMin } from "@/lib/venues"
 import { layout, space } from "@/theme/layout"
 import { type } from "@/theme/type"
 
-import { IconDisc, InfoRow, MapFrame, planTitle, venueHours, venueMeta } from "./parts"
+import { IconDisc, InfoRow, MapFrame, planTitle, VenueLine } from "./parts"
 import { capital, dateMono, dayWord, slotGroups, timeOf } from "./time"
 
 export type PlanDetailProps = {
@@ -28,7 +28,6 @@ export type PlanDetailProps = {
 
 const MAP_H = 300
 const FADE_H = 70
-const REMINDER_MS = 2 * 60 * 60_000
 
 export const PlanDetail = ({
   plan,
@@ -61,7 +60,7 @@ export const PlanDetail = ({
     ? t("plans.detail.confirmed", { mode, date: dateMono(ms) })
     : t("plans.detail.invitation", {
         status: t(`plans.status.${status}`),
-        when: slots.length > 1 ? t("plans.detail.times", { n: slots.length }) : dateMono(ms),
+        when: slots.length > 1 ? t("plans.detail.times", { count: slots.length }) : dateMono(ms),
       })
 
   return (
@@ -105,11 +104,7 @@ export const PlanDetail = ({
           <IconDisc icon={venue ? venueIcon(venue.kind) : "sparkles"} size={44} />
           <View style={styles.grow}>
             <Text style={[type.headline, { color: c.fg1 }]}>{venue?.name}</Text>
-            {venue && (
-              <Text style={[type.footnote, { color: c.fg2 }]}>
-                {`${venueMeta(t, venue, here && walkMin(here, venue))} · ${venueHours(t, venue)}`}
-              </Text>
-            )}
+            {venue && <VenueLine venue={venue} walk={here && walkMin(here, venue)} />}
           </View>
         </View>
 
@@ -139,11 +134,6 @@ export const PlanDetail = ({
         <Card level={2} padding={0} style={styles.clip}>
           {isConfirmed ? (
             <>
-              <InfoRow
-                icon="bell"
-                label={t("plans.detail.reminder")}
-                value={timeOf(ms - REMINDER_MS)}
-              />
               <InfoRow
                 icon="compass"
                 label={t("plans.detail.compassOpens")}

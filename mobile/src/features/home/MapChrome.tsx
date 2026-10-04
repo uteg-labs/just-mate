@@ -84,6 +84,8 @@ export const MapChrome = ({
   const isSearch = shape === "search"
   const isMatch = shape === "match" || shape === "planoffer"
   const status: PillStatus = live.link === "lost" ? "offline" : isSearch ? "searching" : "invisible"
+  const isTracking =
+    !!live.search || !!live.session || !!live.going || shape === "select" || shape === "where"
   const top = insets.top + 4
 
   useEffect(() => {
@@ -99,6 +101,7 @@ export const MapChrome = ({
   return (
     <View style={[StyleSheet.absoluteFill, { backgroundColor: c.mapBg }]}>
       <ZoneMap
+        track={isTracking}
         zones={live.search ? live.zones : []}
         hasDummy={hasActivity && (shape === "select" || isSearch)}
         canRecenter={shape === "select" || isSearch}

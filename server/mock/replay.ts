@@ -18,7 +18,7 @@ import { KRAKOW_VENUES } from "../test/venues"
 
 // replays the PROTOCOL.md happy path so mobile can run without the real backend
 
-const port = Number(process.env.MOCK_PORT ?? 3001)
+const port = Number(process.env.MOCK_PORT || 3001)
 
 const config = { ...DEFAULT_CONFIG, demo: true }
 
@@ -259,7 +259,7 @@ function walk(ws: Socket, planId?: string) {
       distance -= WALK_M_PER_TICK
       if (distance <= 0) {
         stop(ws)
-        send(ws, { t: "session_end", sessionId: "s1", reason: "met" })
+        send(ws, { t: "session_end", sessionId: "s1", reason: "met", partnerName: "Sam" })
         endPlan(ws)
         return
       }

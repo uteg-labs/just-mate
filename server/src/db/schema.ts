@@ -135,7 +135,7 @@ export const plan = pgTable(
     ownerId: text("ownerId")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    guestId: text("guestId").references(() => user.id, { onDelete: "cascade" }),
+    guestId: text("guestId").references(() => user.id, { onDelete: "set null" }),
     accepted: jsonb("accepted").$type<string[]>().notNull(),
     passed: jsonb("passed").$type<string[]>().notNull(),
     suggestedBy: text("suggestedBy"),
@@ -180,6 +180,7 @@ export const profileEmbedding = pgTable("profile_embedding", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("userId")
     .notNull()
+    .unique()
     .references(() => user.id, { onDelete: "cascade" }),
   selfEmb: real("self_emb").array().notNull(),
   targetEmb: real("target_emb").array().notNull(),

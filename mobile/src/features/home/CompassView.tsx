@@ -17,7 +17,8 @@ import { secondsUntil, useNow } from "./useNow"
 
 export type CompassViewProps = {
   session: Session
-  match: Match
+  /** missing when a plan's partner never arrived: the compass still points and can vanish */
+  match?: Match
   buckets: Config["buckets"]
   /** a plan's venue, shown with the intent */
   place?: string
@@ -67,8 +68,7 @@ export const CompassView = ({
   const { bearing, bucket } = session
   const isWaiting = !bucket
   const isBurning = bucket === "burning"
-  const intent = intentLabel(t, match.sharedIntent)
-  const label = place ? `${intent} · ${place}` : intent
+  const label = [match && intentLabel(t, match.sharedIntent), place].filter(Boolean).join(" · ")
 
   useBucketHaptics(bucket)
   useWarning(left)
@@ -80,7 +80,7 @@ export const CompassView = ({
         { paddingTop: insets.top + space.l, paddingBottom: Math.max(insets.bottom, 36) },
       ]}
     >
-      <Countdown seconds={left} label={t("compass.left", { intent: label })} />
+      <Countdown seconds={left} label={label ? t("compass.left", { intent: label }) : undefined} />
 
       <View style={styles.center}>
         <CompassDial
@@ -100,7 +100,7 @@ export const CompassView = ({
         )}
       </View>
 
-      <VibeCard compact eyebrow={t("compass.lookingFor")} quote={match.partner.vibe} />
+      {match && <VibeCard compact eyebrow={t("compass.lookingFor")} quote={match.partner.vibe} />}
       <View style={styles.buttons}>
         <Button
           title={t("compass.vanish")}

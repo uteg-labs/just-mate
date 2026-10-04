@@ -1,6 +1,6 @@
 import type { Venue } from "@justmate/protocol"
 
-// the hand-tagged Kraków list that drizzle/0006_venues.sql seeds; tests and the mock run on it
+// the hand-tagged Kraków list that drizzle/0006_venues.sql and 0008 seed; tests and the mock run on it
 export const KRAKOW_VENUES: Venue[] = [
   {
     id: "dvor",
@@ -181,5 +181,41 @@ export const KRAKOW_VENUES: Venue[] = [
     lng: 19.9125,
     modes: ["date", "mate"],
     fits: ["coffee", "tea", "brunch", "dessert", "board games", "chess"],
+  },
+  {
+    id: "court",
+    name: "Court Club",
+    kind: "sports_centre",
+    rating: 4.5,
+    opens: "07:00",
+    closes: "23:00",
+    lat: 50.071,
+    lng: 19.925,
+    modes: ["mate"],
+    fits: ["padel", "tennis", "basketball", "gym"],
+  },
+  {
+    id: "flow",
+    name: "Flow Studio",
+    kind: "sports_centre",
+    rating: 4.8,
+    opens: "07:00",
+    closes: "21:00",
+    lat: 50.057,
+    lng: 19.945,
+    modes: ["date", "mate"],
+    fits: ["yoga", "gym"],
+  },
+  {
+    id: "lido",
+    name: "Lido Pool",
+    kind: "pool",
+    rating: 4.4,
+    opens: "06:00",
+    closes: "22:00",
+    lat: 50.054,
+    lng: 19.928,
+    modes: ["mate"],
+    fits: ["swim"],
   },
 ]

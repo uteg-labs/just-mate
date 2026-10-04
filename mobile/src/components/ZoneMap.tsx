@@ -1,4 +1,4 @@
-import type { Venue } from "@justmate/protocol"
+import type { ServerMsg, Venue } from "@justmate/protocol"
 import { AppleMaps, GoogleMaps } from "expo-maps"
 // the AppleMaps namespace does not re-export this enum
 import { AppleMapsMapStyleEmphasis } from "expo-maps/build/apple/AppleMaps.types"
@@ -15,13 +15,15 @@ import { layout } from "@/theme/layout"
 
 // the only map in the app: swap the map provider here and nowhere else (BUILD-PLAN risks)
 
-type Zone = { h: string; n: number }
+type Zone = Extract<ServerMsg, { t: "zones" }>["cells"][number]
 
 type Coordinates = { latitude: number; longitude: number }
 
 type Circle = { id: string; center: Coordinates; radius: number; color: string; lineWidth: 0 }
 
 export type ZoneMapProps = {
+  /** watch your position; off, the dot stays at the last fix */
+  track: boolean
   zones?: Zone[]
   /** stand-in crowd while `zones` is empty; off until an activity is picked */
   hasDummy?: boolean
@@ -213,15 +215,7 @@ type CanvasProps = {
   mapRef?: RefObject<MapHandle | null>
 }
 
-const Canvas = ({
-  camera,
-  circles,
-  markers,
-  polylines,
-  onMap,
-  onVenue,
-  mapRef,
-}: CanvasProps) => {
+const Canvas = ({ camera, circles, markers, polylines, onMap, onVenue, mapRef }: CanvasProps) => {
   const tapCircle = ({ center }: { center: Partial<Coordinates> }) =>
     center.latitude !== undefined &&
     center.longitude !== undefined &&
@@ -295,6 +289,7 @@ const Canvas = ({
 }
 
 export const ZoneMap = ({
+  track,
   zones = [],
   hasDummy = false,
   onZone,
@@ -305,7 +300,7 @@ export const ZoneMap = ({
 }: ZoneMapProps) => {
   const { t } = useTranslation()
   const insets = useSafeAreaInsets()
-  const position = useOwnPosition()
+  const position = useOwnPosition(track)
   const mapRef = useRef<MapHandle | null>(null)
   const [camera, setCamera] = useState({ coordinates: KRAKOW_ARENA, zoom: ZOOM })
   const [isCentered, setIsCentered] = useState(false)

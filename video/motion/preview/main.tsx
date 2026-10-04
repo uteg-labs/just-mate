@@ -42,6 +42,7 @@ const App = () => {
     })
   }, [piece])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new piece remounts the player, so the listener re-attaches
   useEffect(() => {
     const p = player.current
     if (!p) return

@@ -250,12 +250,7 @@ export const StepSwipe = ({ profile, set, next, eyebrow }: StepProps) => {
       sub={t("onboarding.swipe.sub")}
       cta={
         isDone ? (
-          <Button
-            title={t("onboarding.swipe.cta")}
-            fullWidth
-            loading={isWriting}
-            onPress={next}
-          />
+          <Button title={t("onboarding.swipe.cta")} fullWidth loading={isWriting} onPress={next} />
         ) : (
           <View style={styles.actions}>
             <Button

@@ -1,5 +1,7 @@
 # T05 — Training
 
+> **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../ML-MATCHING.md).
+
 **Goal:** train `SiameseCompatModel` on triplet dataset (built from T03 pairs), save best checkpoint by val loss.
 
 **Time:** 60 min.

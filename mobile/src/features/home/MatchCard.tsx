@@ -1,3 +1,4 @@
+import type { MatchPartner, Mode } from "@justmate/protocol"
 import type { TFunction } from "i18next"
 import { useTranslation } from "react-i18next"
 import { StyleSheet, Text, useWindowDimensions, View } from "react-native"
@@ -28,7 +29,7 @@ const STRAP = 150
 const PILL_H = 52
 
 // the badge only claims what the server vouched for
-function tagOf(t: TFunction, { partner, mode }: Match) {
+export function tagOf(t: TFunction, partner: MatchPartner, mode: Mode) {
   if (!partner.tags.verified) return t(`modes.${mode}`).toLowerCase()
   return partner.tags.adult && mode === "date" ? t("match.adult") : t("match.verified")
 }
@@ -63,7 +64,7 @@ export const MatchCard = ({ offer, match, pronoun, onAccept, onDismiss }: MatchC
             intent: intentLabel(t, sharedIntent),
           })}
           quote={partner.vibe}
-          tag={tagOf(t, match)}
+          tag={tagOf(t, match.partner, match.mode)}
           turnKey={offer.offerId}
           dim={isExpired}
         />

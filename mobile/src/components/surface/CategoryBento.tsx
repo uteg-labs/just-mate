@@ -187,7 +187,9 @@ const OpenCard = ({ category, picks, onClose, onToggle }: OpenCardProps) => {
           <Chip
             key={intent}
             size="sm"
-            label={intent === OTHER ? t("bento.other") : intent}
+            label={
+              intent === OTHER ? t("bento.other") : t(`vocab.${intent}`, { defaultValue: intent })
+            }
             icon={intent === OTHER ? "plus" : undefined}
             selected={picks.includes(intent)}
             onPress={() => onToggle(intent)}

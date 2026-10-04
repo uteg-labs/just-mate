@@ -1,9 +1,10 @@
 import { findCategory, OTHER_INTENT } from "@justmate/protocol"
 import { useTranslation } from "react-i18next"
-import { ScrollView, StyleSheet, Text, View } from "react-native"
+import { Linking, ScrollView, StyleSheet, Text, View } from "react-native"
 
 import { Button, Chip, clock, Icon, PulseDot, useScheme } from "@/components/ui"
 import { toggle } from "@/lib/list"
+import { useLocationDenied } from "@/lib/location"
 import type { Searching } from "@/lib/store"
 import { radius, space } from "@/theme/layout"
 import { type } from "@/theme/type"
@@ -24,6 +25,7 @@ export const SearchSheet = ({ search, onPicks, onStop }: SearchSheetProps) => {
   const { t } = useTranslation()
   const { c, shadow } = useScheme()
   const now = useNow()
+  const isDenied = useLocationDenied()
   const { mode, category, intents } = search
   const options = findCategory(mode, category)?.intents ?? []
   const elapsed = (now - search.startedAt) / 1000
@@ -76,12 +78,23 @@ export const SearchSheet = ({ search, onPicks, onStop }: SearchSheetProps) => {
 
       <View style={[styles.card, { backgroundColor: c.surfaceCard, boxShadow: shadow[2] }]}>
         <View style={styles.grow}>
-          <Text style={[type.headline, { color: c.fg1 }]}>{t("search.visible")}</Text>
-          <Text style={[type.footnote, styles.sub, { color: c.fg2 }]}>{t("search.mutual")}</Text>
+          <Text style={[type.headline, { color: c.fg1 }]}>
+            {t(isDenied ? "location.off" : "search.visible")}
+          </Text>
+          <Text style={[type.footnote, styles.sub, { color: c.fg2 }]}>
+            {t(isDenied ? "location.denied" : "search.mutual")}
+          </Text>
         </View>
         <Text style={[type.mono, styles.clock, { color: c.fg1 }]}>{clock(elapsed)}</Text>
       </View>
 
+      {isDenied && (
+        <Button
+          title={t("location.openSettings")}
+          fullWidth
+          onPress={() => void Linking.openSettings()}
+        />
+      )}
       <Button
         title={t("search.stop")}
         variant="secondary"

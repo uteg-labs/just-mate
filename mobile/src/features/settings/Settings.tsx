@@ -46,11 +46,10 @@ export type SettingsProps = {
   onLogout: () => void
 }
 
-type Feel = "haptics" | "sounds" | "reduceMotion"
+type Feel = "haptics" | "reduceMotion"
 
 const FEEL: { key: Feel; icon: IconName }[] = [
   { key: "haptics", icon: "vibrate" },
-  { key: "sounds", icon: "volume-2" },
   { key: "reduceMotion", icon: "accessibility" },
 ]
 

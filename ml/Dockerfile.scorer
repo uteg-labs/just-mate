@@ -45,9 +45,10 @@ COPY src ./src
 #   MODEL_RELEASE_TAG    tag like "ml-models@1.0.0"
 #   GITHUB_REPO          org/repo slug — override for forks
 #
-# Both ONNX models + their JSON model cards + the interest vocabulary land
-# in /app/{checkpoints,data}. Failing to fetch is loud (curl -f) so partial
-# releases don't ship a 500-ing container.
+# Release assets are flat; both ONNX models + their JSON model cards + the
+# interest vocabulary land in /app/{checkpoints,data}. Failing to fetch is
+# loud (curl -f, exit on the first miss) so partial releases don't ship a
+# 500-ing container.
 ARG MODEL_RELEASE_TAG=ml-models@1.0.0
 ARG GITHUB_REPO=uteg-labs/just-mate
 ENV MODEL_RELEASE_URL=https://github.com/${GITHUB_REPO}/releases/download/${MODEL_RELEASE_TAG}
@@ -66,7 +67,7 @@ RUN mkdir -p /app/checkpoints /app/data \
         echo "→ fetching $f from ${MODEL_RELEASE_URL}"; \
         curl -fsSL --retry 3 --retry-delay 2 \
             -o "/app/$f" \
-            "${MODEL_RELEASE_URL}/$f"; \
+            "${MODEL_RELEASE_URL}/${f##*/}" || exit 1; \
     done
 
 ENV MATCH_SCORER_MODEL=/app/checkpoints/${MATCH_SCORER_MODEL_FILE} \

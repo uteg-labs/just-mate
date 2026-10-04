@@ -69,6 +69,7 @@ Live text for onboarding, written by an LLM. Each call has a hard timeout; on a 
 | `POST /api/onboarding/character` | `{ mode, interests, qa }` | `{ character, source }` | 10 s |
 | `POST /api/onboarding/taste` | `{ picks: string[] }` (≤ 30 descriptions of liked samples, ≤ 400 chars each) | `{ taste, source }` | 8 s |
 | `POST /api/onboarding/appearance` | `{ photo }` (one base64 JPEG, ≤ `PHOTO_MAX` chars) | `{ appearance, source }` | 12 s |
+| `POST /api/onboarding/icebreaker` | `{ mode, interests, partnerInterests, partnerVibe }` | `{ line, source }` | 8 s |
 
 `source` is `"live" | "sample"`. Invalid bodies get `400 { error: "invalid_request" }`.
 
@@ -77,6 +78,7 @@ Live text for onboarding, written by an LLM. Each call has a hard timeout; on a 
 - **Related:** 3 lowercase interests (≤ 24 chars) close to `item`, none already in `have`. Sample: the fixed related list for `item`, minus `have` (empty for unknown items).
 - **Character:** five lines, one sentence each, shaped "Trait — concrete detail.", third person, no looks, age, names or places; ≤ 1000 chars. Sample: the answers, one per line.
 - **Taste:** one line of comma-separated traits that repeat across `picks`, nothing invented; ≤ 300 chars. Sample: the picks joined with `; `, cut to 300.
+- **Icebreaker:** one opening line to say to someone just met in person, from the interests both share or the other's vibe; a light question or remark, at most `ICEBREAKER_MAX` characters, no emoji, quotes, pickup lines or mention of looks, the app or matching. The client asks for it on the post-meet screen with the `partner` it got in `match_offer` and its own interests; nothing else about either person is sent. Sample: a fixed line for the mode.
 - **Appearance:** one line of visible hair and face features only (hair, face shape, cheekbones, eyes, brows, facial hair, glasses), never age, ethnicity, gender, weight, emotion or identity; ≤ 300 chars, `""` when no face is visible. Sample: `""`. The photo is passed to the model once and never stored or logged.
 
 ## WebSocket

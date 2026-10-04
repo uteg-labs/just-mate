@@ -1,4 +1,4 @@
-# just-mate · site
+# JustMate · site
 
 The public web page: the `Main` film as the hero, then one section per use case with its clip (Tomek, Lucía, Ania, Marta, Piotr), the business model, what's real in the demo and a waitlist. EN and PL (`?lang=pl`, or the browser language).
 

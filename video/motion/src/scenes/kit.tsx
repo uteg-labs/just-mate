@@ -43,7 +43,7 @@ const Tag = ({
   </div>
 )
 
-// Persona intro — who this clip is about, before just-mate (cool grey).
+// Persona intro — who this clip is about, before JustMate (cool grey).
 export const Persona = ({
   dur,
   name,
@@ -492,7 +492,8 @@ export const Met = ({
   screen,
   title,
   sub,
-}: S & { screen: string; title: string; sub: string }) => {
+  opener,
+}: S & { screen: string; title: string; sub: string; opener?: string }) => {
   const f = useCurrentFrame()
   const enter = sp(f, 0, 20)
   return (
@@ -533,9 +534,77 @@ export const Met = ({
             {sub}
           </span>
         </div>
+        {opener && <Opener text={opener} f={f} at={34} />}
       </div>
       {fadeTo(f, dur, c.cream)}
     </WarmBg>
+  )
+}
+
+// AI icebreaker: one opening line written for the two of them (introverts rarely know how to start).
+export const Opener = ({
+  text,
+  f,
+  at,
+  dark = false,
+}: {
+  text: string
+  f: number
+  at: number
+  dark?: boolean
+}) => {
+  const t = sp(f, at, 14)
+  return (
+    <div
+      style={{
+        marginTop: 36,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 22,
+        padding: "22px 30px",
+        borderRadius: 28,
+        background: dark ? "#1E1E1E" : c.white,
+        boxShadow: dark
+          ? "inset 0 1px 0 rgba(255,255,255,0.08)"
+          : "0 0 0 1px rgba(0,0,0,0.04), 0 20px 50px rgba(60,40,10,0.10)",
+        opacity: t,
+        transform: `translateY(${(1 - t) * 24}px)`,
+        textAlign: "left",
+      }}
+    >
+      <div
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: 999,
+          background: c.glow,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Icon name="sparkles" size={34} color={c.onGlow} stroke={2} />
+      </div>
+      <div>
+        <Mono size={17} color={dark ? "rgba(235,235,245,0.6)" : c.fg2}>
+          icebreaker · written by AI for you two
+        </Mono>
+        <div
+          style={{
+            fontFamily: font,
+            fontStyle: "italic",
+            fontWeight: 500,
+            fontSize: 36,
+            letterSpacing: -0.6,
+            color: dark ? c.white : c.fg,
+            marginTop: 6,
+          }}
+        >
+          “{text}”
+        </div>
+      </div>
+    </div>
   )
 }
 

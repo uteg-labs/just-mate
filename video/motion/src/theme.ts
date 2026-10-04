@@ -7,7 +7,7 @@ export const asset = (p: string) => {
   return base === undefined ? staticFile(p) : base + p
 }
 
-// Tokens mirror the just-mate design system export (design/prototype/_ds/tokens).
+// Tokens mirror the JustMate design system export (design/prototype/_ds/tokens).
 // Story colour arc: cold paper (the problem) → warm light + night (the product).
 export const c = {
   // cold phase

@@ -1,4 +1,4 @@
-/* 4-pt grid from just-mate DESIGN.md §4. Radii follow Fluid Functionalism pill shape (item 20 / container 24): controls are full pills. */
+/* 4-pt grid from JustMate DESIGN.md §4. Radii follow Fluid Functionalism pill shape (item 20 / container 24): controls are full pills. */
 :root{
   --space-xs:4px;--space-s:8px;--space-m:12px;--space-l:16px;--space-xl:24px;--space-xxl:32px;--space-xxxl:48px;
   --gutter:16px;--sheet-padding:24px;--hit-min:44px;

@@ -252,7 +252,7 @@ section {
 
 .links {
   display: flex;
-  gap: 28px;
+  gap: 24px;
   margin-left: auto;
   font-size: 15px;
   font-weight: 500;
@@ -933,6 +933,131 @@ section {
   max-width: 90ch;
 }
 
+/* security */
+.security .lead {
+  max-width: 64ch;
+}
+
+.guards {
+  list-style: none;
+  padding: 0;
+  margin: clamp(48px, 6vw, 72px) 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.guards li {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: clamp(22px, 2.6vw, 30px);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 8px 24px -12px rgba(0, 0, 0, 0.12);
+}
+
+.guards img {
+  margin-bottom: 6px;
+}
+
+.guards strong {
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.guards span {
+  font-size: 15px;
+  color: var(--fg2);
+}
+
+.ledger {
+  margin-top: clamp(48px, 6vw, 72px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.ledger .col {
+  padding: clamp(22px, 2.6vw, 32px);
+}
+
+.ledger .col + .col {
+  border-left: 1px solid var(--line);
+}
+
+.ledger h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+
+.ledger ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.ledger li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.ledger li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--fg);
+}
+
+.live {
+  background: color-mix(in oklab, var(--glow) 9%, var(--white));
+}
+
+.live li::before {
+  background: var(--glow);
+}
+
+.never {
+  background: var(--paper);
+}
+
+.never li {
+  color: var(--fg2);
+}
+
+.never li::before {
+  background: none;
+  content: "×";
+  width: auto;
+  height: auto;
+  top: 0;
+  left: 1px;
+  color: var(--fg3);
+  font-weight: 600;
+}
+
+.security .note {
+  margin-top: 32px;
+  max-width: 90ch;
+}
+
 /* business */
 .tiles {
   list-style: none;
@@ -982,8 +1107,32 @@ section {
   display: block;
 }
 
+/* the film's outro: grey "not therapy", then the reason underlined in glow */
+.care h2 {
+  display: grid;
+  justify-items: center;
+  gap: 0.14em;
+  font-size: clamp(36px, 7vw, 88px);
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.care .not {
+  color: var(--fg2);
+  font-weight: 650;
+}
+
+.care mark {
+  color: var(--fg);
+  background: linear-gradient(transparent 62%, rgb(255 178 63 / 0.6) 62%);
+  padding: 0 0.04em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 .care.aurora p {
-  margin: 24px auto 0;
+  margin: 36px auto 0;
   font-size: clamp(17px, 1.7vw, 20px);
   color: var(--fg2);
   max-width: 60ch;
@@ -1218,13 +1367,25 @@ section {
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 1100px) {
   .links {
     display: none;
   }
 
   .langs {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .guards,
+  .ledger {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ledger .col + .col {
+    border-left: 0;
+    border-top: 1px solid var(--line);
   }
 
   .steps,

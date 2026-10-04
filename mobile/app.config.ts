@@ -76,8 +76,8 @@ export default (): ExpoConfig => ({
     ],
   ],
   web: {
-    name: "just-mate · Meet for real.",
-    shortName: "just-mate",
+    name: "JustMate · Meet for real.",
+    shortName: "JustMate",
     description:
       "Pick what you're up for. When someone nearby wants the same thing, both phones ping. Accept, and a compass walks you to each other.",
     themeColor: "#FAFAFA",

@@ -418,7 +418,7 @@ const FaceText = ({ design, eyebrow, quote, name, tag, isSmall }: FaceTextProps)
           )}
           <View style={styles.footRow}>
             <Text style={[isSmall ? styles.markSmall : styles.mark, { color: c.fg1 }]}>
-              just-mate
+              JustMate
             </Text>
             {!isSmall && !!tag && (
               <View style={styles.tag}>

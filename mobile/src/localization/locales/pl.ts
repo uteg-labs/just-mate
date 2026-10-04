@@ -14,7 +14,7 @@ export const pl = {
     errors: {
       credentials: "ten e-mail i hasło do siebie nie pasują.",
       exists: "konto z tym e-mailem już istnieje. spróbuj się zalogować.",
-      generic: "nie udało się połączyć z just-mate. spróbuj za chwilę.",
+      generic: "nie udało się połączyć z JustMate. spróbuj za chwilę.",
     },
   },
   onboarding: {
@@ -28,7 +28,7 @@ export const pl = {
       last: "ostatni krok",
     },
     saveError: "nie udało się zapisać profilu. spróbuj za chwilę.",
-    offline: "nie udało się połączyć z just-mate. sprawdź internet i spróbuj ponownie.",
+    offline: "nie udało się połączyć z JustMate. sprawdź internet i spróbuj ponownie.",
     retry: "Spróbuj ponownie",
     mode: {
       title: "Po co tu jesteś?",
@@ -49,7 +49,7 @@ export const pl = {
       cta: "Mów mi {{name}}",
       ctaName: "Wpisz swoje imię",
       ctaAge: "Podaj swój wiek",
-      ctaAgeRange: "just-mate jest od 16 lat",
+      ctaAgeRange: "JustMate jest od 16 lat",
       ctaAdult: "Randki są od 18 lat",
     },
     interests: {
@@ -216,7 +216,7 @@ export const pl = {
     deleteConfirm: "Usuń",
     deleteError: "nie udało się usunąć konta. spróbuj za chwilę.",
     cancel: "Anuluj",
-    footer: "just-mate · prototyp · ścieżka produkcyjna symulowana",
+    footer: "JustMate · prototyp · ścieżka produkcyjna symulowana",
   },
   home: {
     brand: {

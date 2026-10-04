@@ -24,7 +24,7 @@ services:
         # running `bash ml/scripts/release_models.sh ml-models@<semver>`,
         # then `docker compose build scorer` to pull the new ONNX.
         # Default in the Dockerfile is the tag this image shipped with.
-        - MODEL_RELEASE_TAG=${MODEL_RELEASE_TAG:-ml-models@1.0.0}
+        - MODEL_RELEASE_TAG=${MODEL_RELEASE_TAG:-ml-models@1.1.0}
     image: match-scorer:local
     environment:
       - LOG_LEVEL=info

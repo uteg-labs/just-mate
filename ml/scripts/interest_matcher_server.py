@@ -55,6 +55,7 @@ from just_mate_ml.models.interest_matcher import (  # noqa: E402
     combine_linear,
     extract_features,
     extract_features_from_strings,
+    known_interests,
     load_interest_table,
 )
 
@@ -131,13 +132,12 @@ def score_pair_strings(
         if model.session is not None
         else combine_linear(feats)
     )
-    a_idx = [name_to_row[k] for k in interests_a if k in name_to_row]
-    b_idx = [name_to_row[k] for k in interests_b if k in name_to_row]
-    a_emb = int_vec[a_idx] if a_idx else np.zeros((0, EMBEDDING_DIM), dtype=np.float32)
-    b_emb = int_vec[b_idx] if b_idx else np.zeros((0, EMBEDDING_DIM), dtype=np.float32)
+    known_a = known_interests(interests_a, name_to_row)
+    known_b = known_interests(interests_b, name_to_row)
     breakdown = best_match_breakdown(
-        a_emb, b_emb,
-        labels_a=interests_a, labels_b=interests_b,
+        int_vec[[name_to_row[k] for k in known_a]],
+        int_vec[[name_to_row[k] for k in known_b]],
+        labels_a=known_a, labels_b=known_b,
     )
     return {
         "score": round(float(np.clip(score, 0.0, 1.0)), 4),

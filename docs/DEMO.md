@@ -11,11 +11,11 @@ Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → Us
 - **0:00 — Problem (slide 2).** "One in six people worldwide is affected by loneliness. WHO links it to more than 871,000 deaths a year, and lonely people are twice as likely to get depressed. In the EU, 13% feel lonely most or all of the time." Then the friction: "The hard part isn't meeting someone online. It's the step out of the door."
 - **0:35 — User (slide 3).** "Tomek is 28, moved to Kraków for a job, works from home. Sunday night, he hasn't spoken to anyone all weekend." Three frictions: initiative, uncertainty, judgment.
 - **1:00 — Value (slide 4).** "The app makes the plan. He only says yes. The goal is not one meeting but the repeat: friendship takes about 50 hours together. We'll know it works from plans that happen, repeat meetings, and an opt-in UCLA-3 loneliness score."
-- **1:30 — Solution + live demo (slides 5–6).** Two presenters, two phones. A is Tomek.
-  1. A opens the map, **your plans · 1 new**: B's vibe, an activity, a venue, "9 min for you, 7 for them". A reads it aloud.
+- **1:30 — Solution + live demo (slides 5–6).** Two presenters, two phones in demo mode (`EXPO_PUBLIC_DEMO=a|b`): A is Tomek, B is Ola.
+  1. A opens the map, **your plans**: Ola's vibe, a shared activity, a public venue, "{mine} min for you, {theirs} for them". A reads it aloud.
   2. A taps **Accept plan** → "waiting for them…". B taps **Accept plan** → both phones turn **you're both in** at the same moment. "He didn't plan anything. He said yes, and he knows someone will be there."
   3. Demo plan starts two minutes after confirmation, so **Open compass** is live. Both open it; B walks; the bucket goes cold, warm, hot, burning; haptics speed up.
-  4. They meet centre stage. **We met** → "you found each other".
+  4. They meet centre stage. **We met** → *"Say hi to Ola."* and how far Tomek walked. Names unlock, nothing else does. **Same again next week?** is a button today; scheduling it is production path.
   5. One line on Now: "Already out? Two compatible people nearby who want the same thing get pinged at once, same compass."
 - **3:20 — Design choices (slide 7).** Pick one: "No photos, only a vibe line. It costs us information, especially for dating. We mitigate with an LLM-written vibe and taste training."
 - **3:40 — Risk (slide 8).** Stalking, unsafe users, no-shows, empty city: what's in the build, what's production path, how we validate.
@@ -35,7 +35,7 @@ No filmed video required. If made, it is a screen recording of the two simulator
 | 14–24 s | Plan card on phone A | "The app proposes one concrete plan nearby." |
 | 24–32 s | Both phones turn "you're both in" | "It's on only when both say yes." |
 | 32–44 s | Compass, cold → burning | "A compass walks you to each other. A bearing, never a location." |
-| 44–50 s | "you found each other" | "Then do it again. Friendship takes ~50 hours. (Hall, 2018)" |
+| 44–50 s | "Say hi to Ola." | "Then do it again. Friendship takes ~50 hours. (Hall, 2018)" |
 | 50–60 s | Cover image | "JustMate: Meet For Real · github.com/uteg-labs/just-mate" |
 
 ## Demo-mode reality (Tauron Arena)

@@ -1,8 +1,18 @@
 # T04 — Model architecture
 
 > **Status: original hackathon spec, kept for history.** It was not built as written: the modules, file names and architecture here don't match `ml/`. Actual modules are listed at the top of [`../PLAN.md`](../PLAN.md); the current design is [`docs/ML-MATCHING.md`](../../ML-MATCHING.md).
+>
+> **As built (current code, summary — full detail in `docs/ML-MATCHING.md` §3):**
+> - `train_experiments_v3.py` defines the architecture inline (within the training script). There is no `model/encoder.py` / `model/head.py` / `model/siamese.py` module split; the encoder is `SharedEncoder` and the head is `MatchHead`, both as top-level classes in the training script.
+> - Shared Encoder: `Linear(1536, 256) → LayerNorm → ReLU → Linear(256, 128) → LayerNorm → L2-norm`. Same weights applied to both `self_emb` and `target_emb`. The sweeps try other widths.
+> - Match Head (v3, asymmetric): `[z_t − z_s, z_t ⊙ z_s, cos(z_t, z_s)]` → 257-d, plus an optional `soft_jacc` (1-d, v3 only) → 258-d, then `Linear(258, 128) → ReLU → Linear(128, 32) → ReLU → Linear(32, 1)` → logit → sigmoid.
+> - v2 (older, kept for ablation): symmetric features `[abs(z_t − z_s), z_t ⊙ z_s, cos]` → 257-d, same MLP head. 2-input ONNX (`target_emb`, `self_emb`).
+> - v3 (current, not published yet): asymmetric features, `soft_jacc` side feature, bidirectional BCE term in the loss. 3-input ONNX (`target_emb`, `self_emb`, `soft_jacc`).
+> - The model is exported to ONNX in the training script's tail (`scripts/train_experiments_v2.py`, `train_experiments_v3.py`); the scorer is `ml/scripts/match_scorer.py` (NDJSON, dev) or `ml/scripts/match_scorer_server.py` (HTTP, production).
+>
+> The TDLR below remains for history.
 
-**Goal:** PyTorch modules for Shared Encoder (1536→128) and Match Head (257→1), wrapped in a joint `SiameseCompatModel`.
+**Goal (original):** PyTorch modules for Shared Encoder (1536→128) and Match Head (257→1), wrapped in a joint `SiameseCompatModel`.
 
 **Time:** 30 min.
 

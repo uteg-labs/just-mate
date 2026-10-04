@@ -1,4 +1,4 @@
-// Renders half-size stills for quick review: node scripts/stills.mjs Launch55 0 120 480
+// Renders half-size stills for quick review: node scripts/stills.mjs Main 0 120 480
 
 import { mkdirSync } from "node:fs"
 import path from "node:path"

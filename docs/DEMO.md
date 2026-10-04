@@ -24,19 +24,9 @@ Structure from the HackYeah workshop "Pitch Like an Architect": **Problem → Us
 
 **Words we use:** loneliness, social connection, the step out of the door. **Words we never use:** "cure", "antidote", "treats depression", "therapy", "mental-health app" (`PRODUCT.md` §3.1). Never say a number without its source.
 
-## Launch video (60 s, optional)
+## Launch video
 
-No filmed video required. If made, it is a screen recording of the two simulators plus the deck, English captions, no voice-over needed.
-
-| Time | Picture | On-screen text |
-|---|---|---|
-| 0–8 s | Slide 2 numbers | "1 in 6 people are affected by loneliness. (WHO, 2025)" |
-| 8–14 s | Slide 3 | "The hard part is the step out of the door." |
-| 14–24 s | Plan card on phone A | "The app proposes one concrete plan nearby." |
-| 24–32 s | Both phones turn "you're both in" | "It's on only when both say yes." |
-| 32–44 s | Compass, cold → burning | "A compass walks you to each other. A bearing, never a location." |
-| 44–50 s | "Say hi to Ola." | "Then do it again. Friendship takes ~50 hours. (Hall, 2018)" |
-| 50–60 s | Cover image | "JustMate: Meet For Real · github.com/uteg-labs/just-mate" |
+The film is the Remotion composition `Main` in `video/motion` (~54 s, voice-over and music; see `video/motion/README.md`). The use-case clips (`Tomek`, `Lucia`, …) are compositions in the same project, and `site/` plays them on the web page. Plan scenes that show a group table, status chips or a leave-at time are product vision, not the build.
 
 ## Demo-mode reality (Tauron Arena)
 
@@ -56,7 +46,7 @@ Run the Now demo instead: A picks **Mate → Sports → running**, both phones p
 
 - [ ] 5 full run-throughs with both phones, out loud, someone timing
 - [ ] One run-through *on the actual stage orientation* to confirm the arrow points at B, not off-stage
-- [ ] Plan time skip tested on both phones from a fresh plan; the plan turns **on** on both phones at the same moment
+- [ ] Plan time skip tested on both phones from a fresh plan; **you're both in** shows on both phones at the same moment
 - [ ] Both demo phones on the same Wi-Fi/hotspot as the laptop running the server; hotspot fallback tested
 - [ ] Fallback slide with screenshots of every demo step, in the deck appendix
 - [ ] Phones charged + brightness max + do-not-disturb OFF for the demo pair only
@@ -73,8 +63,8 @@ Run the Now demo instead: A picks **Mate → Sports → running**, both phones p
 - **"Cold start / empty rooms killed Sonar and Highlight."** → Plans need an order of magnitude less density than real-time matching: three or four compatible people within a ten-minute walk over two days, not two people in the same minute (`PRODUCT.md` §15). So a new city opens with plans; Now lights up as density grows. Plus density-first launches: one campus, one festival, venue partners.
 - **"Why not Timeleft or Meetup?"** → Timeleft proved strangers show up to a concrete plan, but it's fixed weekly slots, paid per seat, anywhere in the city. Meetup needs an organiser and a big room. We're walkable, free for the user, faceless, and the app does the organising.
 - **"Why not just happn?"** → happn is retrospective (who you passed 7 days ago), photo-first, chat-gated. We are real-time or planned, faceless, and end in a walk-up, not a chat.
-- **"Monetization?"** → Venues pay to fill off-peak tables (primary); JustMate+ for hosting your own plans and travel mode; event licensing. We rejected "five free connections, then pay": it would charge lonely people for the one thing they came for. Back-of-envelope for one city at 5,000 monthly active users: ~€820 running costs vs ~€2,200 revenue a month (estimates).
+- **"Monetization?"** → Venues pay to fill off-peak tables (primary); JustMate+ for travel mode and extra hosting (production path; Plan for later is free in the build); event licensing. We rejected "five free connections, then pay": it would charge lonely people for the one thing they came for. Back-of-envelope for one city at 5,000 monthly active users: ~€820 running costs vs ~€2,200 revenue a month (estimates).
 - **"RODO/GDPR?"** → Location is processed only inside active sessions with explicit consent, never persisted; a plan stores who is going, never where they are; no mood or health data; production path includes a DPIA. In the demo: test data only.
 - **"How good is the AI matching really?"** → An LLM interviews you and writes your vibe; matching and plan proposals use an explainable compatibility score we can show on a slide. A trained model exists in `ml/` but is not wired into the server, so we don't claim it on stage. Honest limit: before launch there are no real meetings to learn from, so any learned scoring model is trained on synthetic labels; real outcomes (met / same again / vanished) replace them in M1. **Under-the-hood (only if the jury leans technical):** a Siamese model with a shared encoder (`1536 → 256 → 128`) over two OpenAI `text-embedding-3-small` texts per person (who they are, who they want to meet), and a match head scoring one person's target against the other's self, trained with triplet + classification loss on synthetic data. Full pipeline in `docs/ML-MATCHING.md`.
-- **"How do you keep minors out of a faceless app?"** → Date has a blocking 18+ gate. Mate admits 16–17-year-olds, but the server only ever matches or groups them with each other, never with an adult. Production needs real age assurance before launch (M1), and plans run only at public venues.
+- **"How do you keep minors out of a faceless app?"** → Date has a blocking 18+ gate. Mate admits 16–17-year-olds, but the server only ever matches them with each other, never with an adult. Production needs real age assurance before launch (M1), and plans run only at public venues.
 - **"Isn't 'faces I like' biometric data?"** → Yes — which is why it is a production-path item behind a DPIA and two-sided explicit consent, not something the demo runs. Today the demo uses simulated vectors.

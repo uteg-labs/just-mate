@@ -55,11 +55,14 @@ Every leg of this mechanic is market-validated; nobody assembled it: happn prove
 - **ML (research, not wired into the server)** — `ml/` holds a PyTorch Siamese matching model trained on synthetic profiles and exported to ONNX. See [`ml/README.md`](ml/README.md) and [`docs/ML-MATCHING.md`](docs/ML-MATCHING.md).
 
 ```
-docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching, submission pack
+docs/            product definition, app structure, design system, protocol, pitch/demo scripts, ML matching
+docs/submission/ deck, whitepaper, cover and app screens for the submission
 mobile/          Expo dev-client app — auth, onboarding, map, plans, match card, compass, post-meet, settings
 server/          Bun + Elysia + Drizzle — auth, profile, onboarding LLM helpers, zones, matching, plans, compass relay
 packages/        @justmate/protocol — the PROTOCOL.md wire types, shared by mobile and server
 ml/              PyTorch Siamese matching model (synthetic data → train → eval → ONNX), standalone
+site/            public web page on Vercel — the film, use-case clips, waitlist
+video/           Remotion film and clips (motion/), app design prototype
 ```
 
 ## Run
@@ -116,7 +119,7 @@ bun run lint && bun run typecheck && bun run test
 | LLM onboarding: questions, vibe line, character (with `OPENAI_API_KEY`) | Fixed sample questions and vibe lines when no key is set |
 | Zone glow from live positions | Demo-mode scripted positions (indoor GPS) |
 | Mutual match delivered live to both phones (WebSocket, in-app buzz) | The seeded venue list for Kraków |
-| Plans proposed from real profiles and free times, Accept plan, the go-ahead on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
+| Plans proposed from real profiles and free times, Accept plan, "you're both in" on both phones | Demo-mode plans start in 2 minutes so the compass can open on stage |
 | Explainable compatibility scoring ([`docs/PRODUCT.md`](docs/PRODUCT.md) §7) | |
 | Compass (device heading via expo-location), haptics, vanish, post-meet name and distance | "Same again next week?" and Report are local acknowledgements, labelled production path |
 

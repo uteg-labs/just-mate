@@ -152,7 +152,7 @@ The model only scores pairs that already passed these:
 | Gate | Where | Rule |
 |---|---|---|
 | Both in search mode | server | `session.state == "searching"` for both |
-| Within walking range | server | `haversine(self, candidate) <= R_MATCH` (400 m) — **not** same geohash cell: a geohash-6 cell is ~1.2 km wide and its boundaries split neighbours (`PRODUCT.md` §7) |
+| Within walking range | server | `haversine(self, candidate) <= R_MATCH` (800 m by default: the shorter of both "walk up to" settings, 5 / 10 / 15 min → 400 / 800 / 1200 m) — **not** same geohash cell: a geohash-6 cell is ~1.2 km wide and its boundaries split neighbours (`PRODUCT.md` §7) |
 | Shared active intent | server | `len(session.intents ∩ candidate.session.intents) >= 1` (intents are per session, not per profile) |
 | K-anonymity | server | `count_searching_in_zone >= K` (M0: K=1 demo, M1: K=3) — zone = geohash-6, display/anonymity unit only |
 | Pair cooldown | server | `now − last_offer_or_vanish(candidate) >= 5 min` |

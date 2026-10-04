@@ -69,8 +69,9 @@ export class ScorerHttp {
   private fetch(path: string, init: RequestInit): Promise<Response> {
     const ctrl = new AbortController()
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS)
-    return fetch(`${this.base}${path}`, { ...init, signal: ctrl.signal })
-      .finally(() => clearTimeout(timer))
+    return fetch(`${this.base}${path}`, { ...init, signal: ctrl.signal }).finally(() =>
+      clearTimeout(timer),
+    )
   }
 }
 
@@ -94,5 +95,5 @@ export async function getScorer(): Promise<ScorerHttp> {
 }
 
 export function pairThreshold(_config: Config): number {
-  return Number(process.env.MATCH_PAIR_THRESHOLD ?? 0.40)
+  return Number(process.env.MATCH_PAIR_THRESHOLD ?? 0.4)
 }

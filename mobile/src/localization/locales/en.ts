@@ -411,6 +411,8 @@ export const en = {
   },
   postmeet: {
     yourVibe: "your vibe",
+    icebreaker: "open with",
+    icebreakerLoading: "thinking of something to say…",
     found: "you found each other",
     title: "Go say hi.",
     sub: "You found each other. The rest is up to you.",

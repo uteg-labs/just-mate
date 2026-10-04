@@ -405,6 +405,8 @@ export const sk = {
   },
   postmeet: {
     yourVibe: "tvoj vibe",
+    icebreaker: "na rozbeh rozhovoru",
+    icebreakerLoading: "vymýšľam, čo povedať…",
     found: "našli ste sa",
     title: "Choď pozdraviť.",
     sub: "Našli ste sa. Zvyšok je na vás.",

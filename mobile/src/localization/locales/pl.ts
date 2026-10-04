@@ -438,6 +438,8 @@ export const pl = {
       beer_bar: "pub z piwem kraftowym",
       cinema: "kino",
       climbing_gym: "ścianka wspinaczkowa",
+      sports_centre: "centrum sportowe",
+      pool: "basen",
       riverside: "bulwar",
       rooftop_bar: "bar na dachu",
       park: "park",

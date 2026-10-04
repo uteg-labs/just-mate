@@ -438,6 +438,8 @@ export const en = {
       beer_bar: "craft beer bar",
       cinema: "cinema",
       climbing_gym: "climbing gym",
+      sports_centre: "sports centre",
+      pool: "swimming pool",
       riverside: "riverside",
       rooftop_bar: "rooftop bar",
       park: "park",

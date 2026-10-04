@@ -244,7 +244,7 @@ Venues are public places. They are the only coordinates a client ever receives.
 }
 ```
 
-`VENUE_KINDS`: `wine_bar` · `cafe` · `board_game_cafe` · `beer_bar` · `cinema` · `climbing_gym` · `riverside` · `rooftop_bar` · `park` · `restaurant` · `bowling` · `museum` · `jazz_club`.
+`VENUE_KINDS`: `wine_bar` · `cafe` · `board_game_cafe` · `beer_bar` · `cinema` · `climbing_gym` · `riverside` · `rooftop_bar` · `park` · `restaurant` · `bowling` · `museum` · `jazz_club` · `sports_centre` · `pool`.
 
 ### `Plan` — one recipient's view
 

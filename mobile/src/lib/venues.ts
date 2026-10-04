@@ -22,6 +22,8 @@ const KIND_ICON: Record<VenueKind, IconName> = {
   bowling: "gamepad-2",
   museum: "palette",
   jazz_club: "music",
+  sports_centre: "dumbbell",
+  pool: "waves",
 }
 
 let venues: Venue[] = []

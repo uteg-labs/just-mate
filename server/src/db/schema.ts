@@ -19,11 +19,24 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
+
+export const MATCH_STATES = [
+  "offered",
+  "active",
+  "met",
+  "expired",
+  "dismissed",
+  "vanished",
+  "disconnected",
+] as const
+export type MatchState = (typeof MATCH_STATES)[number]
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -187,6 +200,56 @@ export const profileEmbedding = pgTable("profile_embedding", {
   softJacc: real("soft_jacc"),
   updatedAt: timestamp("updatedAt", { withTimezone: true }).defaultNow().notNull(),
 })
+
+export const userMatchScore = pgTable(
+  "user_match_score",
+  {
+    userAId: text("userAId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    userBId: text("userBId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    scoreAToB: doublePrecision("scoreAToB").notNull(),
+    scoreBToA: doublePrecision("scoreBToA").notNull(),
+    score: doublePrecision("score").notNull(),
+    algorithmVersion: text("algorithmVersion").notNull(),
+    calculatedAt: timestamp("calculatedAt", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("user_match_score_userBId_idx").on(table.userBId),
+    primaryKey({ columns: [table.userAId, table.userBId] }),
+  ],
+)
+
+export const userMatch = pgTable(
+  "user_match",
+  {
+    id: text("id").primaryKey(),
+    userAId: text("userAId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    userBId: text("userBId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    sessionId: text("sessionId"),
+    mode: text("mode").$type<Mode>().notNull(),
+    category: text("category").notNull(),
+    intent: text("intent").$type<Intent>().notNull(),
+    compatibilityScore: doublePrecision("compatibilityScore").notNull(),
+    rankingScore: doublePrecision("rankingScore").notNull(),
+    algorithmVersion: text("algorithmVersion").notNull(),
+    state: text("state").$type<MatchState>().default("offered").notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("startedAt", { withTimezone: true }),
+    endedAt: timestamp("endedAt", { withTimezone: true }),
+  },
+  (table) => [
+    index("user_match_userAId_createdAt_idx").on(table.userAId, table.createdAt),
+    index("user_match_userBId_createdAt_idx").on(table.userBId, table.createdAt),
+    uniqueIndex("user_match_sessionId_uidx").on(table.sessionId),
+  ],
+)
 
 export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),

@@ -32,10 +32,43 @@ for (const [name, entry] of Object.entries(bundles)) {
 }
 cpSync(`${motion}/public`, out, { recursive: true })
 cpSync("static", out, { recursive: true })
+
+// the footer and the legal pages are rendered to plain HTML here, so they are in the served page
+const analytics = '<script defer src="/_vercel/insights/script.js"></script>'
+const prerender = `${out}/prerender.mjs`
+await build({
+  entryPoints: ["src/prerender.tsx"],
+  bundle: true,
+  format: "esm",
+  platform: "node",
+  jsx: "automatic",
+  packages: "external",
+  outfile: prerender,
+  logLevel: "warning",
+})
+const { allPages, footerHtml, pageHtml } = await import(`./${prerender}`)
+rmSync(prerender)
 writeFileSync(
   `${out}/index.html`,
-  readFileSync("static/index.html", "utf8").replaceAll("%ORIGIN%", origin),
+  readFileSync("static/index.html", "utf8")
+    .replaceAll("%ORIGIN%", origin)
+    .replace("%FOOT%", footerHtml("en"))
+    .replace("%ANALYTICS%", analytics),
 )
+for (const { lang, page } of allPages) {
+  const file = `${out}/${lang === "pl" ? "pl/" : ""}${page}.html`
+  mkdirSync(`${out}/pl`, { recursive: true })
+  writeFileSync(file, pageHtml(lang, page, origin, analytics))
+}
+const urls = [
+  "/",
+  ...allPages.map(({ lang, page }) => (lang === "pl" ? `/pl/${page}` : `/${page}`)),
+]
+writeFileSync(
+  `${out}/sitemap.xml`,
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${origin}${u}</loc></url>`).join("\n")}\n</urlset>\n`,
+)
+writeFileSync(`${out}/robots.txt`, `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`)
 for (const f of docs) {
   const from = `../docs/submission/${f}`
   if (existsSync(from)) cpSync(from, `${out}/${f}`)

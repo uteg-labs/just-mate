@@ -2,6 +2,7 @@ import { type FormEvent, Fragment, type SyntheticEvent, useEffect, useState } fr
 import { createRoot } from "react-dom/client"
 import { Clip, clips } from "./Clip"
 import { COPY, type Copy, LANGS, type Lang, LINKS, SHOTS, type Story, TEAM } from "./copy"
+import { Footer, SkipLink } from "./Footer"
 import { Glyph } from "./Glyph"
 import "./site.css"
 
@@ -427,19 +428,7 @@ const Join = ({ t, lang }: { t: Copy["join"]; lang: Lang }) => {
   )
 }
 
-const Footer = ({ t }: { t: Copy["footer"] }) => (
-  <footer className="foot">
-    <div className="wrap row">
-      <p className="brand">
-        <img src="favicon.svg" alt="" width={24} height={24} />
-        <span>JustMate</span>
-        <em>{t.tagline}</em>
-      </p>
-      <p>{t.built}</p>
-      <p className="help">{t.help}</p>
-    </div>
-  </footer>
-)
+const footRoot = createRoot(document.getElementById("foot") as HTMLElement)
 
 const App = () => {
   const [lang, setLang] = useState(initialLang)
@@ -447,6 +436,7 @@ const App = () => {
 
   useEffect(() => {
     document.documentElement.lang = lang
+    footRoot.render(<Footer lang={lang} />)
     document.title = t.meta.title
     document.querySelector('meta[name="description"]')?.setAttribute("content", t.meta.description)
     const url = new URL(location.href)
@@ -456,8 +446,9 @@ const App = () => {
 
   return (
     <>
+      <SkipLink lang={lang} />
       <Header t={t} lang={lang} setLang={setLang} />
-      <main>
+      <main id="main" tabIndex={-1}>
         <Hero t={t} lang={lang} />
         <Problem t={t.problem} />
         <Rules t={t.rules} />
@@ -474,7 +465,6 @@ const App = () => {
         <Demo t={t.demo} />
         <Join t={t.join} lang={lang} />
       </main>
-      <Footer t={t.footer} />
     </>
   )
 }

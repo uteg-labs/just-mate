@@ -16,6 +16,11 @@
     "format": "biome check --write .",
     "prepare": "git config core.hooksPath .githooks"
   },
+  "overrides": {
+    "node-forge": "^1.4.3",
+    "zod": "^4.6.7",
+    "decode-uri-component": "^0.5.1"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2"
   }

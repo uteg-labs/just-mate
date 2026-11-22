@@ -5,8 +5,10 @@ import { build } from "esbuild"
 
 const out = "dist"
 const motion = "../video/motion"
-const host = process.env.SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? ""
-const origin = host && !host.startsWith("http") ? `https://${host}` : host
+// canonical, hreflang and og:url always name the production origin, previews included
+const host =
+  process.env.SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "just-mate-site.vercel.app"
+const origin = host.startsWith("http") ? host : `https://${host}`
 const docs = ["JustMate-Deck.pdf", "JustMate-Whitepaper.pdf"]
 
 // aliased imports resolve from this folder, so ../video/motion/src shares our one react and remotion
@@ -32,10 +34,39 @@ for (const [name, entry] of Object.entries(bundles)) {
 }
 cpSync(`${motion}/public`, out, { recursive: true })
 cpSync("static", out, { recursive: true })
-writeFileSync(
-  `${out}/index.html`,
-  readFileSync("static/index.html", "utf8").replaceAll("%ORIGIN%", origin),
-)
+
+// prerender each language into its own page, so the html as served carries the content
+const ssr = `${out}/prerender.mjs`
+await build({
+  entryPoints: ["src/prerender.tsx"],
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  jsx: "automatic",
+  packages: "external",
+  // the tsconfig paths would pull react and remotion into the bundle; node resolves them instead
+  tsconfigRaw: "{}",
+  loader: { ".css": "empty" },
+  // the films' font loads in the browser; at build time it has no url to fetch
+  plugins: [
+    {
+      name: "no-fonts",
+      setup(b) {
+        b.onResolve({ filter: /^@remotion\/fonts$/ }, () => ({ path: "fonts", namespace: "stub" }))
+        b.onLoad({ filter: /.*/, namespace: "stub" }, () => ({
+          contents: "export const loadFont = () => Promise.resolve()",
+        }))
+      },
+    },
+  ],
+  outfile: ssr,
+  logLevel: "warning",
+})
+const { page, pages } = await import(`./${ssr}`)
+const template = readFileSync("static/index.html", "utf8")
+for (const { lang, file } of pages) writeFileSync(`${out}/${file}`, page(lang, origin, template))
+rmSync(ssr)
+
 for (const f of docs) {
   const from = `../docs/submission/${f}`
   if (existsSync(from)) cpSync(from, `${out}/${f}`)

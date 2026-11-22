@@ -1,0 +1,13 @@
+{
+  "name": "JustMate · Meet for real",
+  "short_name": "JustMate",
+  "start_url": "/",
+  "display": "browser",
+  "theme_color": "#FFF6EA",
+  "background_color": "#FAFAFA",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

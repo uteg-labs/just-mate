@@ -11,7 +11,6 @@ type Cue = { key: string; from: number; to: number }
 type Control = { listen: (e?: SyntheticEvent) => void; silence: () => void }
 
 const HOLD = 10
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches
 const said = durations as Record<string, number>
 
 // one clip speaks at a time; the hero button reaches its clip through here
@@ -65,8 +64,9 @@ export const Clip = ({
   const started = useRef(false)
   const near = useInView(box, 0, "600px")
   const seen = useInView(box, eager ? 0.2 : 0.5)
-  const [mounted, setMounted] = useState(eager)
-  const [held, setHeld] = useState(reduced)
+  // the page is prerendered: the player and the motion preference wait for the browser
+  const [mounted, setMounted] = useState(false)
+  const [held, setHeld] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [audible, setAudible] = useState(false)
   const [cue, setCue] = useState<string>()
@@ -88,8 +88,12 @@ export const Clip = ({
   )
 
   useEffect(() => {
-    if (near) setMounted(true)
-  }, [near])
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) setHeld(true)
+  }, [])
+
+  useEffect(() => {
+    if (eager || near) setMounted(true)
+  }, [eager, near])
 
   useEffect(() => {
     const p = player.current

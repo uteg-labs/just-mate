@@ -1,6 +1,8 @@
 # JustMate · site
 
-The public web page: the `Main` film as the hero, then one section per use case with its clip (Tomek, Lucía, Ania, Piotr), the business model, what's real in the demo and a waitlist. EN and PL (`?lang=pl`, or the browser language).
+The public web page: the `Main` film as the hero, then one section per use case with its clip (Tomek, Lucía, Ania, Piotr), the business model, what's real in the demo and a waitlist. EN at `/`, PL at `/pl`; a visitor whose browser asks for Polish (or who opens `?lang=pl`) is sent to `/pl`, and the switcher remembers the choice.
+
+`build.mjs` prerenders both pages (`src/prerender.tsx`, React's `renderToString`), so the HTML as served carries the copy, the canonical, hreflang, Open Graph and JSON-LD; `src/main.tsx` hydrates it in the browser.
 
 The films are the Remotion compositions from [`video/motion`](../video/motion), played in a `<Player>`: a clip starts muted when scrolled into view, shows the voiceover as captions, and one tap plays it from the start with sound. Only one clip speaks at a time.
 
@@ -20,7 +22,7 @@ bun run typecheck
 
 ## Deploy (Vercel)
 
-Import the repo with **Root Directory** `site`. Install, build and output come from `vercel.json`; files outside the root directory must stay included in the build (the Vercel default). Then add **Upstash for Redis** from the Vercel Marketplace to the project so `KV_REST_API_URL` and `KV_REST_API_TOKEN` are set. `SITE_URL` (optional) overrides the absolute URL used for the social card.
+Import the repo with **Root Directory** `site`. Install, build and output come from `vercel.json`; files outside the root directory must stay included in the build (the Vercel default). Then add **Upstash for Redis** from the Vercel Marketplace to the project so `KV_REST_API_URL` and `KV_REST_API_TOKEN` are set. `SITE_URL` (optional) overrides the production origin used for the canonical, hreflang, `og:url` and the social card; otherwise it is Vercel's production URL, on previews too.
 
 Read the list:
 

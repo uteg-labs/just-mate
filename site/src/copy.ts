@@ -8,7 +8,10 @@ export const LINKS = {
   deck: "JustMate-Deck.pdf",
   whitepaper: "JustMate-Whitepaper.pdf",
   youtube: "https://www.youtube.com/@JustMateApp",
+  contact: "https://github.com/uteg-labs/just-mate/issues",
 }
+
+export const HOME: Record<Lang, string> = { en: "/", pl: "/pl" }
 
 export const TEAM = [
   "Arthur Kozubov",
@@ -37,7 +40,7 @@ const en = {
   meta: {
     title: "JustMate · Meet for real",
     description:
-      "For anyone lonely in a city. JustMate makes a small plan near you with someone who fits, and it is on only when you are both in. Already out? It walks you to someone compatible right now.",
+      "For anyone lonely in a city: JustMate makes a small plan near you with someone who fits. Already out? It walks you to someone compatible right now.",
   },
   nav: {
     how: "How it works",
@@ -55,7 +58,7 @@ const en = {
   },
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
-    title: "Meet for real.",
+    title: "An app that gets you out to meet someone who fits.",
     lead: "For anyone lonely in a city. JustMate makes a small plan near you with someone who fits, and it's on only when you're both in. Already out? It walks you to someone compatible right now.",
     join: "Join the waitlist",
     watch: "Watch with sound · 54 s",
@@ -357,7 +360,8 @@ const en = {
   footer: {
     tagline: "Meet for real.",
     built: "Built at HackYeah 2026, TAURON Arena Kraków",
-    help: "Need to talk to someone? In Poland, call 116 123.",
+    contact: "Contact us on GitHub",
+    help: "Need to talk to someone? In Poland, call",
   },
 }
 
@@ -367,7 +371,7 @@ const pl: Copy = {
   meta: {
     title: "JustMate · Spotkaj kogoś naprawdę",
     description:
-      "Dla wszystkich, którym w nowym mieście doskwiera samotność. JustMate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
+      "Dla tych, którym w mieście doskwiera samotność: JustMate układa mały plan w pobliżu z kimś, kto pasuje. Już jesteś na mieście? Zaprowadzi cię do kogoś od razu.",
   },
   nav: {
     how: "Jak to działa",
@@ -385,7 +389,7 @@ const pl: Copy = {
   },
   hero: {
     eyebrow: "HackYeah 2026 · Kraków",
-    title: "Spotkaj kogoś naprawdę.",
+    title: "Aplikacja, która wyciąga cię z domu na spotkanie z kimś, kto pasuje.",
     lead: "Dla wszystkich, którym w nowym mieście doskwiera samotność. JustMate układa mały plan w pobliżu z kimś, kto do ciebie pasuje, i plan rusza dopiero, gdy oboje go przyjmiecie. Już jesteś na mieście? Zaprowadzi cię do kogoś pasującego od razu.",
     join: "Zapisz się na listę",
     watch: "Obejrzyj z dźwiękiem · 54 s",
@@ -687,7 +691,8 @@ const pl: Copy = {
   footer: {
     tagline: "Spotkaj kogoś naprawdę.",
     built: "Zbudowane na HackYeah 2026, TAURON Arena Kraków",
-    help: "Potrzebujesz z kimś porozmawiać? W Polsce zadzwoń pod 116 123.",
+    contact: "Kontakt: napisz do nas na GitHubie",
+    help: "Potrzebujesz z kimś porozmawiać? W Polsce zadzwoń pod",
   },
 }
 

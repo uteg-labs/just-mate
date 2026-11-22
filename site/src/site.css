@@ -274,18 +274,16 @@ section {
   background: var(--tint);
 }
 
-.langs button {
-  border: 0;
-  background: transparent;
+.langs a {
   color: var(--fg2);
   font: 600 12.5px / 1 var(--mono);
   letter-spacing: 0.06em;
+  text-decoration: none;
   padding: 8px 10px;
   border-radius: 999px;
-  cursor: pointer;
 }
 
-.langs button[aria-pressed="true"] {
+.langs a[aria-current="page"] {
   background: var(--white);
   color: var(--fg);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);

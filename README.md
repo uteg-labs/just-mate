@@ -1,3 +1,5 @@
+![JustMate: meet for real](.github/banner.svg)
+
 # JustMate
 
 **Meet for real.** Lonely people don't need another feed. They need a plan, a person who fits, and certainty that someone will be there. JustMate proposes one concrete plan nearby with a compatible person, or pings two compatible people who are already out, and a compass walks them to each other.

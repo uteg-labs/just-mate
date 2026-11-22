@@ -80,11 +80,11 @@ export const Clip = ({
   const props = useMemo<VideoProps>(
     () => ({
       voice: true,
-      music: true,
+      music: audible,
       sfx: true,
       musicSrc: `audio/music-${id.toLowerCase()}.mp3`,
     }),
-    [id],
+    [id, audible],
   )
 
   useEffect(() => {

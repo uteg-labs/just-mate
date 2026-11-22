@@ -1,0 +1,19 @@
+# JustMate
+
+> JustMate ("Meet for real") is an app that gets lonely people out of the door and in front of someone compatible: a small plan near you with one person, or a walk to someone nearby right now. No faces, no chat. Built by a team at HackYeah 2026 (Kraków).
+
+How it works: you build a faceless profile once (Mate or Date, interests, a few short questions). Plan proposes one concrete plan nearby with a compatible person and you only say yes. Now pings two compatible people who are already out, and a compass walks them to each other. Others see only a vibe badge, never a photo, and the map shows zones, never a person's position.
+
+## Pages
+
+- [Home](%SITE%/): the film, use-case clips, how it works, safety and the waitlist
+- [Home in Polish](%SITE%/?lang=pl): the same page in Polish
+
+## Documents
+
+- [Deck (PDF)](%SITE%/JustMate-Deck.pdf): the product in slides
+- [Whitepaper (PDF)](%SITE%/JustMate-Whitepaper.pdf): the problem, the matching model and the privacy design
+
+## Source
+
+- [Repository](https://github.com/uteg-labs/just-mate): app, server, matching model and this site

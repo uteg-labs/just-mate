@@ -7,6 +7,7 @@ const out = "dist"
 const motion = "../video/motion"
 const host = process.env.SITE_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL ?? ""
 const origin = host && !host.startsWith("http") ? `https://${host}` : host
+const site = origin || "https://just-mate-site.vercel.app"
 const docs = ["JustMate-Deck.pdf", "JustMate-Whitepaper.pdf"]
 
 // aliased imports resolve from this folder, so ../video/motion/src shares our one react and remotion
@@ -36,6 +37,18 @@ writeFileSync(
   `${out}/index.html`,
   readFileSync("static/index.html", "utf8").replaceAll("%ORIGIN%", origin),
 )
+const expires = new Date()
+expires.setUTCMonth(expires.getUTCMonth() + 11)
+const vars = {
+  "%SITE%": site,
+  "%DATE%": new Date().toISOString().slice(0, 10),
+  "%EXPIRES%": expires.toISOString(),
+}
+for (const f of ["robots.txt", "sitemap.xml", "llms.txt", ".well-known/security.txt"]) {
+  let text = readFileSync(`static/${f}`, "utf8")
+  for (const [k, v] of Object.entries(vars)) text = text.replaceAll(k, v)
+  writeFileSync(`${out}/${f}`, text)
+}
 for (const f of docs) {
   const from = `../docs/submission/${f}`
   if (existsSync(from)) cpSync(from, `${out}/${f}`)

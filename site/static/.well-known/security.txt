@@ -1,0 +1,4 @@
+Contact: https://github.com/uteg-labs/just-mate/security/advisories/new
+Expires: %EXPIRES%
+Preferred-Languages: en, pl
+Canonical: %SITE%/.well-known/security.txt
